@@ -15,7 +15,20 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
 
-  # Frontend Service
+  # Frontend Service (using the Dockerfile in the frontend directory)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile # Pointing to the Dockerfile in the frontend root
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/mydb
+      - AUTH_SECRET=vW+0xgP4aOp793Nq1/JqSu9LZW0i/LJhzzF7y5PFbA4=
+    depends_on:
+      - db
 
 volumes:
   pg_data:
