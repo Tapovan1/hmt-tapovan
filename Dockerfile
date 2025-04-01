@@ -1,20 +1,38 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+# Define the builder stage
+FROM node:18-alpine AS builder
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
-# Copy all project files to /app
+# Copy all the files
 COPY . .
 
-# Expose port 3000 for Next.js
+RUN npx prisma generate
+
+
+# Build the Next.js app
+RUN npm run build
+
+# Use the official Node.js 18 image for the production stage
+FROM node:18-alpine AS production
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built files from the builder stage
+COPY --from=builder /app ./
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Expose the port the app runs on
 EXPOSE 3000
 
-# Run Next.js in development mode
-CMD ["npm", "run", "dev"]
+# Start the Next.js app
+CMD ["npm", "start"]
