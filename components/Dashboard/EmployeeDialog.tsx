@@ -174,8 +174,10 @@ const EmploteeDialog = () => {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="TEACHER">TEACHER</SelectItem>
+                      <SelectItem value="TEACHERE">TEACHERE</SelectItem>
+                      <SelectItem value="ADMIN">ADMIN</SelectItem>
+                      <SelectItem value="SUPERADMIN">SUPERADMIN</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
