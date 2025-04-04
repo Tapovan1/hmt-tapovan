@@ -28,7 +28,7 @@ const SuperadminItems = [
   {
     title: "History",
     icon: History,
-    href: "/history",
+    href: "/ahistory",
   },
   {
     title: "Mark Absent",

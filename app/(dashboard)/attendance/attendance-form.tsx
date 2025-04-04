@@ -6,7 +6,11 @@ import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { WorkSchedule } from "@/lib/types/work-schedule";
 import { isWithinAllowedTime } from "@/lib/isWithinTime";
-import { markAttendance, markCheckOut } from "@/lib/action/attendance.action";
+import {
+  markAttendance,
+  markCheckOut,
+  validateLocation,
+} from "@/lib/action/attendance.action";
 import { toast } from "sonner";
 import { formatTimeTo12Hour } from "@/lib/utils/date-format";
 
@@ -27,6 +31,12 @@ export default function AttendanceForm({
   const [workSchedule] = useState<WorkSchedule>(initialWorkSchedule);
   const [isAllowedTime, setIsAllowedTime] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isLocationValid, setIsLocationValid] = useState<boolean>(false);
 
   useEffect(() => {
     const checkAllowedTime = () => {
@@ -47,6 +57,47 @@ export default function AttendanceForm({
     }
   }, [stream]);
 
+  useEffect(() => {
+    // Get user's location when component mounts
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const userLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+
+          console.log("user-location", userLocation);
+
+          setLocation(userLocation);
+          setLocationError(null);
+
+          // Validate location
+          try {
+            const validation = await validateLocation(
+              userLocation.latitude,
+              userLocation.longitude
+            );
+            setIsLocationValid(validation.success);
+            if (!validation.success) {
+              setLocationError(validation.message);
+            }
+          } catch {
+            setLocationError("Failed to validate location. Please try again.");
+          }
+        },
+        (error) => {
+          setLocationError(
+            "Unable to retrieve your location. Please enable location services."
+          );
+          console.error("Error getting location:", error);
+        }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by your browser.");
+    }
+  }, []);
+
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -66,6 +117,9 @@ export default function AttendanceForm({
       setIsRecording(true);
     } catch (error) {
       console.error("Error accessing camera:", error);
+      toast.error(
+        "Failed to access camera. Please check your camera permissions."
+      );
     }
   };
 
@@ -94,16 +148,26 @@ export default function AttendanceForm({
   const handleAttendance = async (type: "check-in" | "check-out") => {
     setLoading(true);
     if (!isAllowedTime) {
-      toast("Attendance marking is only allowed during scheduled hours.");
+      toast.error("Attendance marking is only allowed during scheduled hours.");
+      setLoading(false);
+      return;
+    }
+
+    if (!location) {
+      toast.error("Location is required to mark attendance.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isLocationValid) {
+      toast.error("You are not within the allowed location range.");
       setLoading(false);
       return;
     }
 
     const photo = capturePhoto();
     if (!photo) {
-      toast("Failed to capture photo. Please try again.", {
-        description: "Failed to capture photo. Please try again.",
-      });
+      toast.error("Failed to capture photo. Please try again.");
       setLoading(false);
       return;
     }
@@ -111,21 +175,31 @@ export default function AttendanceForm({
     try {
       const data =
         type === "check-in"
-          ? await markAttendance({ photo })
-          : await markCheckOut({ photo });
+          ? await markAttendance({
+              photo,
+              latitude: location.latitude,
+              longitude: location.longitude,
+            })
+          : await markCheckOut({
+              photo,
+              latitude: location.latitude,
+              longitude: location.longitude,
+            });
 
       if (data.sucess) {
-        toast(
+        toast.success(
           type === "check-in"
             ? "Check-in marked successfully!"
             : "Check-out marked successfully!"
         );
-        window.location.reload(); // Refresh to update status
+        window.location.reload();
       } else {
-        toast(data.message || "Failed to mark attendance. Please try again.");
+        toast.error(
+          data.message || "Failed to mark attendance. Please try again."
+        );
       }
     } catch {
-      toast("Failed to mark attendance. Please try again.");
+      toast.error("Failed to mark attendance. Please try again.");
     } finally {
       stopCamera();
       setLoading(false);
@@ -163,11 +237,23 @@ export default function AttendanceForm({
               </div>
             )}
           </div>
+
+          {locationError && (
+            <p className="mt-4 text-center text-red-500">{locationError}</p>
+          )}
+
+          {location && !locationError && (
+            <p className="mt-4 text-center text-green-500">
+              Location: {location.latitude.toFixed(6)},{" "}
+              {location.longitude.toFixed(6)}
+            </p>
+          )}
+
           <div className="mt-4 flex justify-center space-x-4">
             {!isRecording ? (
               <Button
                 onClick={startCamera}
-                disabled={!isAllowedTime || hasCheckedOut}
+                disabled={!isAllowedTime || hasCheckedOut || !isLocationValid}
               >
                 Start Camera
               </Button>
@@ -180,7 +266,7 @@ export default function AttendanceForm({
                   onClick={() =>
                     handleAttendance(hasCheckedIn ? "check-out" : "check-in")
                   }
-                  disabled={loading || !isAllowedTime}
+                  disabled={loading || !isAllowedTime || !isLocationValid}
                 >
                   {loading
                     ? "Loading..."
@@ -191,6 +277,7 @@ export default function AttendanceForm({
               </>
             )}
           </div>
+
           {!isAllowedTime && (
             <p className="mt-4 text-center text-red-500">
               Attendance marking is only allowed during scheduled hours:
