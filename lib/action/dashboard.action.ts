@@ -11,7 +11,6 @@ export const getDashboardStats = async (
 ) => {
   console.log("Fetching dashboard stats for", userId, month, year);
 
-  // Fallback to current month and year if not provided
   const currentDate = new Date();
   const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // Month is 0-based in Date.UTC
   const selectedYear = year || currentDate.getUTCFullYear();
@@ -21,15 +20,11 @@ export const getDashboardStats = async (
     Date.UTC(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999)
   ); // Correct end of the month
 
-  console.log("Month start", monthStart);
-  console.log("Month end", monthEnd);
-
   // Today's date formatted correctly
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
   const formattedIndianDate = new Date(indianDateString);
-  console.log("Formatted Indian date", formattedIndianDate);
 
   // Get today's attendance
   const todayAttendance = await prisma.attendance.findFirst({
@@ -67,10 +62,7 @@ export const getDashboardStats = async (
     (a: { status: string }) => a.status === "ABSENT"
   ).length;
 
-  console.log("monthlyAttendance", monthlyAttendance);
-
   const totalWorkHours = calculateMonthlyWorkHours(monthlyAttendance);
-  console.log("Total work hours", totalWorkHours);
 
   // Get recent attendance records
   const recentAttendance = await prisma.attendance.findMany({
@@ -99,11 +91,10 @@ export const getDashboardStats = async (
 
 // Include month and year in the cache key
 
-export async function getAdminDashboardStats(month?: number, year?: number) {
+export async function getAdminDashboardStats() {
   const today = new Date();
   const startOfToday = startOfDay(today);
   const endOfToday = endOfDay(today);
-  console.log("Fetching admin dashboard stats for", month, year);
 
   const totalEmployees = await prisma.user.count({
     where: {
@@ -117,7 +108,7 @@ export async function getAdminDashboardStats(month?: number, year?: number) {
 
   const todayAttendance = await prisma.attendance.findMany({
     where: {
-      date: new Date(),
+      date: today,
     },
   });
 

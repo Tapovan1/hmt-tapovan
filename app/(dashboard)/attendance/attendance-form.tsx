@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { WorkSchedule } from "@/lib/types/work-schedule";
+import type { WorkSchedule } from "@/lib/types/work-schedule";
 import { isWithinAllowedTime } from "@/lib/isWithinTime";
 import {
   markAttendance,
@@ -59,43 +59,80 @@ export default function AttendanceForm({
 
   useEffect(() => {
     // Get user's location when component mounts
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
+    let isMounted = true;
+
+    const getAndValidateLocation = async () => {
+      if (navigator.geolocation) {
+        try {
+          // First set the component state to loading
+          setLoading(true);
+
+          // Get position as a promise
+          const position = await new Promise<GeolocationPosition>(
+            (resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+              });
+            }
+          );
+
+          if (!isMounted) return;
+
           const userLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           };
 
           console.log("user-location", userLocation);
-
           setLocation(userLocation);
           setLocationError(null);
 
+          // Set a timeout to show loading for at least 500ms to avoid UI flicker
+          const startTime = Date.now();
+          const minLoadingTime = 500; // ms
+
           // Validate location
-          try {
-            const validation = await validateLocation(
-              userLocation.latitude,
-              userLocation.longitude
-            );
-            setIsLocationValid(validation.success);
-            if (!validation.success) {
-              setLocationError(validation.message);
-            }
-          } catch {
-            setLocationError("Failed to validate location. Please try again.");
+          const validation = await validateLocation(
+            userLocation.latitude,
+            userLocation.longitude
+          );
+
+          if (!isMounted) return;
+
+          setIsLocationValid(validation.success);
+          if (!validation.success) {
+            setLocationError(validation.message);
           }
-        },
-        (error) => {
+
+          // Ensure we show loading for at least minLoadingTime
+          const elapsedTime = Date.now() - startTime;
+          const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+          setTimeout(() => {
+            if (isMounted) setLoading(false);
+          }, remainingTime);
+        } catch (error) {
+          if (!isMounted) return;
           setLocationError(
             "Unable to retrieve your location. Please enable location services."
           );
           console.error("Error getting location:", error);
+          setLoading(false);
         }
-      );
-    } else {
-      setLocationError("Geolocation is not supported by your browser.");
-    }
+      } else {
+        if (!isMounted) return;
+        setLocationError("Geolocation is not supported by your browser.");
+        setLoading(false);
+      }
+    };
+
+    getAndValidateLocation();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const startCamera = async () => {
@@ -155,12 +192,6 @@ export default function AttendanceForm({
 
     if (!location) {
       toast.error("Location is required to mark attendance.");
-      setLoading(false);
-      return;
-    }
-
-    if (!isLocationValid) {
-      toast.error("You are not within the allowed location range.");
       setLoading(false);
       return;
     }
@@ -238,26 +269,106 @@ export default function AttendanceForm({
             )}
           </div>
 
-          {locationError && (
-            <p className="mt-4 text-center text-red-500">{locationError}</p>
+          {location && (
+            <div className="mt-4 text-center">
+              <p>
+                Location: {location.latitude.toFixed(6)},{" "}
+                {location.longitude.toFixed(6)}
+              </p>
+              {loading ? (
+                <p className="text-amber-500">Validating location...</p>
+              ) : isLocationValid ? (
+                <p className="text-green-500">✓ Location validated</p>
+              ) : (
+                <p className="text-red-500">✗ Location invalid</p>
+              )}
+            </div>
           )}
 
-          {location && !locationError && (
-            <p className="mt-4 text-center text-green-500">
-              Location: {location.latitude.toFixed(6)},{" "}
-              {location.longitude.toFixed(6)}
-            </p>
+          {locationError && (
+            <p className="mt-2 text-center text-red-500">{locationError}</p>
           )}
 
           <div className="mt-4 flex justify-center space-x-4">
-            {!isRecording ? (
+            {!isRecording && (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  setLoading(true);
+
+                  if (navigator.geolocation) {
+                    try {
+                      const position = await new Promise<GeolocationPosition>(
+                        (resolve, reject) => {
+                          navigator.geolocation.getCurrentPosition(
+                            resolve,
+                            reject,
+                            {
+                              enableHighAccuracy: true,
+                              timeout: 10000,
+                              maximumAge: 0,
+                            }
+                          );
+                        }
+                      );
+
+                      const userLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                      };
+
+                      setLocation(userLocation);
+                      setLocationError(null);
+
+                      const startTime = Date.now();
+                      const minLoadingTime = 500; // ms
+
+                      const validation = await validateLocation(
+                        userLocation.latitude,
+                        userLocation.longitude
+                      );
+
+                      setIsLocationValid(validation.success);
+                      if (!validation.success) {
+                        setLocationError(validation.message);
+                      } else {
+                        toast.success("Location validated successfully");
+                      }
+
+                      // Ensure we show loading for at least minLoadingTime
+                      const elapsedTime = Date.now() - startTime;
+                      const remainingTime = Math.max(
+                        0,
+                        minLoadingTime - elapsedTime
+                      );
+
+                      setTimeout(() => {
+                        setLoading(false);
+                      }, remainingTime);
+                    } catch (error) {
+                      console.error("Error refreshing location:", error);
+                      setLocationError(
+                        "Failed to refresh location. Please try again."
+                      );
+                      setLoading(false);
+                    }
+                  }
+                }}
+                disabled={loading}
+                className="mr-2"
+              >
+                {loading ? "Validating..." : "Refresh Location"}
+              </Button>
+            )}
+            {!isRecording && (
               <Button
                 onClick={startCamera}
                 disabled={!isAllowedTime || hasCheckedOut || !isLocationValid}
               >
                 Start Camera
               </Button>
-            ) : (
+            )}
+            {isRecording && (
               <>
                 <Button variant="destructive" onClick={stopCamera}>
                   Cancel

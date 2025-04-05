@@ -24,33 +24,16 @@ export async function getDepartments() {
 }
 
 // Get schedules by department
-export async function getSchedulesByDepartment(department: string) {
-  try {
-    const schedule = await prisma.workSchedule.findFirst({
-      where: {
-        department,
-      },
-      orderBy: { createdAt: "asc" },
-      select: {
-        startTime: true,
-        endTime: true,
-        graceMinutes: true,
-        workDays: true,
-        saturdayStartTime: true,
-        saturdayEndTime: true,
-        saturdayGraceMinutes: true,
-      },
-    });
+export const getSchedulesByDepartment = async (department: string) => {
+  // Find department-specific schedule
+  const departmentSchedule = await prisma.workSchedule.findFirst({
+    where: {
+      department,
+    },
+  });
 
-    return schedule;
-  } catch (error) {
-    console.error(
-      `Error fetching schedule for department ${department}:`,
-      error
-    );
-    return null;
-  }
-}
+  return departmentSchedule;
+};
 
 // Get all schedules
 export async function getGlobalSchedules() {
@@ -146,54 +129,21 @@ export async function createSchedule(data: {
   endTime: string;
   workDays: number[];
   graceMinutes: number;
-  isGlobal: boolean;
-  isDefault: boolean;
-  saturdaySchedule?: {
-    startTime: string;
-    endTime: string;
-    graceMinutes: number;
-  } | null;
+  saturdayStartTime?: string | null;
+  saturdayEndTime?: string | null;
+  saturdayGraceMinutes?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationRadius?: number | null;
 }) {
   try {
-    // If this schedule is set as default, unset any existing defaults
-    if (data.isDefault) {
-      if (data.department) {
-        await prisma.workSchedule.updateMany({
-          where: {
-            isDefault: true,
-            department: data.department,
-          },
-          data: { isDefault: false },
-        });
-      } else {
-        await prisma.workSchedule.updateMany({
-          where: { isDefault: true },
-          data: { isDefault: false },
-        });
-      }
-    }
-
-    // Remove saturdaySchedule and id from data
-    const { saturdaySchedule, id, ...restData } = data;
-
     const schedule = await prisma.workSchedule.create({
       data: {
-        ...restData,
-        ...(saturdaySchedule
-          ? {
-              saturdayStartTime: saturdaySchedule.startTime,
-              saturdayEndTime: saturdaySchedule.endTime,
-              saturdayGraceMinutes: saturdaySchedule.graceMinutes,
-            }
-          : {
-              saturdayStartTime: null,
-              saturdayEndTime: null,
-              saturdayGraceMinutes: null,
-            }),
+        ...data,
       },
     });
 
-    revalidatePath("/admin/settings");
+    revalidatePath("/settings");
 
     return {
       success: true,
@@ -217,11 +167,12 @@ export async function updateSchedule(data: {
   endTime: string;
   workDays: number[];
   graceMinutes: number;
-  isGlobal: boolean;
-  isDefault: boolean;
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationRadius?: number | null;
 }) {
   try {
     const { id, ...updateData } = data;
@@ -238,34 +189,12 @@ export async function updateSchedule(data: {
       };
     }
 
-    // If this schedule is set as default, unset any existing defaults
-    if (updateData.isDefault) {
-      if (updateData.department) {
-        await prisma.workSchedule.updateMany({
-          where: {
-            isDefault: true,
-            department: updateData.department,
-            id: { not: id },
-          },
-          data: { isDefault: false },
-        });
-      } else {
-        await prisma.workSchedule.updateMany({
-          where: {
-            isDefault: true,
-            id: { not: id },
-          },
-          data: { isDefault: false },
-        });
-      }
-    }
-
     const schedule = await prisma.workSchedule.update({
       where: { id },
       data: updateData,
     });
 
-    revalidatePath("/admin/settings");
+    revalidatePath("/settings");
 
     return {
       success: true,
@@ -402,14 +331,12 @@ export async function updateGlobalSchedule(data: {
         id: existingGlobal.id,
         name: existingGlobal.name || "Global Schedule",
         department: existingGlobal.department,
-        isDefault: existingGlobal.isDefault,
       });
     } else {
       return createSchedule({
         ...data,
         name: "Global Schedule",
         department: null,
-        isDefault: true,
       });
     }
   } catch (error) {

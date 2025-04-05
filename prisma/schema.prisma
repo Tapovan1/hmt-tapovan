@@ -47,21 +47,24 @@ model Attendance {
 }
 
 model WorkSchedule {
-  id                  String    @id @default(cuid())
-  name                String    
-  department          String?   
-  startTime           String    // Format: HH:mm
-  endTime             String    // Format: HH:mm
-  workDays            Int[]     // 0-6 representing Sunday-Saturday
-  graceMinutes        Int       @default(30)
-  isGlobal            Boolean   @default(false)
-  isDefault           Boolean   @default(false)
-  // New fields for Saturday schedule
-  saturdayStartTime   String?   // Format: HH:mm
-  saturdayEndTime     String?   // Format: HH:mm
+  id                    String   @id @default(cuid())
+  name                  String
+  department            String?
+  startTime            String
+  endTime              String
+  graceMinutes         Int
+  workDays             Int[]
+  isGlobal             Boolean  @default(false)
+  isDefault            Boolean  @default(false)
+  saturdayStartTime    String?
+  saturdayEndTime      String?
   saturdayGraceMinutes Int?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  // Add location fields
+  latitude             Float?
+  longitude            Float?
+  locationRadius       Float?
   // Relations
   users               User[]
   attendances         Attendance[]

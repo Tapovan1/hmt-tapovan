@@ -167,44 +167,64 @@ export const getAttendance = async (user: { id: string }) => {
 };
 
 export async function validateLocation(latitude: number, longitude: number) {
-  const user = await getUser();
+  try {
+    const user = await getUser();
 
-  if (!user?.department) {
-    throw new Error("Department is required to validate location");
-  }
+    if (!user?.department) {
+      return {
+        success: false,
+        message: "Department is required to validate location",
+      };
+    }
 
-  // Get allowed location from environment variables
-  const allowedLocation = process.env.LOCATION;
-  if (!allowedLocation) {
+    // Get schedule for the department
+    const schedule = await getSchedulesByDepartment(user.department);
+
+    if (!schedule) {
+      return {
+        success: false,
+        message: "No schedule found for your department",
+      };
+    }
+
+    // Check if location settings are configured
+    if (!schedule.latitude || !schedule.longitude) {
+      return {
+        success: false,
+        message: "Location settings not configured for your department",
+      };
+    }
+
+    const allowedRadius = schedule.locationRadius || 0.1; // Default radius is 0.1 km if not specified
+
+    // Calculate distance between user's location and allowed location
+    const distance = calculateDistance(
+      latitude,
+      longitude,
+      schedule.latitude,
+      schedule.longitude
+    );
+
+    // If distance is within allowed radius, allow attendance
+    const isWithinRange = distance <= allowedRadius;
+
+    return {
+      success: isWithinRange,
+      message: isWithinRange
+        ? "Location validated successfully"
+        : `You are not within the allowed location range (${(
+            distance * 1000
+          ).toFixed(0)}m away, max ${(allowedRadius * 1000).toFixed(0)}m)`,
+      distance: distance,
+      allowedRadius: allowedRadius,
+    };
+  } catch (error) {
+    console.error("Location validation error:", error);
     return {
       success: false,
-      message: "No location set for your department",
+      message: "An error occurred during location validation",
     };
   }
-
-  // Parse the location from environment variable (format: "latitude,longitude,radius")
-  const [allowedLat, allowedLon, radius] = allowedLocation
-    .split(",")
-    .map(Number);
-  const allowedRadius = radius || 0.1; // Default radius is 0.1 km if not specified
-
-  // Calculate distance between user's location and allowed location
-  const distance = calculateDistance(
-    latitude,
-    longitude,
-    allowedLat,
-    allowedLon
-  );
-
-  // If distance is within allowed radius, allow attendance
-  const isWithinRange = distance <= allowedRadius;
-
-  return {
-    success: isWithinRange,
-    message: isWithinRange
-      ? "Location validated successfully"
-      : "You are not within the allowed location range",
-  };
 }
 
 // Helper function to calculate distance between two points

@@ -15,7 +15,7 @@ export default async function DashboardPage({
   }
 
   return ["SUPERADMIN", "ADMIN"].includes(user.role) ? (
-    <AdminDashboard searchParams={{ month, year }} />
+    <AdminDashboard />
   ) : (
     <EmployeeDashboard user={user} searchParams={{ month, year }} />
   );

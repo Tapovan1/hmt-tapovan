@@ -53,6 +53,9 @@ interface Schedule {
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
   isModified: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationRadius?: number | null;
 }
 
 interface ScheduleSettingsFormProps {
@@ -94,6 +97,9 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
             saturdayEndTime: "14:00",
             saturdayGraceMinutes: 15,
             isModified: false,
+            latitude: null,
+            longitude: null,
+            locationRadius: 0.1,
           },
         ]
   );
@@ -114,6 +120,9 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
         isGlobal: false,
         isDefault: false,
         isModified: true,
+        latitude: null,
+        longitude: null,
+        locationRadius: null,
       },
     ]);
   };
@@ -221,6 +230,7 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
 
   const handleSaveRow = async (schedule: Schedule, index: number) => {
     try {
+      // Remove isModified from the data before saving
       const { isModified, ...scheduleData } = schedule;
 
       let result;
@@ -420,6 +430,65 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                     )}
                   </div>
 
+                  {/* Location Settings */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Location Settings
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Latitude</label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={schedule.latitude || ""}
+                          onChange={(e) =>
+                            updateScheduleData(
+                              index,
+                              "latitude",
+                              e.target.value ? parseFloat(e.target.value) : null
+                            )
+                          }
+                          placeholder="e.g. 21.1910656"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Longitude</label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={schedule.longitude || ""}
+                          onChange={(e) =>
+                            updateScheduleData(
+                              index,
+                              "longitude",
+                              e.target.value ? parseFloat(e.target.value) : null
+                            )
+                          }
+                          placeholder="e.g. 72.8530944"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          Radius (km)
+                        </label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={schedule.locationRadius || ""}
+                          onChange={(e) =>
+                            updateScheduleData(
+                              index,
+                              "locationRadius",
+                              e.target.value ? parseFloat(e.target.value) : null
+                            )
+                          }
+                          placeholder="e.g. 0.1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Actions */}
                   <div className="flex justify-end gap-2">
                     <Button
@@ -456,6 +525,7 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                     <TableHead>Grace Minutes</TableHead>
                     <TableHead>Work Days</TableHead>
                     <TableHead>Saturday Schedule</TableHead>
+                    <TableHead>Location</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -604,6 +674,68 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                               />
                             </div>
                           )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Latitude
+                          </label>
+                          <Input
+                            type="number"
+                            step="any"
+                            value={schedule.latitude || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "latitude",
+                                e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
+                            placeholder="e.g. 21.1910656"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Longitude
+                          </label>
+                          <Input
+                            type="number"
+                            step="any"
+                            value={schedule.longitude || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "longitude",
+                                e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
+                            placeholder="e.g. 72.8530944"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Radius (km)
+                          </label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={schedule.locationRadius || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "locationRadius",
+                                e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
+                            placeholder="e.g. 0.1"
+                          />
                         </div>
                       </TableCell>
                       <TableCell className="text-right">

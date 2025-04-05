@@ -12,9 +12,10 @@ export interface WorkSchedule {
   endTime: string;
   graceMinutes: number;
   workDays: number[];
-  isGlobal?: boolean;
-  isDefault?: boolean;
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationRadius?: number | null;
 }
