@@ -32,7 +32,7 @@ model Attendance {
   id          String    @id @default(cuid())
   userId      String
   date        DateTime @db.Date()
-  checkIn     DateTime @db.Timestamptz()
+  checkIn     DateTime? 
   checkOut    DateTime?
   status      Status
   photo       String?

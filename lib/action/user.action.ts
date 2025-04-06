@@ -45,7 +45,6 @@ export async function login(formData: FormData) {
   }
 
   const userId = user.id;
-  console.log("userId", userId);
 
   await createSession(userId);
 }
@@ -102,8 +101,6 @@ interface IFormData {
 }
 export const addEmployee = async (formData: IFormData) => {
   const { name, email, role, password, department } = formData;
-
-  console.log("formData", formData);
 
   const hashedPassword = await saltAndHashPassword(password);
 

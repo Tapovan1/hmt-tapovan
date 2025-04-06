@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { getUser } from "./getUser";
 
 import { format } from "date-fns";
@@ -12,22 +12,18 @@ const currentUtcTime = new Date();
 
 const formattedIndianDate = new Date(format(currentUtcTime, "yyyy-MM-dd"));
 
-export const getWorkSchedule = unstable_cache(
-  async () => {
-    // Fallback to global schedule
-    const globalSchedule = await prisma.workSchedule.findFirst({
-      where: { isGlobal: true },
-    });
+export const getWorkSchedule = async () => {
+  // Fallback to global schedule
+  const globalSchedule = await prisma.workSchedule.findFirst({
+    where: { isGlobal: true },
+  });
 
-    if (!globalSchedule) {
-      throw new Error("No work schedule found");
-    }
+  if (!globalSchedule) {
+    throw new Error("No work schedule found");
+  }
 
-    return globalSchedule;
-  },
-  ["workSchedule"],
-  { revalidate: 86400 }
-);
+  return globalSchedule;
+};
 
 export async function markAttendance(data: {
   photo: string;

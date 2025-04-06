@@ -76,7 +76,7 @@ export async function AdminDashboard() {
               {data?.recentActivities.map((activity, index) => (
                 <div key={index} className="flex items-center space-x-4">
                   <div className="text-sm text-muted-foreground">
-                    {formatIndianTime(activity.checkIn.toISOString())}
+                    {formatIndianTime(activity.checkIn?.toISOString())}
                   </div>
                   <div className="text-sm">
                     {activity.user.name} marked attendance{" "}

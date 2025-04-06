@@ -1,8 +1,18 @@
 "use client";
 
+import type React from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Clock, History, LayoutDashboard, Settings, Users } from "lucide-react";
+import {
+  Clock,
+  History,
+  LayoutDashboard,
+  Settings,
+  Users,
+  FileText,
+  UserX,
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sidebar,
@@ -32,7 +42,7 @@ const SuperadminItems = [
   },
   {
     title: "Mark Absent",
-    icon: Users,
+    icon: UserX,
     href: "/absent",
   },
   {
@@ -42,7 +52,7 @@ const SuperadminItems = [
   },
   {
     title: "Report",
-    icon: Users,
+    icon: FileText,
     href: "/report",
   },
 ];
@@ -63,7 +73,6 @@ const adminRole = [
     icon: History,
     href: "/history",
   },
-
   {
     title: "Leave",
     icon: Users,
@@ -71,7 +80,7 @@ const adminRole = [
   },
   {
     title: "Report",
-    icon: Users,
+    icon: FileText,
     href: "/report",
   },
 ];
@@ -130,6 +139,7 @@ const TeacherE = [
 interface AppSidebarProps {
   userRole: string;
 }
+
 export function AppSidebar({ userRole }: AppSidebarProps) {
   const pathname = usePathname();
   let sidebarItems: { title: string; icon: React.ElementType; href: string }[] =
@@ -146,38 +156,35 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
 
   return (
     <Sidebar className="border-r border-border">
-      <SidebarHeader className="border-b py-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div className="flex items-center justify-center">
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  Tapovan School HMT
-                </span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="border-b border-border py-5">
+        <div className="px-4">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Tapovan School
+          </h1>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <ScrollArea className="h-[calc(100vh-4rem)]">
-          <div className="px-2 py-4">
+        <ScrollArea className="h-[calc(100vh-5rem)]">
+          <div className="py-6 px-3">
             <SidebarMenu>
               {sidebarItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
-                  <SidebarMenuItem key={item.href} className="my-1">
+                  <SidebarMenuItem key={item.href} className="mb-2">
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
                       tooltip={item.title}
-                      className={`transition-all duration-200 ${
+                      className={`relative overflow-hidden transition-all duration-200 ${
                         isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted"
+                          ? "bg-primary/15 text-primary font-medium"
+                          : "hover:bg-sidebar-accent/50"
                       }`}
                     >
-                      <Link href={item.href} className="flex items-center">
+                      <Link
+                        href={item.href}
+                        className="flex items-center py-2.5"
+                      >
                         <item.icon
                           className={`mr-3 h-5 w-5 ${
                             isActive ? "text-primary" : "text-muted-foreground"
@@ -185,13 +192,15 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
                         />
                         <span
                           className={`${
-                            isActive ? "text-primary" : "text-foreground"
+                            isActive
+                              ? "text-primary"
+                              : "text-sidebar-foreground"
                           }`}
                         >
                           {item.title}
                         </span>
                         {isActive && (
-                          <div className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-md" />
+                          <div className="absolute left-0 top-0 h-full w-1.5 bg-primary rounded-r-md" />
                         )}
                       </Link>
                     </SidebarMenuButton>
