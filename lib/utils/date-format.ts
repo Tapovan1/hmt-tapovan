@@ -6,18 +6,14 @@ export const formatIndianTime = (isoString?: string) => {
     return "N/A";
   }
 
-  console.log("dateISO", isoString);
-
   const date = new Date(isoString);
-  console.log("date", date);
 
   const hours = date.getUTCHours();
 
   const minutes = date.getUTCMinutes();
-  console.log("minutes", minutes);
+
   const ampm = hours >= 12 ? "PM" : "AM";
   const twelveHourFormat = hours % 12 || 12;
-  console.log("twelveHourFormat", twelveHourFormat);
 
   return `${twelveHourFormat}:${minutes < 10 ? "0" : ""}${minutes} ${ampm}`;
 };

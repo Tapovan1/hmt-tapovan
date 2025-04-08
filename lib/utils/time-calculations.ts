@@ -23,8 +23,6 @@ export const calculateWorkHours = (attendance: Attendance) => {
 };
 
 export const calculateMonthlyWorkHours = (attendanceList: Attendance[]) => {
-  console.log("Processing attendance list:", attendanceList);
-
   let totalMinutes = 0;
 
   for (const attendance of attendanceList) {
@@ -38,7 +36,6 @@ export const calculateMonthlyWorkHours = (attendanceList: Attendance[]) => {
     }
   }
 
-  console.log("Total accumulated minutes:", totalMinutes);
   const hours = Math.floor(totalMinutes / 60);
   const remainingMinutes = totalMinutes % 60;
 

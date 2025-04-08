@@ -30,14 +30,7 @@ export default async function AdminHistoryPage({
         />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Teachers Pending Attendance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AbsentForm teachers={teachers} />
-        </CardContent>
-      </Card>
+      <AbsentForm teachers={teachers} />
     </div>
   );
 }

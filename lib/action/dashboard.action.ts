@@ -9,8 +9,6 @@ export const getDashboardStats = async (
   month?: number,
   year?: number
 ) => {
-  console.log("Fetching dashboard stats for", userId, month, year);
-
   const currentDate = new Date();
   const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // Month is 0-based in Date.UTC
   const selectedYear = year || currentDate.getUTCFullYear();
