@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
+
 
 # Copy all the files
 COPY . .
@@ -29,7 +30,7 @@ WORKDIR /app
 COPY --from=builder /app ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --legacy-peer-deps --only=production
 
 # Expose the port the app runs on
 EXPOSE 3000
