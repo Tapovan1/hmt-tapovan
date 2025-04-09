@@ -23,6 +23,7 @@ export async function getReportData(params: {
   end?: Date;
   page?: number;
   limit?: number;
+  all?: boolean;
 }): Promise<{
   data: ReportData[];
   total: number;
@@ -48,7 +49,11 @@ export async function getReportData(params: {
   const totalTeachers = await prisma.user.count({
     where: {
       department: department,
-      role: "TEACHER",
+      NOT: {
+        role: {
+          in: ["ADMIN", "SUPERADMIN"],
+        },
+      },
     },
   });
 
@@ -59,10 +64,18 @@ export async function getReportData(params: {
   const users = await prisma.user.findMany({
     where: {
       department: department,
-      role: "TEACHER",
+      NOT: {
+        role: {
+          in: ["ADMIN", "SUPERADMIN"],
+        },
+      },
     },
-    skip: (page - 1) * limit,
-    take: limit,
+    ...(params.all
+      ? {}
+      : {
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
   });
 
   const reportData: ReportData[] = await Promise.all(
@@ -118,7 +131,11 @@ export async function getDepartments() {
   // Get unique departments from users who are teachers
   const departments = await prisma.user.findMany({
     where: {
-      role: "TEACHER",
+      NOT: {
+        role: {
+          in: ["ADMIN", "SUPERADMIN"],
+        },
+      },
     },
     select: {
       department: true,

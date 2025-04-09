@@ -9,9 +9,10 @@ export async function exportToExcel(params: {
   end?: Date;
 }) {
   const reportData = await getReportData(params);
+  console.log("Report Data:", reportData);
 
   // Prepare data for Excel
-  const excelData = reportData.map((item) => ({
+  const excelData = reportData.data.map((item) => ({
     "Teacher Name": item.user.name,
     Department: item.user.department,
     "Present Days": item.stats.presentCount,
