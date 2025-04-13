@@ -31,6 +31,7 @@ export const getSchedulesByDepartment = async (department: string) => {
       department,
     },
   });
+  // console.log("departmentSchedule", departmentSchedule);
 
   return departmentSchedule;
 };

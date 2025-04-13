@@ -56,8 +56,7 @@ async function AttendanceFormWrapper({ user }: { user: User }) {
         workSchedule || {
           name: "Default Schedule",
           department: user.department,
-          isGlobal: false,
-          isDefault: true,
+
           startTime: "",
           endTime: "",
           workDays: [],

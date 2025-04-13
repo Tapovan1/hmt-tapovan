@@ -41,6 +41,7 @@ export default function AttendanceForm({
   useEffect(() => {
     const checkAllowedTime = () => {
       const isAllowed = isWithinAllowedTime(workSchedule);
+
       setIsAllowedTime(isAllowed);
     };
 

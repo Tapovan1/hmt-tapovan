@@ -1,14 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState, useTransition } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,9 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import {
+  PlusIcon,
+  Trash2Icon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CalendarIcon,
+  MapPinIcon,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -29,6 +29,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 // Import server actions
 import {
@@ -64,13 +78,13 @@ interface ScheduleSettingsFormProps {
 }
 
 const daysOfWeek = [
-  { value: 1, label: "Monday" },
-  { value: 2, label: "Tuesday" },
-  { value: 3, label: "Wednesday" },
-  { value: 4, label: "Thursday" },
-  { value: 5, label: "Friday" },
-  { value: 6, label: "Saturday" },
-  { value: 0, label: "Sunday" },
+  { value: 1, label: "Monday", short: "Mon" },
+  { value: 2, label: "Tuesday", short: "Tue" },
+  { value: 3, label: "Wednesday", short: "Wed" },
+  { value: 4, label: "Thursday", short: "Thu" },
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+  { value: 0, label: "Sunday", short: "Sun" },
 ];
 
 const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
@@ -104,7 +118,12 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
         ]
   );
 
-  const [isPending, startTransition] = useTransition();
+  const [openSaturdayIndex, setOpenSaturdayIndex] = useState<number | null>(
+    null
+  );
+  const [openLocationIndex, setOpenLocationIndex] = useState<number | null>(
+    null
+  );
 
   const addSchedule = () => {
     setSchedules([
@@ -143,16 +162,13 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
 
   const removeSchedule = async (index: number) => {
     const scheduleToDelete = schedules[index];
-    console.log("Deleting schedule:", scheduleToDelete);
 
     if (scheduleToDelete.id) {
-      console.log("Calling deleteSchedule...");
       const result = await deleteSchedule(scheduleToDelete.id);
-      console.log("Result:", result);
       if (result.success) {
-        alert("Schedule deleted successfully!");
+        toast.success("Schedule deleted successfully!");
       } else {
-        alert(`Failed to delete schedule: ${result.error}`);
+        toast.error(`Failed to delete schedule: ${result.error}`);
         return;
       }
     }
@@ -262,249 +278,337 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
     }
   };
 
+  const getSelectedDaysText = (workDays: number[]) => {
+    if (workDays.length === 7) return "All days";
+    if (workDays.length === 0) return "No days";
+    if (workDays.length <= 2) {
+      return workDays
+        .map((day) => daysOfWeek.find((d) => d.value === day)?.short)
+        .join(", ");
+    }
+    return `${workDays.length} days selected`;
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Schedule Settings</CardTitle>
-        <CardDescription>
-          Manage your organization&apos;s work schedules.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+    <Card className="border-0 shadow-none">
+      <CardContent className="px-4 py-2">
+        <div className="space-y-3">
           {/* Mobile View: Card-based layout */}
           <div className="block md:hidden">
             {schedules.map((schedule, index) => (
-              <Card key={index} className="mb-4">
-                <CardContent className="p-4 space-y-3">
+              <Card key={index} className="mb-3 shadow-sm">
+                <CardContent className="p-3 space-y-2">
                   {/* Name and Department */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Name</label>
-                    <Input
-                      type="text"
-                      value={schedule.name}
-                      onChange={(e) =>
-                        updateScheduleData(index, "name", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Department</label>
-                    <Select
-                      value={schedule.department || ""}
-                      onValueChange={(value) =>
-                        updateScheduleData(index, "department", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Department 1">
-                          Department 1
-                        </SelectItem>
-                        <SelectItem value="Department 2">
-                          Department 2
-                        </SelectItem>
-                        <SelectItem value="Department 3">
-                          Department 3
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs font-medium">Name</label>
+                      <Input
+                        type="text"
+                        value={schedule.name}
+                        onChange={(e) =>
+                          updateScheduleData(index, "name", e.target.value)
+                        }
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Department</label>
+                      <Select
+                        value={schedule.department || ""}
+                        onValueChange={(value) =>
+                          updateScheduleData(index, "department", value)
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Department 1">
+                            Department 1
+                          </SelectItem>
+                          <SelectItem value="Department 2">
+                            Department 2
+                          </SelectItem>
+                          <SelectItem value="Department 3">
+                            Department 3
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {/* Time Settings */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Start Time</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs font-medium">Start</label>
                       <Input
                         type="time"
                         value={schedule.startTime}
                         onChange={(e) =>
                           updateScheduleData(index, "startTime", e.target.value)
                         }
+                        className="h-8 text-sm"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">End Time</label>
+                    <div>
+                      <label className="text-xs font-medium">End</label>
                       <Input
                         type="time"
                         value={schedule.endTime}
                         onChange={(e) =>
                           updateScheduleData(index, "endTime", e.target.value)
                         }
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Grace Min</label>
+                      <Input
+                        type="number"
+                        value={schedule.graceMinutes}
+                        onChange={(e) =>
+                          updateScheduleData(
+                            index,
+                            "graceMinutes",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="h-8 text-sm"
                       />
                     </div>
                   </div>
 
-                  {/* Grace Minutes */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Grace Minutes</label>
-                    <Input
-                      type="number"
-                      value={schedule.graceMinutes}
-                      onChange={(e) =>
-                        updateScheduleData(
-                          index,
-                          "graceMinutes",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                  </div>
-
-                  {/* Work Days */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Work Days</label>
-                    <div className="flex flex-wrap gap-1">
-                      {daysOfWeek.map((day) => (
+                  {/* Work Days - Dialog */}
+                  <div>
+                    <label className="text-xs font-medium">Work Days</label>
+                    <Dialog>
+                      <DialogTrigger asChild>
                         <Button
-                          key={day.value}
-                          variant={
-                            schedule.workDays.includes(day.value)
-                              ? "default"
-                              : "outline"
-                          }
+                          variant="outline"
                           size="sm"
-                          onClick={() => toggleWorkDay(index, day.value)}
-                          className="w-10"
+                          className="w-full h-8 mt-1 justify-between"
                         >
-                          {day.label.substring(0, 1)}
+                          <span>{getSelectedDaysText(schedule.workDays)}</span>
+                          <CalendarIcon className="h-3 w-3 ml-2" />
                         </Button>
-                      ))}
-                    </div>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Select Work Days</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-2 py-4">
+                          {daysOfWeek.map((day) => (
+                            <div
+                              key={day.value}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={`day-${day.value}-${index}`}
+                                checked={schedule.workDays.includes(day.value)}
+                                onCheckedChange={() =>
+                                  toggleWorkDay(index, day.value)
+                                }
+                              />
+                              <Label htmlFor={`day-${day.value}-${index}`}>
+                                {day.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
-                  {/* Saturday Schedule */}
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleSaturdaySchedule(index)}
-                      className="w-full"
-                    >
-                      {schedule.saturdayStartTime ? "Disable" : "Enable"}{" "}
-                      Saturday Schedule
-                    </Button>
+                  {/* Saturday Schedule - Collapsible */}
+                  <Collapsible
+                    open={openSaturdayIndex === index}
+                    onOpenChange={() =>
+                      setOpenSaturdayIndex(
+                        openSaturdayIndex === index ? null : index
+                      )
+                    }
+                    className="border rounded-md"
+                  >
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm font-medium">
+                      <span>Saturday Schedule</span>
+                      {openSaturdayIndex === index ? (
+                        <ChevronDownIcon className="h-4 w-4" />
+                      ) : (
+                        <ChevronRightIcon className="h-4 w-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="p-2 pt-0">
+                      <div className="flex items-center mb-2">
+                        <Checkbox
+                          id={`enable-sat-${index}`}
+                          checked={!!schedule.saturdayStartTime}
+                          onCheckedChange={() => toggleSaturdaySchedule(index)}
+                        />
+                        <Label
+                          htmlFor={`enable-sat-${index}`}
+                          className="ml-2 text-xs"
+                        >
+                          Enable Saturday Schedule
+                        </Label>
+                      </div>
 
-                    {schedule.saturdayStartTime && (
-                      <div className="space-y-2 pt-2">
-                        <div className="grid grid-cols-2 gap-2">
+                      {schedule.saturdayStartTime && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs font-medium">Start</label>
+                            <Input
+                              type="time"
+                              value={schedule.saturdayStartTime}
+                              onChange={(e) =>
+                                updateSaturdaySchedule(
+                                  index,
+                                  "startTime",
+                                  e.target.value
+                                )
+                              }
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium">End</label>
+                            <Input
+                              type="time"
+                              value={schedule.saturdayEndTime || ""}
+                              onChange={(e) =>
+                                updateSaturdaySchedule(
+                                  index,
+                                  "endTime",
+                                  e.target.value
+                                )
+                              }
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium">Grace</label>
+                            <Input
+                              type="number"
+                              value={schedule.saturdayGraceMinutes || 0}
+                              onChange={(e) =>
+                                updateSaturdaySchedule(
+                                  index,
+                                  "graceMinutes",
+                                  Number.parseInt(e.target.value)
+                                )
+                              }
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Location Settings - Collapsible */}
+                  <Collapsible
+                    open={openLocationIndex === index}
+                    onOpenChange={() =>
+                      setOpenLocationIndex(
+                        openLocationIndex === index ? null : index
+                      )
+                    }
+                    className="border rounded-md"
+                  >
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm font-medium">
+                      <span>Location Settings</span>
+                      {openLocationIndex === index ? (
+                        <ChevronDownIcon className="h-4 w-4" />
+                      ) : (
+                        <ChevronRightIcon className="h-4 w-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="p-2 pt-0">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="text-xs font-medium">
+                            Latitude
+                          </label>
                           <Input
-                            type="time"
-                            value={schedule.saturdayStartTime}
+                            type="number"
+                            step="any"
+                            value={schedule.latitude || ""}
                             onChange={(e) =>
-                              updateSaturdaySchedule(
+                              updateScheduleData(
                                 index,
-                                "startTime",
+                                "latitude",
                                 e.target.value
+                                  ? Number.parseFloat(e.target.value)
+                                  : null
                               )
                             }
-                          />
-                          <Input
-                            type="time"
-                            value={schedule.saturdayEndTime || ""}
-                            onChange={(e) =>
-                              updateSaturdaySchedule(
-                                index,
-                                "endTime",
-                                e.target.value
-                              )
-                            }
+                            className="h-8 text-sm"
+                            placeholder="e.g. 21.19"
                           />
                         </div>
-                        <Input
-                          type="number"
-                          value={schedule.saturdayGraceMinutes || 0}
-                          onChange={(e) =>
-                            updateSaturdaySchedule(
-                              index,
-                              "graceMinutes",
-                              parseInt(e.target.value)
-                            )
-                          }
-                          placeholder="Grace minutes"
-                        />
+                        <div>
+                          <label className="text-xs font-medium">
+                            Longitude
+                          </label>
+                          <Input
+                            type="number"
+                            step="any"
+                            value={schedule.longitude || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "longitude",
+                                e.target.value
+                                  ? Number.parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
+                            className="h-8 text-sm"
+                            placeholder="e.g. 72.85"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">
+                            Radius (km)
+                          </label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={schedule.locationRadius || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "locationRadius",
+                                e.target.value
+                                  ? Number.parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
+                            className="h-8 text-sm"
+                            placeholder="e.g. 0.1"
+                          />
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Location Settings */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Location Settings
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Latitude</label>
-                        <Input
-                          type="number"
-                          step="any"
-                          value={schedule.latitude || ""}
-                          onChange={(e) =>
-                            updateScheduleData(
-                              index,
-                              "latitude",
-                              e.target.value ? parseFloat(e.target.value) : null
-                            )
-                          }
-                          placeholder="e.g. 21.1910656"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Longitude</label>
-                        <Input
-                          type="number"
-                          step="any"
-                          value={schedule.longitude || ""}
-                          onChange={(e) =>
-                            updateScheduleData(
-                              index,
-                              "longitude",
-                              e.target.value ? parseFloat(e.target.value) : null
-                            )
-                          }
-                          placeholder="e.g. 72.8530944"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Radius (km)
-                        </label>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          value={schedule.locationRadius || ""}
-                          onChange={(e) =>
-                            updateScheduleData(
-                              index,
-                              "locationRadius",
-                              e.target.value ? parseFloat(e.target.value) : null
-                            )
-                          }
-                          placeholder="e.g. 0.1"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    </CollapsibleContent>
+                  </Collapsible>
 
                   {/* Actions */}
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 pt-1">
                     <Button
                       variant="default"
                       size="sm"
                       onClick={() => handleSaveRow(schedule, index)}
                       disabled={!schedule.isModified}
+                      className="h-7 text-xs"
                     >
-                      {schedule.isModified ? "Save Changes" : "Saved"}
+                      {schedule.isModified ? "Save" : "Saved"}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => removeSchedule(index)}
+                      className="h-7 w-7 p-0"
                     >
-                      <Trash2Icon className="h-4 w-4" />
+                      <Trash2Icon className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -514,19 +618,23 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
 
           {/* Desktop View: Table layout */}
           <div className="hidden md:block">
-            <ScrollArea>
+            <ScrollArea className="border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Start Time</TableHead>
-                    <TableHead>End Time</TableHead>
-                    <TableHead>Grace Minutes</TableHead>
-                    <TableHead>Work Days</TableHead>
-                    <TableHead>Saturday Schedule</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[140px]">Name</TableHead>
+                    <TableHead className="w-[140px]">Department</TableHead>
+                    <TableHead className="w-[100px]">Start Time</TableHead>
+                    <TableHead className="w-[100px]">End Time</TableHead>
+                    <TableHead className="w-[80px]">Grace Min</TableHead>
+                    <TableHead className="w-[120px]">Work Days</TableHead>
+                    <TableHead className="w-[140px]">
+                      Saturday Schedule
+                    </TableHead>
+                    <TableHead className="w-[140px]">Location</TableHead>
+                    <TableHead className="text-right w-[120px]">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -535,24 +643,25 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                       key={index}
                       className={schedule.isModified ? "bg-muted/50" : ""}
                     >
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Input
                           type="text"
                           value={schedule.name}
                           onChange={(e) =>
                             updateScheduleData(index, "name", e.target.value)
                           }
+                          className="h-8 text-sm"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Select
                           value={schedule.department || ""}
                           onValueChange={(value) =>
                             updateScheduleData(index, "department", value)
                           }
                         >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select Department" />
+                          <SelectTrigger className="h-8 text-sm w-full">
+                            <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Department 1">
@@ -573,7 +682,7 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Input
                           type="time"
                           value={schedule.startTime}
@@ -584,18 +693,20 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                               e.target.value
                             )
                           }
+                          className="h-8 text-sm"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Input
                           type="time"
                           value={schedule.endTime}
                           onChange={(e) =>
                             updateScheduleData(index, "endTime", e.target.value)
                           }
+                          className="h-8 text-sm"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Input
                           type="number"
                           value={schedule.graceMinutes}
@@ -606,145 +717,226 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                               Number(e.target.value)
                             )
                           }
+                          className="h-8 text-sm"
                         />
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {daysOfWeek.map((day) => (
+                      <TableCell className="py-2">
+                        {/* Work Days - Dialog */}
+                        <Dialog>
+                          <DialogTrigger asChild>
                             <Button
-                              key={day.value}
-                              variant={
-                                schedule.workDays.includes(day.value)
-                                  ? "default"
-                                  : "outline"
-                              }
+                              variant="outline"
                               size="sm"
-                              onClick={() => toggleWorkDay(index, day.value)}
+                              className="w-full h-8 justify-between"
                             >
-                              {day.label.substring(0, 3)}
+                              <span>
+                                {getSelectedDaysText(schedule.workDays)}
+                              </span>
+                              <CalendarIcon className="h-3 w-3 ml-2" />
                             </Button>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleSaturdaySchedule(index)}
-                          >
-                            {schedule.saturdayStartTime ? "Disable" : "Enable"}{" "}
-                            Saturday Schedule
-                          </Button>
-
-                          {schedule.saturdayStartTime && (
-                            <div className="space-y-2">
-                              <Input
-                                type="time"
-                                value={schedule.saturdayStartTime}
-                                onChange={(e) =>
-                                  updateSaturdaySchedule(
-                                    index,
-                                    "startTime",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                              <Input
-                                type="time"
-                                value={schedule.saturdayEndTime || ""}
-                                onChange={(e) =>
-                                  updateSaturdaySchedule(
-                                    index,
-                                    "endTime",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                              <Input
-                                type="number"
-                                value={schedule.saturdayGraceMinutes || 0}
-                                onChange={(e) =>
-                                  updateSaturdaySchedule(
-                                    index,
-                                    "graceMinutes",
-                                    parseInt(e.target.value)
-                                  )
-                                }
-                              />
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>Select Work Days</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid gap-2 py-4">
+                              {daysOfWeek.map((day) => (
+                                <div
+                                  key={day.value}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <Checkbox
+                                    id={`day-${day.value}-${index}-desktop`}
+                                    checked={schedule.workDays.includes(
+                                      day.value
+                                    )}
+                                    onCheckedChange={() =>
+                                      toggleWorkDay(index, day.value)
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor={`day-${day.value}-${index}-desktop`}
+                                  >
+                                    {day.label}
+                                  </Label>
+                                </div>
+                              ))}
                             </div>
-                          )}
-                        </div>
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Latitude
-                          </label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={schedule.latitude || ""}
-                            onChange={(e) =>
-                              updateScheduleData(
-                                index,
-                                "latitude",
-                                e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : null
-                              )
-                            }
-                            placeholder="e.g. 21.1910656"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Longitude
-                          </label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={schedule.longitude || ""}
-                            onChange={(e) =>
-                              updateScheduleData(
-                                index,
-                                "longitude",
-                                e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : null
-                              )
-                            }
-                            placeholder="e.g. 72.8530944"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Radius (km)
-                          </label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            value={schedule.locationRadius || ""}
-                            onChange={(e) =>
-                              updateScheduleData(
-                                index,
-                                "locationRadius",
-                                e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : null
-                              )
-                            }
-                            placeholder="e.g. 0.1"
-                          />
-                        </div>
+                      <TableCell className="py-2">
+                        {/* Saturday Schedule - Dialog */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-8 justify-between"
+                            >
+                              {schedule.saturdayStartTime
+                                ? "Configured"
+                                : "Not Set"}
+                              <ChevronRightIcon className="h-3 w-3 ml-2" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>Saturday Schedule</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                              <div className="flex items-center mb-4">
+                                <Checkbox
+                                  id={`enable-sat-${index}-desktop`}
+                                  checked={!!schedule.saturdayStartTime}
+                                  onCheckedChange={() =>
+                                    toggleSaturdaySchedule(index)
+                                  }
+                                />
+                                <Label
+                                  htmlFor={`enable-sat-${index}-desktop`}
+                                  className="ml-2"
+                                >
+                                  Enable Saturday Schedule
+                                </Label>
+                              </div>
+
+                              {schedule.saturdayStartTime && (
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                      <Label>Start Time</Label>
+                                      <Input
+                                        type="time"
+                                        value={schedule.saturdayStartTime}
+                                        onChange={(e) =>
+                                          updateSaturdaySchedule(
+                                            index,
+                                            "startTime",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label>End Time</Label>
+                                      <Input
+                                        type="time"
+                                        value={schedule.saturdayEndTime || ""}
+                                        onChange={(e) =>
+                                          updateSaturdaySchedule(
+                                            index,
+                                            "endTime",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label>Grace Minutes</Label>
+                                    <Input
+                                      type="number"
+                                      value={schedule.saturdayGraceMinutes || 0}
+                                      onChange={(e) =>
+                                        updateSaturdaySchedule(
+                                          index,
+                                          "graceMinutes",
+                                          Number.parseInt(e.target.value)
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell className="py-2">
+                        {/* Location Settings - Dialog */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-8 justify-between"
+                            >
+                              {schedule.latitude ? "Configured" : "Not Set"}
+                              <MapPinIcon className="h-3 w-3 ml-2" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>Location Settings</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4 space-y-3">
+                              <div className="space-y-1">
+                                <Label>Latitude</Label>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  value={schedule.latitude || ""}
+                                  onChange={(e) =>
+                                    updateScheduleData(
+                                      index,
+                                      "latitude",
+                                      e.target.value
+                                        ? Number.parseFloat(e.target.value)
+                                        : null
+                                    )
+                                  }
+                                  placeholder="e.g. 21.1910656"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Longitude</Label>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  value={schedule.longitude || ""}
+                                  onChange={(e) =>
+                                    updateScheduleData(
+                                      index,
+                                      "longitude",
+                                      e.target.value
+                                        ? Number.parseFloat(e.target.value)
+                                        : null
+                                    )
+                                  }
+                                  placeholder="e.g. 72.8530944"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Radius (km)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  value={schedule.locationRadius || ""}
+                                  onChange={(e) =>
+                                    updateScheduleData(
+                                      index,
+                                      "locationRadius",
+                                      e.target.value
+                                        ? Number.parseFloat(e.target.value)
+                                        : null
+                                    )
+                                  }
+                                  placeholder="e.g. 0.1"
+                                />
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                      <TableCell className="text-right py-2">
+                        <div className="flex justify-end gap-1">
                           <Button
                             variant="default"
                             size="sm"
                             onClick={() => handleSaveRow(schedule, index)}
                             disabled={!schedule.isModified}
+                            className="h-7 text-xs"
                           >
                             {schedule.isModified ? "Save" : "Saved"}
                           </Button>
@@ -752,8 +944,9 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                             variant="destructive"
                             size="icon"
                             onClick={() => removeSchedule(index)}
+                            className="h-7 w-7"
                           >
-                            <Trash2Icon className="h-4 w-4" />
+                            <Trash2Icon className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
@@ -765,9 +958,9 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end pt-4">
-            <Button onClick={addSchedule}>
-              <PlusIcon className="mr-2 h-4 w-4" /> Add Schedule
+          <div className="flex justify-end pt-2">
+            <Button onClick={addSchedule} size="sm" className="h-8">
+              <PlusIcon className="mr-1 h-3 w-3" /> Add Schedule
             </Button>
           </div>
         </div>

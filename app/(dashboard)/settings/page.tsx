@@ -6,7 +6,7 @@ export default async function ScheduleSettingsPage() {
     const schedules = await getGlobalSchedules();
 
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-5 space-y-6">
         <h1 className="text-3xl font-bold">Work Schedule Settings</h1>
         <ScheduleSettingsForm initialSchedules={schedules || []} />
       </div>

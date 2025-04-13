@@ -1,9 +1,10 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { Attendance, User } from "@prisma/client";
 import { calculateMonthlyWorkHours } from "@/lib/utils/time-calculations";
+import { getSchedulesByDepartment } from "./work-schedule";
+import { Status } from "@prisma/client";
 
-export type ReportData = {
+export interface ReportData {
   user: {
     id: string;
     name: string;
@@ -15,72 +16,50 @@ export type ReportData = {
     lateCount: number;
     totalWorkHours: string;
   };
-};
+  dailyAttendance: {
+    date: Date;
+    status: Status;
+    minutesLate: number;
+    checkIn: Date | null;
+    checkOut: Date | null;
+  }[];
+}
 
 export async function getReportData(params: {
   department?: string;
   start?: Date;
   end?: Date;
   page?: number;
-  limit?: number;
-  all?: boolean;
-}): Promise<{
-  data: ReportData[];
-  total: number;
-  totalPages: number;
-}> {
-  const { department, start, end, page = 1, limit = 20 } = params;
+}) {
+  const { department, start, end, page = 1 } = params;
+  const itemsPerPage = 10;
 
-  // Create new Date objects to avoid modifying the original dates
-  const startDate = start ? new Date(start) : undefined;
-  const endDate = end ? new Date(end) : undefined;
+  const startDate = start ? new Date(start) : new Date();
+  const endDate = end ? new Date(end) : new Date();
 
   // If dates are provided, adjust them to cover the full day in local timezone
-  if (startDate) {
-    // Set to start of day in local timezone
-    startDate.setHours(0, 0, 0, 0);
-  }
-  if (endDate) {
-    // Set to end of day in local timezone
-    endDate.setHours(23, 59, 59, 999);
-  }
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
 
-  // Get total count of teachers in the department
-  const totalTeachers = await prisma.user.count({
-    where: {
-      department: department,
-      NOT: {
-        role: {
-          in: ["ADMIN", "SUPERADMIN"],
-        },
-      },
-    },
-  });
+  // Query users
+  const usersQuery = {
+    where: department ? { department } : {},
+    skip: (page - 1) * itemsPerPage,
+    take: itemsPerPage,
+  };
 
-  // Calculate total pages
-  const totalPages = Math.ceil(totalTeachers / limit);
+  const [users, totalUsers] = await Promise.all([
+    prisma.user.findMany(usersQuery),
+    prisma.user.count({ where: usersQuery.where }),
+  ]);
 
-  // Get paginated users
-  const users = await prisma.user.findMany({
-    where: {
-      department: department,
-      NOT: {
-        role: {
-          in: ["ADMIN", "SUPERADMIN"],
-        },
-      },
-    },
-    ...(params.all
-      ? {}
-      : {
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-  });
-
+  // Get attendance data for each user
   const reportData: ReportData[] = await Promise.all(
-    users.map(async (user: User) => {
-      const attendance = await prisma.attendance.findMany({
+    users.map(async (user) => {
+      // Get department schedule
+      const schedule = await getSchedulesByDepartment(user.department);
+
+      const attendanceQuery = {
         where: {
           userId: user.id,
           date: {
@@ -89,19 +68,60 @@ export async function getReportData(params: {
           },
         },
         orderBy: {
-          date: "asc",
+          date: "asc" as const,
         },
+      };
+
+      const attendance = await prisma.attendance.findMany(attendanceQuery);
+
+      const transformedAttendance = attendance.map((att) => {
+        // Calculate minutes late
+        let minutesLate = 0;
+        if (att.checkIn && schedule) {
+          const expectedStartTime = new Date(att.date);
+          const [startHour, startMinute] = schedule.startTime
+            .split(":")
+            .map(Number);
+          expectedStartTime.setHours(
+            startHour,
+            startMinute + schedule.graceMinutes,
+            0,
+            0
+          ); // Add grace period
+          expectedStartTime.setTime(
+            expectedStartTime.getTime() -
+              expectedStartTime.getTimezoneOffset() * 60000
+          ); // Adjust for local timezone
+          const diff =
+            (att.checkIn.getTime() - expectedStartTime.getTime()) / 60000; // Convert milliseconds to minutes
+          minutesLate = diff > 0 ? diff : 0;
+        }
+
+        return {
+          date: att.date,
+          status: att.status,
+          minutesLate,
+          checkIn: att.checkIn,
+          checkOut: att.checkOut,
+        };
       });
 
-      const presentCount = attendance.filter(
-        (a: Attendance) => a.status === "PRESENT"
-      ).length;
-      const absentCount = attendance.filter(
-        (a: Attendance) => a.status === "ABSENT"
-      ).length;
-      const lateCount = attendance.filter(
-        (a: Attendance) => a.status === "LATE"
-      ).length;
+      // Calculate statistics directly from transformed attendance data
+      const stats = transformedAttendance.reduce(
+        (acc, curr) => {
+          if (curr.status === Status.PRESENT) {
+            acc.presentCount++;
+          } else if (curr.status === Status.ABSENT) {
+            acc.absentCount++;
+          } else if (curr.status === Status.LATE) {
+            acc.lateCount++;
+          }
+          return acc;
+        },
+        { presentCount: 0, absentCount: 0, lateCount: 0 }
+      );
+
+      // Calculate total work hours
       const totalWorkHours = calculateMonthlyWorkHours(attendance);
 
       return {
@@ -111,19 +131,17 @@ export async function getReportData(params: {
           department: user.department,
         },
         stats: {
-          presentCount,
-          absentCount,
-          lateCount,
+          ...stats,
           totalWorkHours,
         },
+        dailyAttendance: transformedAttendance,
       };
     })
   );
 
   return {
     data: reportData,
-    total: totalTeachers,
-    totalPages,
+    totalPages: Math.ceil(totalUsers / itemsPerPage),
   };
 }
 

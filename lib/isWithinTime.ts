@@ -45,6 +45,7 @@ export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
   // Get current day and check if it's Saturday
   const day = now.getDay();
   const isSaturday = day === 6;
+  // const day = 6;
   // const isSaturday = true;
 
   // Check if it's a working day
@@ -79,17 +80,17 @@ export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
     currentMinutes <= scheduleEndMinutes;
 
   // Log attendance check details
-  console.log("[Attendance] Time Check:", {
-    currentTime: `${now.getHours().toString().padStart(2, "0")}:${now
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`,
-    isSaturday,
-    schedule: isSaturday ? "Saturday" : "Regular",
-    allowedStart: activeStartTime,
-    allowedEnd: activeEndTime,
-    status: isWithinSchedule ? "Within Schedule" : "Outside Schedule",
-  });
+  // console.log("[Attendance] Time Check:", {
+  //   currentTime: `${now.getHours().toString().padStart(2, "0")}:${now
+  //     .getMinutes()
+  //     .toString()
+  //     .padStart(2, "0")}`,
+  //   isSaturday,
+  //   schedule: isSaturday ? "Saturday" : "Regular",
+  //   allowedStart: activeStartTime,
+  //   allowedEnd: activeEndTime,
+  //   status: isWithinSchedule ? "Within Schedule" : "Outside Schedule",
+  // });
 
   return isWithinSchedule;
 }
