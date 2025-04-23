@@ -178,6 +178,7 @@ const EmploteeDialog = () => {
                       <SelectItem value="TEACHERE">TEACHERE</SelectItem>
                       <SelectItem value="ADMIN">ADMIN</SelectItem>
                       <SelectItem value="SUPERADMIN">SUPERADMIN</SelectItem>
+                      <SelectItem value="SECURITY">SECURITY</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

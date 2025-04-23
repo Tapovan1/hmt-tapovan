@@ -21,14 +21,7 @@ export default async function EmployeesPage() {
     <div className="p-4 space-y-6">
       <EmploteeDialog />
       <Card>
-        <CardHeader>
-          <CardTitle>Employee Data</CardTitle>
-        </CardHeader>
         <CardContent>
-          <div className="mb-4">
-            <div className="relative"></div>
-          </div>
-
           <Table>
             <TableHeader>
               <TableRow>

@@ -136,6 +136,34 @@ const TeacherE = [
   },
 ];
 
+const Security = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/dashboard",
+  },
+  {
+    title: "Attendance",
+    icon: Clock,
+    href: "/attendance",
+  },
+  {
+    title: "History",
+    icon: History,
+    href: "/history",
+  },
+  {
+    title: "Leave",
+    icon: Users,
+    href: "/leave",
+  },
+  {
+    title: "Student Leave",
+    icon: Users,
+    href: "/s-leave",
+  },
+];
+
 interface AppSidebarProps {
   userRole: string;
 }
@@ -152,6 +180,8 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
     sidebarItems = Teacher;
   } else if (userRole === "TEACHERE") {
     sidebarItems = TeacherE;
+  } else if (userRole === "SECURITY") {
+    sidebarItems = Security;
   }
 
   return (

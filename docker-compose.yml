@@ -13,13 +13,13 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: mydb
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - /mnt/storage/project1/pg_data:/var/lib/postgresql/data
 
-  # Frontend Service (using the Dockerfile in the frontend directory)
+  # Frontend Service
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile # Pointing to the Dockerfile in the frontend root
+      dockerfile: Dockerfile
     container_name: frontend
     restart: always
     ports:
@@ -29,6 +29,3 @@ services:
       - AUTH_SECRET=vW+0xgP4aOp793Nq1/JqSu9LZW0i/LJhzzF7y5PFbA4=
     depends_on:
       - db
-
-volumes:
-  pg_data:

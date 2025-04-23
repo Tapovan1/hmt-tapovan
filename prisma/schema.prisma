@@ -70,6 +70,22 @@ model WorkSchedule {
   attendances         Attendance[]
 }
 
+model StudentLeave {
+  id          String   @id @default(cuid())
+  studentName String
+  standard    String
+  class       String
+  parentName  String
+  rollNo      String
+  photo       String?
+  purpose     String
+  status      String   @default("Pending")
+  date        DateTime 
+  outTime     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 
 enum Status {
   PRESENT
