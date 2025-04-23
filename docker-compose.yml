@@ -29,3 +29,11 @@ services:
       - AUTH_SECRET=vW+0xgP4aOp793Nq1/JqSu9LZW0i/LJhzzF7y5PFbA4=
     depends_on:
       - db
+
+volumes:
+  pg_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/storage/project1/pg_data
+      o: bind
