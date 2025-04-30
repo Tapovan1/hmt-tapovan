@@ -1,8 +1,5 @@
 import { formatIndianTime } from "@/lib/utils/date-format";
-import {
-  getTodayAdminAttendance,
-  getDepartments,
-} from "@/lib/action/history.action";
+import { getTodayAdminAttendance } from "@/lib/action/history.action";
 import {
   Table,
   TableBody,
@@ -17,27 +14,36 @@ import { Pagination } from "../../../components/pagination";
 
 const ITEMS_PER_PAGE = 10;
 
+const departmentList = [
+  "Admin",
+  "Computer Operator",
+  "Clerk",
+  "Primary",
+  "SSC",
+  "HSC",
+  "Foundation",
+  "HSC (Ahmd)",
+  "GCI",
+  "Peon",
+  "Security",
+  "Guest",
+  "Accountant",
+];
+
 export default async function AdminHistoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ department?: string; page?: string }>;
+  searchParams: { department?: string; page?: string };
 }) {
-  // Await the searchParams promise
-  const params = await searchParams;
+  const currentPage = Number(searchParams.page) || 1;
+  const selectedDepartment =
+    searchParams.department === "all" ? undefined : searchParams.department;
 
-  const currentPage = Number(params.page) || 1;
-  const department =
-    params.department === "all" ? undefined : params.department;
-
-  // Get departments and attendance data
-  const [uniqueDepartments, attendanceData] = await Promise.all([
-    getDepartments(),
-    getTodayAdminAttendance(
-      department,
-      ITEMS_PER_PAGE,
-      (currentPage - 1) * ITEMS_PER_PAGE
-    ),
-  ]);
+  const attendanceData = await getTodayAdminAttendance(
+    selectedDepartment,
+    ITEMS_PER_PAGE,
+    (currentPage - 1) * ITEMS_PER_PAGE
+  );
 
   const { records: attendanceRecords, totalCount } = attendanceData;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -46,7 +52,7 @@ export default async function AdminHistoryPage({
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Today&apos;s Attendance</h1>
-        <DepartmentFilter departments={uniqueDepartments} />
+        <DepartmentFilter departments={departmentList} />
       </div>
 
       <div className="rounded-lg border shadow-sm overflow-x-auto">
@@ -130,7 +136,7 @@ export default async function AdminHistoryPage({
           </TableBody>
         </Table>
       </div>
-      <div />
+
       {totalPages > 1 && (
         <div className="flex flex-col items-center space-y-4 mt-4">
           <div className="text-sm text-muted-foreground">

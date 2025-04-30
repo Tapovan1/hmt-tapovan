@@ -30,7 +30,7 @@ export function DepartmentFilter({
     } else {
       params.set(paramName, value);
     }
-    params.set("page", "1"); // Reset to first page when changing department
+    params.set("page", "1");
     router.push(`${path}?${params.toString()}`);
   };
 

@@ -27,11 +27,19 @@ import { exportToExcel } from "@/lib/action/export.actions";
 import { Pagination } from "@/components/pagination";
 
 const DEPARTMENTS = [
-  { id: "Department 1", name: "Department 1" },
-  { id: "Department 2", name: "Department 2" },
-  { id: "Department 3", name: "Department 3" },
-  { id: "Department 4", name: "Department 4" },
-  { id: "Department 5", name: "Department 5" },
+  { id: "Admin", name: "Admin" },
+  { id: "Computer Operator", name: "Computer Operator" },
+  { id: "Clerk", name: "Clerk" },
+  { id: "Primary", name: "Primary" },
+  { id: "SSC", name: "SSC" },
+  { id: "HSC", name: "HSC" },
+  { id: "Foundation", name: "Foundation" },
+  { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
+  { id: "GCI", name: "GCI" },
+  { id: "Peon", name: "Peon" },
+  { id: "Security", name: "Security" },
+  { id: "Guest", name: "Guest" },
+  { id: "Accountant", name: "Accountant" },
 ];
 
 export default function ReportPage() {

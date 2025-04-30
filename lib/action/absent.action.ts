@@ -7,10 +7,10 @@ export const getTeachersForAbsent = async (department?: string) => {
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
+
   const today = new Date(indianDateString);
 
   const whereClause = {
-    role: "TEACHER",
     ...(department && { department }),
     NOT: {
       attendances: {
@@ -33,6 +33,10 @@ export const getTeachersForAbsent = async (department?: string) => {
       name: "asc",
     },
   });
+
+  if (!teachers || teachers.length === 0) {
+    return []; // No teachers found for the given department
+  }
 
   return teachers;
 };
