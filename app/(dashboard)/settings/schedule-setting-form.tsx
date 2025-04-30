@@ -323,15 +323,21 @@ const ScheduleSettingsForm: React.FC<ScheduleSettingsFormProps> = ({
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Department 1">
-                            Department 1
+                          <SelectItem value="Accountant">Accountant</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                          <SelectItem value="Computer Operator">
+                            Computer Operator
                           </SelectItem>
-                          <SelectItem value="Department 2">
-                            Department 2
-                          </SelectItem>
-                          <SelectItem value="Department 3">
-                            Department 3
-                          </SelectItem>
+                          <SelectItem value="Clerk">Clerk</SelectItem>
+                          <SelectItem value="Primary">Primary</SelectItem>
+                          <SelectItem value="SSC">SSC</SelectItem>
+                          <SelectItem value="HSC">HSC</SelectItem>
+                          <SelectItem value="Foundation">Foundation</SelectItem>
+                          <SelectItem value="HSC (Ahmd)">HSC (Ahmd)</SelectItem>
+                          <SelectItem value="GCI">GCI</SelectItem>
+                          <SelectItem value="Peon">Peon</SelectItem>
+                          <SelectItem value="Security">Security</SelectItem>
+                          <SelectItem value="Guest">Guest</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
