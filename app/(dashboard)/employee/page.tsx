@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import {
   Table,
@@ -14,6 +14,7 @@ import { getEmployees } from "@/lib/action/user.action";
 
 import EmploteeDialog from "@/components/Dashboard/EmployeeDialog";
 import Delete from "./Delete";
+import EditEmployeeDialog from "@/components/Dashboard/EditEmployeeDialog";
 
 export default async function EmployeesPage() {
   const data = await getEmployees();
@@ -39,7 +40,10 @@ export default async function EmployeesPage() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src="" alt={employee.name} />
+                        <AvatarImage
+                          src="/placeholder.svg"
+                          alt={employee.name}
+                        />
                         <AvatarFallback>
                           {employee.name.charAt(0)}
                         </AvatarFallback>
@@ -51,7 +55,10 @@ export default async function EmployeesPage() {
                   <TableCell>{employee.role}</TableCell>
                   <TableCell>{employee.email}</TableCell>
                   <TableCell>
-                    <Delete id={employee.id} />
+                    <div className="flex space-x-2">
+                      <EditEmployeeDialog employee={employee} />
+                      <Delete id={employee.id} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

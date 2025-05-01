@@ -95,10 +95,11 @@ export const deleteUser = async (id: DeleteUserParams) => {
 interface IFormData {
   name: string;
   email: string;
-  role: "SUPERADMIN" | "ADMIN" | "EMPLOYEE";
+  role: string;
   password: string;
   department: string;
 }
+
 export const addEmployee = async (formData: IFormData) => {
   const { name, email, role, password, department } = formData;
 
@@ -122,13 +123,64 @@ export const addEmployee = async (formData: IFormData) => {
       };
     }
 
-    // console.log("addEmployeeData", addEmployeeData);
     revalidatePath("/employees");
     return {
       success: true,
       message: "Employee added successfully",
     };
   } catch (error) {
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
+};
+
+interface IUpdateFormData {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  password?: string;
+  department: string;
+}
+
+export const updateEmployee = async (formData: IUpdateFormData) => {
+  const { id, name, email, role, password, department } = formData;
+
+  try {
+    // Prepare update data
+    const updateData: any = {
+      name,
+      email,
+      role,
+      department,
+    };
+
+    // Only hash and update password if provided
+    if (password) {
+      const hashedPassword = await saltAndHashPassword(password);
+      updateData.password = hashedPassword;
+    }
+
+    const updatedEmployee = await prisma?.user.update({
+      where: {
+        id: id,
+      },
+      data: updateData,
+    });
+
+    if (!updatedEmployee) {
+      return {
+        success: false,
+        message: "Failed to update employee",
+      };
+    }
+
+    revalidatePath("/employees");
+    return {
+      success: true,
+      message: "Employee updated successfully",
+    };
+  } catch (error) {
+    console.error("Update error:", error);
     throw new Error(error instanceof Error ? error.message : String(error));
   }
 };
