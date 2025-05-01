@@ -37,6 +37,8 @@ export async function markAttendance(data: {
 
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
 
+  console.log("India Time:", indiaTime);
+
   const existingAttendance = await prisma.attendance.findFirst({
     where: {
       userId: user?.id,
@@ -71,6 +73,9 @@ export async function markAttendance(data: {
       status: determineStatus(indiaTime, schedule),
     },
   });
+
+  console.log("formattedIndianDate", formattedIndianDate);
+  console.log("sucessfully marked attendance");
 
   revalidatePath("/attendance");
   revalidatePath("/dashboard");
