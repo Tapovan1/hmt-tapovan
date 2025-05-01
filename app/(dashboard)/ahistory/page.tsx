@@ -35,9 +35,12 @@ export default async function AdminHistoryPage({
 }: {
   searchParams: { department?: string; page?: string };
 }) {
-  const currentPage = Number(searchParams.page) || 1;
+  // Await the searchParams object before accessing its properties
+  const params = await searchParams;
+
+  const currentPage = Number(params.page) || 1;
   const selectedDepartment =
-    searchParams.department === "all" ? undefined : searchParams.department;
+    params.department === "all" ? undefined : params.department;
 
   const attendanceData = await getTodayAdminAttendance(
     selectedDepartment,
