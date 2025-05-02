@@ -55,6 +55,11 @@ const SuperadminItems = [
     icon: FileText,
     href: "/report",
   },
+  {
+    title: "Student Leave",
+    icon: Users,
+    href: "/student-leave",
+  },
 ];
 
 const adminRole = [

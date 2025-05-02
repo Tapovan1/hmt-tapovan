@@ -11,15 +11,16 @@ const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
 
 const studentAbsenceSchema = z.object({
   id: z.string().optional(),
-
   rollNo: z.string().min(1),
   studentName: z.string().min(1),
   class: z.string().min(1),
   standard: z.string().min(1),
   parentName: z.string().min(1),
   reason: z.string().min(1),
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).default("PENDING"),
-  photo: z.string().optional(), // Add this line for the photo
+  status: z
+    .enum(["PENDING", "APPROVED", "REJECTED", "DONE"])
+    .default("PENDING"),
+  photo: z.string().optional(),
 });
 
 export async function getStudentAbsences(month: number, year: number) {
@@ -49,6 +50,7 @@ export async function getStudentAbsences(month: number, year: number) {
         purpose: true,
         outTime: true,
         status: true,
+        photo: true,
       },
     });
 
@@ -80,7 +82,7 @@ export async function createStudentAbsence(
 
     const absence = await prisma.studentLeave.create({
       data: {
-        date: indiaTime, // Use the ISO 8601 formatted date
+        date: indiaTime,
         rollNo: validatedData.rollNo,
         studentName: validatedData.studentName,
         class: validatedData.class,
@@ -93,6 +95,7 @@ export async function createStudentAbsence(
     });
 
     revalidatePath("/student-absent");
+    revalidatePath("/security");
     return absence;
   } catch (error) {
     console.error("Failed to create student absence:", error);
@@ -110,22 +113,40 @@ export async function updateStudentAbsence(
       throw new Error("Student absence ID is required for updates");
     }
 
+    const updateData: {
+      rollNo: string;
+      studentName: string;
+      class: string;
+      standard: string;
+      parentName: string;
+      purpose: string;
+      status: "PENDING" | "APPROVED" | "REJECTED" | "DONE";
+      photo?: string;
+      outTime?: Date;
+    } = {
+      rollNo: validatedData.rollNo,
+      studentName: validatedData.studentName,
+      class: validatedData.class,
+      standard: validatedData.standard,
+      parentName: validatedData.parentName,
+      purpose: validatedData.reason,
+      status: validatedData.status,
+      photo: validatedData.photo,
+      outTime: indiaTime,
+    };
+
+    // Add outTime only when status is changed to DONE
+    if (validatedData.status === "DONE") {
+      updateData.outTime = indiaTime;
+    }
+
     const absence = await prisma.studentLeave.update({
       where: { id: validatedData.id },
-      data: {
-        date: indiaTime,
-        rollNo: validatedData.rollNo,
-        studentName: validatedData.studentName,
-        class: validatedData.class,
-        standard: validatedData.standard,
-        parentName: validatedData.parentName,
-        purpose: validatedData.reason,
-        status: validatedData.status,
-        photo: validatedData.photo, // Add this line
-      },
+      data: updateData,
     });
 
     revalidatePath("/student-absent");
+    revalidatePath("/security");
     return absence;
   } catch (error) {
     console.error("Failed to update student absence:", error);
@@ -140,6 +161,7 @@ export async function deleteStudentAbsence(id: string) {
     });
 
     revalidatePath("/student-absent");
+    revalidatePath("/security");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete student absence:", error);
