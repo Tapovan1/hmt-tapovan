@@ -60,6 +60,11 @@ const SuperadminItems = [
     icon: Users,
     href: "/student-leave",
   },
+  {
+    title: "Teacher Leave",
+    icon: Users,
+    href: "/ateacher-leave",
+  },
 ];
 
 const adminRole = [
@@ -81,7 +86,7 @@ const adminRole = [
   {
     title: "Leave",
     icon: Users,
-    href: "/leave",
+    href: "/teacher-leave",
   },
   {
     title: "Report",
@@ -109,7 +114,7 @@ const Teacher = [
   {
     title: "Leave",
     icon: Users,
-    href: "/leave",
+    href: "/teacher-leave",
   },
 ];
 
@@ -132,7 +137,7 @@ const TeacherE = [
   {
     title: "Leave",
     icon: Users,
-    href: "/leave",
+    href: "/teacher-leave",
   },
   {
     title: "Student Leave",
@@ -160,7 +165,7 @@ const Security = [
   {
     title: "Leave",
     icon: Users,
-    href: "/leave",
+    href: "/teacher-leave",
   },
   {
     title: "Student Leave",

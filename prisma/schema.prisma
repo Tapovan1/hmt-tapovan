@@ -15,18 +15,22 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String
-  email         String     @unique
-  password      String
-  role          String
-  department    String
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  attendances   Attendance[]
-   scheduleId    String?
-  schedule      WorkSchedule? @relation(fields: [scheduleId], references: [id])
- }
+  id                  String     @id @default(cuid())
+  name                String
+  email               String     @unique
+  password            String
+  role                String
+  department          String
+  totalLeavesTaken    Int        @default(0)  // Add this field
+  totalLeavesApproved Int        @default(0)  // Add this field
+  totalLeavesRejected Int        @default(0)  // Add this field
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  attendances         Attendance[]
+  scheduleId          String?
+  schedule            WorkSchedule? @relation(fields: [scheduleId], references: [id])
+  leaves              TeacherLeave[]
+}
 
 model Attendance {
   id          String    @id @default(cuid())
@@ -37,7 +41,7 @@ model Attendance {
   status      Status
   photo       String?
   user        User      @relation(fields: [userId], references: [id])
-   scheduleId  String?
+  scheduleId  String?
   schedule    WorkSchedule? @relation(fields: [scheduleId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -86,6 +90,27 @@ model StudentLeave {
   updatedAt   DateTime @updatedAt
 }
 
+// New model for Teacher Leave requests
+model TeacherLeave {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  department  String
+  startDate   DateTime
+  endDate     DateTime
+  totalDays   Int?     // Add this field to store the calculated number of days
+  reason      String
+  status      String   @default("PENDING")
+  feedback    String?  // Optional field to store admin feedback
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Relation to User model
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([startDate])
+  @@index([endDate])
+}
 
 enum Status {
   PRESENT

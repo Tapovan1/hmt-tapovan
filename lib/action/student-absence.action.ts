@@ -155,9 +155,13 @@ export async function updateStudentAbsence(
 }
 
 export async function deleteStudentAbsence(id: string) {
+  console.log("DeleteStudentAbsence", id);
+
   try {
     await prisma.studentLeave.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
 
     revalidatePath("/student-absent");
