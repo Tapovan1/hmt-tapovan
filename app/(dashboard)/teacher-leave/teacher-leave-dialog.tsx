@@ -1,12 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,50 +14,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Plus } from "lucide-react";
+
 import {
   createTeacherLeave,
   updateTeacherLeave,
 } from "@/lib/action/teacherLeave.action";
-
-const formSchema = z
-  .object({
-    id: z.string().optional(),
-    startDate: z.date({
-      required_error: "Start date is required",
-    }),
-    endDate: z.date({
-      required_error: "End date is required",
-    }),
-    reason: z.string().min(1, "Reason is required"),
-  })
-  .refine(
-    (data) => {
-      return data.endDate >= data.startDate;
-    },
-    {
-      message: "End date must be after start date",
-      path: ["endDate"],
-    }
-  );
-
-type TeacherLeaveFormValues = z.infer<typeof formSchema>;
+import { DatePicker } from "@/components/date-picker";
 
 export function TeacherLeaveDialog({
   children,
@@ -71,32 +34,28 @@ export function TeacherLeaveDialog({
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+  const [reason, setReason] = useState(leave?.reason || "");
 
-  // Initialize the form with only the required fields
-  const form = useForm<TeacherLeaveFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      startDate: leave?.startDate ? new Date(leave.startDate) : undefined,
-      endDate: leave?.endDate ? new Date(leave.endDate) : undefined,
-      reason: leave?.reason || "",
-      id: leave?.id,
-    },
-  });
-
-  // Reset form when dialog closes
-  useEffect(() => {
-    if (!open) {
-      if (!leave) {
-        form.reset({
-          startDate: undefined,
-          endDate: undefined,
-          reason: "",
-        });
-      }
+  async function onSubmit() {
+    if (!startDate || !endDate) {
+      return;
     }
-  }, [open, form, leave]);
+    const adjustedStartDate = new Date(startDate);
+    const adjustedEndDate = new Date(endDate);
 
-  async function onSubmit(data: TeacherLeaveFormValues) {
+    adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+
+    adjustedStartDate.setHours(0, 0, 0, 0);
+    adjustedEndDate.setHours(0, 0, 0, 0);
+    const data = {
+      id: leave?.id,
+      start: adjustedStartDate,
+      end: adjustedEndDate,
+      reason,
+    };
     try {
       if (data.id) {
         await updateTeacherLeave(data);
@@ -104,7 +63,7 @@ export function TeacherLeaveDialog({
         await createTeacherLeave(data);
       }
       setOpen(false);
-      form.reset();
+
       router.refresh();
     } catch (error) {
       console.error("Failed to save teacher leave:", error);
@@ -132,126 +91,47 @@ export function TeacherLeaveDialog({
               : "Fill in the details to request a leave."}
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 p-4 sm:p-0"
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DatePicker
+            date={startDate}
+            setDate={setStartDate}
+            placeholder="Start Date"
+          />
+          <DatePicker
+            date={endDate}
+            setDate={setEndDate}
+            placeholder="End Date"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Reason for Leave</label>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Enter reason for leave"
+            className="resize-none min-h-[100px]"
+          />
+        </div>
+
+        <DialogFooter className="pt-4 sm:pt-0 flex flex-col sm:flex-row gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Start Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>End Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reason for Leave</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter reason for leave"
-                      className="resize-none min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter className="pt-4 sm:pt-0 flex flex-col sm:flex-row gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                className="w-full sm:w-auto order-2 sm:order-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="w-full sm:w-auto order-1 sm:order-2"
-              >
-                {leave ? "Update" : "Submit"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            Cancel
+          </Button>
+          <Button
+            onClick={onSubmit}
+            type="submit"
+            className="w-full sm:w-auto order-1 sm:order-2"
+          >
+            {leave ? "Update" : "Submit"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -211,6 +211,9 @@ export default function ReportPage() {
                 Late Days
               </TableHead>
               <TableHead className="py-4 px-3 md:px-6 font-semibold">
+                Leave Days
+              </TableHead>
+              <TableHead className="py-4 px-3 md:px-6 font-semibold">
                 Total Work Hours
               </TableHead>
             </TableRow>
@@ -254,6 +257,9 @@ export default function ReportPage() {
                   </TableCell>
                   <TableCell className="py-4 px-3 md:px-6">
                     {userData.stats.lateCount}
+                  </TableCell>
+                  <TableCell className="py-4 px-3 md:px-6">
+                    {userData.stats.leaveCount}
                   </TableCell>
                   <TableCell className="py-4 px-3 md:px-6">
                     {userData.stats.totalWorkHours}

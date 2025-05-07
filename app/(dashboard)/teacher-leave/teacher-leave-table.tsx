@@ -10,15 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Check, X } from "lucide-react";
+import { Edit } from "lucide-react";
 import { TeacherLeaveDialog } from "./teacher-leave-dialog";
 import DeleteButton from "./delete-button";
-import { updateLeaveStatus } from "@/lib/action/teacherLeave.action";
 
 export async function TeacherLeaveTable({
   month,
   year,
-  isAdmin = false,
 }: {
   month: number;
   year: number;
@@ -69,7 +67,7 @@ export async function TeacherLeaveTable({
                   <Badge
                     variant={
                       leave.status === "APPROVED"
-                        ? "success"
+                        ? "default"
                         : leave.status === "PENDING"
                         ? "secondary"
                         : "destructive"
@@ -86,33 +84,6 @@ export async function TeacherLeaveTable({
                         <Edit className="h-4 w-4" />
                       </Button>
                     </TeacherLeaveDialog>
-
-                    {isAdmin && leave.status === "PENDING" && (
-                      <>
-                        <form action={updateLeaveStatus}>
-                          <input type="hidden" name="id" value={leave.id} />
-                          <input type="hidden" name="status" value="APPROVED" />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-green-500"
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                        </form>
-                        <form action={updateLeaveStatus}>
-                          <input type="hidden" name="id" value={leave.id} />
-                          <input type="hidden" name="status" value="REJECTED" />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-red-500"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </form>
-                      </>
-                    )}
 
                     <DeleteButton id={leave.id} />
                   </div>

@@ -1,146 +1,17 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { Status } from "@prisma/client";
+import { isTeacherOnLeave } from "./teacherLeave.action";
 import { getUser } from "./getUser";
-
-import { format } from "date-fns";
-import { determineStatus } from "../attendance";
 import { getSchedulesByDepartment } from "./work-schedule";
+import { format } from "date-fns";
+import { revalidatePath } from "next/cache";
 
 const currentUtcTime = new Date();
 
 const formattedIndianDate = new Date(format(currentUtcTime, "yyyy-MM-dd"));
 
-export const getWorkSchedule = async () => {
-  // Fallback to global schedule
-  const globalSchedule = await prisma.workSchedule.findFirst({
-    where: { isGlobal: true },
-  });
-
-  if (!globalSchedule) {
-    throw new Error("No work schedule found");
-  }
-
-  return globalSchedule;
-};
-
-export async function markAttendance(data: {
-  photo: string;
-  latitude: number;
-  longitude: number;
-}) {
-  const user = await getUser();
-
-  const currentUtcTime = new Date();
-  const indiaOffset = 330;
-
-  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-
-  console.log("India Time:", indiaTime);
-
-  const existingAttendance = await prisma.attendance.findFirst({
-    where: {
-      userId: user?.id,
-      date: currentUtcTime,
-    },
-  });
-
-  if (existingAttendance) {
-    return {
-      sucess: false,
-      message: "Attendance already marked for the day",
-    };
-  }
-
-  if (!user?.department) {
-    throw new Error("Department is required to mark attendance");
-  }
-
-  const schedule = await getSchedulesByDepartment(user.department);
-
-  if (!schedule) {
-    throw new Error("No schedule found for the department");
-  }
-
-  await prisma.attendance.create({
-    data: {
-      userId: user.id,
-
-      date: formattedIndianDate,
-      checkIn: indiaTime,
-      photo: data.photo,
-      status: determineStatus(indiaTime, schedule),
-    },
-  });
-
-  console.log("formattedIndianDate", formattedIndianDate);
-  console.log("sucessfully marked attendance");
-
-  revalidatePath("/attendance");
-  revalidatePath("/dashboard");
-  revalidatePath("/history");
-
-  return {
-    sucess: true,
-    message: "Attendance marked successfully",
-  };
-}
-
-export async function markCheckOut(data: {
-  photo: string;
-  latitude: number;
-  longitude: number;
-}) {
-  const user = await getUser();
-
-  const currentUtcTime = new Date();
-  const indiaOffset = 330;
-
-  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-
-  const existingAttendance = await prisma.attendance.findFirst({
-    where: {
-      userId: user?.id,
-      date: currentUtcTime,
-    },
-  });
-
-  if (!existingAttendance) {
-    return {
-      sucess: false,
-      message: "Attendance not marked for the day",
-    };
-  }
-
-  if (existingAttendance.checkOut) {
-    return {
-      sucess: false,
-      message: "Check-out already marked for the day",
-    };
-  }
-
-  await prisma.attendance.update({
-    where: {
-      id: existingAttendance.id,
-    },
-    data: {
-      checkOut: indiaTime,
-      photo: data.photo,
-
-      // status: determineStatus(indiaTime, schedule),
-    },
-  });
-
-  revalidatePath("/attendance");
-  revalidatePath("/dashboard");
-  revalidatePath("/history");
-
-  return {
-    sucess: true,
-    message: "Check-out marked successfully",
-  };
-}
 export const getAttendance = async (user: { id: string }) => {
   const attendance = await prisma.attendance.findFirst({
     where: {
@@ -166,6 +37,79 @@ export const getAttendance = async (user: { id: string }) => {
     status: attendance.status,
   };
 };
+
+export async function markAttendance(formData: FormData) {
+  try {
+    const user = await getUser();
+    const currentUtcTime = new Date();
+    const indiaOffset = 330;
+
+    const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+    const action = formData.get("action") as string;
+    const photo = formData.get("photo") as string;
+
+    const scheduleId = formData.get("scheduleId") as string;
+
+    // Get today's date with time set to 00:00:00
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if the teacher is on approved leave today
+    const isOnLeave = await isTeacherOnLeave(user.id, today);
+
+    if (isOnLeave) {
+      return {
+        success: false,
+        error: "You are on approved leave today and cannot mark attendance.",
+        isOnLeave: true,
+      };
+    }
+
+    // If not on leave, proceed with normal attendance marking
+    let attendance = await prisma.attendance.findFirst({
+      where: {
+        userId: user.id,
+        date: formattedIndianDate,
+      },
+    });
+
+    if (!attendance) {
+      // Create new attendance record
+      attendance = await prisma.attendance.create({
+        data: {
+          userId: user.id,
+          date: formattedIndianDate,
+          checkIn: action === "checkIn" ? indiaTime : undefined,
+          checkOut: action === "checkOut" ? indiaTime : undefined,
+          status: Status.PRESENT,
+          photo: photo || undefined,
+          scheduleId: scheduleId || undefined,
+        },
+      });
+    } else {
+      // Update existing attendance record
+      attendance = await prisma.attendance.update({
+        where: { id: attendance.id },
+        data: {
+          checkIn: action === "checkIn" ? indiaTime : attendance.checkIn,
+          checkOut: action === "checkOut" ? indiaTime : attendance.checkOut,
+          photo: photo || attendance.photo,
+        },
+      });
+    }
+    revalidatePath("/attendance");
+    revalidatePath("/dashboard");
+    revalidatePath("/history");
+
+    return { success: true, data: attendance };
+  } catch (error) {
+    console.error("Error marking attendance:", error);
+    return { success: false, error: "Failed to mark attendance" };
+  }
+}
 
 export async function validateLocation(latitude: number, longitude: number) {
   try {

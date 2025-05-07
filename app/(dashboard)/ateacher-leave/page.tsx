@@ -4,6 +4,7 @@ import { AdminTeacherLeaveStats } from "./admin-teacher-leave-stats";
 import { AdminTeacherLeaveTable } from "./admin-teacher-leave-table";
 import { AdminTeacherLeaveFilters } from "./admin-teacher-leave-filters";
 import { getFilteredTeacherLeaves } from "@/lib/action/admin-teacher-leave.action";
+import LoadingBox from "@/components/LoadingBox";
 
 export default async function AdminTeacherLeavePage() {
   // Check if the user is an admin
@@ -23,7 +24,13 @@ export default async function AdminTeacherLeavePage() {
           </p>
         </div>
 
-        <Suspense fallback={<div>Loading statistics...</div>}>
+        <Suspense
+          fallback={
+            <div>
+              <LoadingBox />
+            </div>
+          }
+        >
           <AdminTeacherLeaveStats />
         </Suspense>
 
@@ -31,11 +38,23 @@ export default async function AdminTeacherLeavePage() {
           <div className="p-6 flex flex-col gap-6">
             <h2 className="text-xl font-semibold">Leave Requests</h2>
 
-            <Suspense fallback={<div>Loading filters...</div>}>
+            <Suspense
+              fallback={
+                <div>
+                  <LoadingBox />
+                </div>
+              }
+            >
               <AdminTeacherLeaveFilters />
             </Suspense>
 
-            <Suspense fallback={<div>Loading leave requests...</div>}>
+            <Suspense
+              fallback={
+                <div>
+                  <LoadingBox />
+                </div>
+              }
+            >
               <AdminTeacherLeaveTable leaves={leaves} />
             </Suspense>
           </div>

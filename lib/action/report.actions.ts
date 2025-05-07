@@ -14,6 +14,7 @@ export interface ReportData {
     presentCount: number;
     absentCount: number;
     lateCount: number;
+    leaveCount: number;
     totalWorkHours: string;
   };
   dailyAttendance: {
@@ -32,15 +33,22 @@ export async function getReportData(params: {
   page?: number;
 }) {
   const { department, start, end, page = 1 } = params;
+  console.log("start", start);
+  console.log("end", end);
+
   const itemsPerPage = 10;
 
-  const startDate = start ? new Date(start) : new Date();
-  const endDate = end ? new Date(end) : new Date();
+  const startDate = new Date(Number(start));
+  const endDate = new Date(Number(end));
 
-  // If dates are provided, adjust them to cover the full day in local timezone
-  startDate.setHours(0, 0, 0, 0);
-  endDate.setHours(23, 59, 59, 999);
+  // Set time to midnight (00:00:00)
+  startDate.setUTCHours(0, 0, 0, 0);
+  endDate.setUTCHours(0, 0, 0, 0);
 
+  // Add one day to both dates
+
+  console.log("startDate", startDate);
+  console.log("endDate", endDate);
   // Query users
   const usersQuery = {
     where: department ? { department } : {},
@@ -115,10 +123,12 @@ export async function getReportData(params: {
             acc.absentCount++;
           } else if (curr.status === Status.LATE) {
             acc.lateCount++;
+          } else if (curr.status === Status.ON_LEAVE) {
+            acc.leaveCount++;
           }
           return acc;
         },
-        { presentCount: 0, absentCount: 0, lateCount: 0 }
+        { presentCount: 0, absentCount: 0, lateCount: 0, leaveCount: 0 }
       );
 
       // Calculate total work hours

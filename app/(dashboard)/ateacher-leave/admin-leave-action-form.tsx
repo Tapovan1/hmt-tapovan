@@ -31,7 +31,7 @@ export function AdminLeaveActionForm({ leaveId }: { leaveId: string }) {
       } else {
         throw new Error("Failed to update status");
       }
-    } catch (error) {
+    } catch {
       toast("Failed to update leave status");
     } finally {
       setIsSubmitting(false);

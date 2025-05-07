@@ -1,42 +1,59 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Camera } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import type { WorkSchedule } from "@/lib/types/work-schedule";
-import { isWithinAllowedTime } from "@/lib/isWithinTime";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   markAttendance,
-  markCheckOut,
   validateLocation,
 } from "@/lib/action/attendance.action";
+import { Camera, Clock, MapPin } from "lucide-react";
+
+import Webcam from "react-webcam";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { isWithinAllowedTime } from "@/lib/isWithinTime";
 import { formatTimeTo12Hour } from "@/lib/utils/date-format";
 
-interface AttendanceFormProps {
-  initialWorkSchedule: WorkSchedule;
-  hasCheckedIn: boolean;
-  hasCheckedOut: boolean;
+interface WorkSchedule {
+  name: string;
+  department: string;
+  startTime: string;
+  endTime: string;
+  workDays: number[];
+  graceMinutes: number;
+  saturdayStartTime?: string;
+  saturdayEndTime?: string;
+  saturdayGraceMinutes?: number;
+  id?: string;
 }
 
 export default function AttendanceForm({
   initialWorkSchedule,
   hasCheckedIn,
   hasCheckedOut,
-}: AttendanceFormProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+}: {
+  initialWorkSchedule: WorkSchedule;
+  hasCheckedIn: boolean;
+  hasCheckedOut: boolean;
+}) {
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [workSchedule] = useState<WorkSchedule>(initialWorkSchedule);
   const [isAllowedTime, setIsAllowedTime] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+    latitude: number | null;
+    longitude: number | null;
+  }>({ latitude: null, longitude: null });
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLocationValid, setIsLocationValid] = useState<boolean>(false);
+  const [isOnLeave, setIsOnLeave] = useState(false);
+  const [leaveMessage, setLeaveMessage] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const webcamRef = useRef<Webcam>(null);
 
   useEffect(() => {
     const checkAllowedTime = () => {
@@ -51,12 +68,6 @@ export default function AttendanceForm({
 
     return () => clearInterval(intervalId);
   }, [workSchedule]);
-
-  useEffect(() => {
-    if (stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
 
   useEffect(() => {
     // Get user's location when component mounts
@@ -91,8 +102,6 @@ export default function AttendanceForm({
           setLocationError(null);
 
           // Set a timeout to show loading for at least 500ms to avoid UI flicker
-          const startTime = Date.now();
-          const minLoadingTime = 500; // ms
 
           // Validate location
           const validation = await validateLocation(
@@ -102,18 +111,15 @@ export default function AttendanceForm({
 
           if (!isMounted) return;
 
-          setIsLocationValid(validation.success);
           if (!validation.success) {
             setLocationError(validation.message);
           }
 
           // Ensure we show loading for at least minLoadingTime
-          const elapsedTime = Date.now() - startTime;
-          const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
 
           setTimeout(() => {
             if (isMounted) setLoading(false);
-          }, remainingTime);
+          });
         } catch (error) {
           if (!isMounted) return;
           setLocationError(
@@ -136,114 +142,84 @@ export default function AttendanceForm({
     };
   }, []);
 
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: "user",
-        },
-      });
-      setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current
-          .play()
-          .catch((e) => console.error("Error playing video:", e));
-      }
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      toast.error(
-        "Failed to access camera. Please check your camera permissions."
-      );
-    }
-  };
-
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
-    setIsRecording(false);
-  };
-
   const capturePhoto = () => {
-    if (!videoRef.current) return null;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-
-    const context = canvas.getContext("2d");
-    if (!context) return null;
-
-    context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg");
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      setCapturedImage(imageSrc);
+      setIsCameraOpen(false);
+    }
   };
 
-  const handleAttendance = async (type: "check-in" | "check-out") => {
+  const handleSubmit = async (action: "checkIn" | "checkOut") => {
     setLoading(true);
-    if (!isAllowedTime) {
-      toast.error("Attendance marking is only allowed during scheduled hours.");
-      setLoading(false);
+    if (!capturedImage) {
+      toast("Please capture a photo before submitting.");
       return;
     }
 
-    if (!location) {
-      toast.error("Location is required to mark attendance.");
-      setLoading(false);
+    if (!location.latitude || !location.longitude) {
+      toast("Please wait for your location to be detected.");
       return;
     }
 
-    const photo = capturePhoto();
-    if (!photo) {
-      toast.error("Failed to capture photo. Please try again.");
-      setLoading(false);
-      return;
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+    formData.append("userId", "user_id_here"); // Replace with actual user ID
+    formData.append("action", action);
+    formData.append("photo", capturedImage);
+    formData.append("latitude", location.latitude.toString());
+    formData.append("longitude", location.longitude.toString());
+    if (initialWorkSchedule.id) {
+      formData.append("scheduleId", initialWorkSchedule.id);
     }
 
     try {
-      const data =
-        type === "check-in"
-          ? await markAttendance({
-              photo,
-              latitude: location.latitude,
-              longitude: location.longitude,
-            })
-          : await markCheckOut({
-              photo,
-              latitude: location.latitude,
-              longitude: location.longitude,
-            });
+      const result = await markAttendance(formData);
 
-      if (data.sucess) {
-        toast.success(
-          type === "check-in"
-            ? "Check-in marked successfully!"
-            : "Check-out marked successfully!"
+      if (result.success) {
+        toast(
+          `${action === "checkIn" ? "Checked In" : "Checked Out"} successfully!`
         );
-        window.location.reload();
+        setLoading(false);
+        router.refresh();
+
+        // Refresh the page to update the UI
       } else {
-        toast.error(
-          data.message || "Failed to mark attendance. Please try again."
-        );
+        // Check if the error is due to being on leave
+        if (result.isOnLeave) {
+          setIsOnLeave(true);
+          setLeaveMessage(result.error);
+        } else {
+          toast(
+            "An error occurred while marking attendance. Please try again."
+          );
+        }
       }
-    } catch {
-      toast.error("Failed to mark attendance. Please try again.");
+    } catch (error) {
+      toast("An error occurred while marking attendance. Please try again.");
+      console.error("Error marking attendance:", error);
     } finally {
-      stopCamera();
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (hasCheckedOut) {
+  // If the user is on leave, show a message instead of the form
+  if (isOnLeave) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-green-600 font-semibold">
-            You have completed your attendance for today!
+        <CardHeader>
+          <CardTitle>On Approved Leave</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center p-6 text-center">
+            <div className="text-amber-500 mb-4">
+              <Clock className="h-12 w-12 mx-auto" />
+            </div>
+            <p className="text-lg font-medium mb-2">
+              You are on approved leave today
+            </p>
+            <p className="text-muted-foreground">{leaveMessage}</p>
           </div>
         </CardContent>
       </Card>
@@ -251,166 +227,138 @@ export default function AttendanceForm({
   }
 
   return (
-    <div>
-      <Card>
-        <CardContent className="p-6">
-          <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
-            {isRecording ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                <Camera className="h-12 w-12" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Mark Your Attendance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {isCameraOpen ? (
+            <div className="space-y-4">
+              <div className="relative overflow-hidden rounded-lg border">
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  className="w-full"
+                />
               </div>
-            )}
-          </div>
-
-          {location && (
-            <div className="mt-4 text-center">
-              <p>
-                Location: {location.latitude.toFixed(6)},{" "}
-                {location.longitude.toFixed(6)}
-              </p>
-              {loading ? (
-                <p className="text-amber-500">Validating location...</p>
-              ) : isLocationValid ? (
-                <p className="text-green-500">✓ Location validated</p>
-              ) : (
-                <p className="text-red-500">✗ Location invalid</p>
-              )}
-            </div>
-          )}
-
-          {locationError && (
-            <p className="mt-2 text-center text-red-500">{locationError}</p>
-          )}
-
-          <div className="mt-4 flex justify-center space-x-4">
-            {!isRecording && (
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  setLoading(true);
-
-                  if (navigator.geolocation) {
-                    try {
-                      const position = await new Promise<GeolocationPosition>(
-                        (resolve, reject) => {
-                          navigator.geolocation.getCurrentPosition(
-                            resolve,
-                            reject,
-                            {
-                              enableHighAccuracy: true,
-                              timeout: 10000,
-                              maximumAge: 0,
-                            }
-                          );
-                        }
-                      );
-
-                      const userLocation = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                      };
-
-                      setLocation(userLocation);
-                      setLocationError(null);
-
-                      const startTime = Date.now();
-                      const minLoadingTime = 500; // ms
-
-                      const validation = await validateLocation(
-                        userLocation.latitude,
-                        userLocation.longitude
-                      );
-
-                      setIsLocationValid(validation.success);
-                      if (!validation.success) {
-                        setLocationError(validation.message);
-                      } else {
-                        toast.success("Location validated successfully");
-                      }
-
-                      // Ensure we show loading for at least minLoadingTime
-                      const elapsedTime = Date.now() - startTime;
-                      const remainingTime = Math.max(
-                        0,
-                        minLoadingTime - elapsedTime
-                      );
-
-                      setTimeout(() => {
-                        setLoading(false);
-                      }, remainingTime);
-                    } catch (error) {
-                      console.error("Error refreshing location:", error);
-                      setLocationError(
-                        "Failed to refresh location. Please try again."
-                      );
-                      setLoading(false);
-                    }
-                  }
-                }}
-                disabled={loading}
-                className="mr-2"
-              >
-                {loading ? "Validating..." : "Refresh Location"}
-              </Button>
-            )}
-            {!isRecording && (
-              <Button
-                onClick={startCamera}
-                disabled={!isAllowedTime || hasCheckedOut || !isLocationValid}
-              >
-                Start Camera
-              </Button>
-            )}
-            {isRecording && (
-              <>
-                <Button variant="destructive" onClick={stopCamera}>
+              <div className="flex justify-center space-x-2">
+                <Button onClick={capturePhoto}>Capture Photo</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCameraOpen(false)}
+                >
                   Cancel
                 </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {capturedImage ? (
+                <div className="relative overflow-hidden rounded-lg border">
+                  <img
+                    src={capturedImage || "/placeholder.svg"}
+                    alt="Captured"
+                    className="w-full h-auto"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => setCapturedImage(null)}
+                  >
+                    Retake
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  onClick={() =>
-                    handleAttendance(hasCheckedIn ? "check-out" : "check-in")
-                  }
-                  disabled={loading || !isAllowedTime || !isLocationValid}
+                  onClick={() => setIsCameraOpen(true)}
+                  className="w-full py-8"
+                  variant="outline"
                 >
-                  {loading
-                    ? "Loading..."
-                    : hasCheckedIn
-                    ? "Check Out"
-                    : "Check In"}
+                  <Camera className="mr-2 h-5 w-5" />
+                  Take Photo
                 </Button>
+              )}
+              {location && (
+                <div className="text-sm text-muted-foreground">
+                  <Clock className="inline-block mr-1 h-4 w-4" />
+                  {`Location: ${location.latitude?.toFixed(
+                    4
+                  )}, ${location.longitude?.toFixed(4)}`}
+                </div>
+              )}
+
+              {locationError ? (
+                <div className="text-red-500 text-sm p-2 bg-red-50 rounded-md">
+                  <MapPin className="inline-block mr-1 h-4 w-4" />
+                  {locationError}
+                </div>
+              ) : location.latitude && location.longitude ? (
+                <div className="text-green-600 text-sm p-2 bg-green-50 rounded-md">
+                  <MapPin className="inline-block mr-1 h-4 w-4" />
+                  Location detected successfully
+                </div>
+              ) : (
+                <div className="text-amber-500 text-sm p-2 bg-amber-50 rounded-md">
+                  <MapPin className="inline-block mr-1 h-4 w-4" />
+                  Detecting your location...
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <Button
+                  onClick={() => handleSubmit("checkIn")}
+                  disabled={
+                    loading ||
+                    hasCheckedIn ||
+                    isSubmitting ||
+                    !capturedImage ||
+                    !location.latitude
+                  }
+                  className="w-full"
+                >
+                  {isSubmitting ? "Processing..." : "Check In"}
+                </Button>
+                <Button
+                  onClick={() => handleSubmit("checkOut")}
+                  disabled={
+                    !hasCheckedIn ||
+                    hasCheckedOut ||
+                    isSubmitting ||
+                    !capturedImage ||
+                    !location.latitude
+                  }
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {isSubmitting ? "Processing..." : "Check Out"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        {!isAllowedTime && (
+          <p className="mt-4 text-center text-red-500">
+            Attendance marking is only allowed during scheduled hours:
+            <br />
+            Weekdays: {formatTimeTo12Hour(workSchedule.startTime)} -{" "}
+            {formatTimeTo12Hour(workSchedule.endTime)}
+            {workSchedule.saturdayStartTime && (
+              <>
+                <br />
+                Saturdays:{" "}
+                {workSchedule.saturdayStartTime &&
+                  formatTimeTo12Hour(workSchedule.saturdayStartTime)}{" "}
+                -{" "}
+                {workSchedule.saturdayEndTime &&
+                  formatTimeTo12Hour(workSchedule.saturdayEndTime)}
               </>
             )}
-          </div>
-
-          {!isAllowedTime && (
-            <p className="mt-4 text-center text-red-500">
-              Attendance marking is only allowed during scheduled hours:
-              <br />
-              Weekdays: {formatTimeTo12Hour(workSchedule.startTime)} -{" "}
-              {formatTimeTo12Hour(workSchedule.endTime)}
-              {workSchedule.saturdayStartTime && (
-                <>
-                  <br />
-                  Saturdays:{" "}
-                  {workSchedule.saturdayStartTime &&
-                    formatTimeTo12Hour(workSchedule.saturdayStartTime)}{" "}
-                  -{" "}
-                  {workSchedule.saturdayEndTime &&
-                    formatTimeTo12Hour(workSchedule.saturdayEndTime)}
-                </>
-              )}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

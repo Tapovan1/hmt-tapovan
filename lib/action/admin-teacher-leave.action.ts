@@ -13,7 +13,7 @@ export async function getTeacherLeaveStats() {
     const total = await prisma.teacherLeave.count();
 
     const pending = await prisma.teacherLeave.count({
-      where: { status: "Pending" },
+      where: { status: "PENDING" },
     });
     const approved = await prisma.teacherLeave.count({
       where: { status: "APPROVED" },
@@ -166,6 +166,7 @@ export async function updateLeaveStatusWithFeedback(formData: FormData) {
       where: { id },
       data: {
         status,
+        feedback,
         // Store feedback in a notes field or similar
         // This would require adding a 'feedback' field to the TeacherLeave model
         // For now, we'll just update the status
