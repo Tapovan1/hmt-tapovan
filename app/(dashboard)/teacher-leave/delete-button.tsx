@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { deleteStudentAbsence } from "@/lib/action/student-absence.action";
+
 import { deleteTeacherLeave } from "@/lib/action/teacherLeave.action";
 import { Trash2 } from "lucide-react";
 import React from "react";

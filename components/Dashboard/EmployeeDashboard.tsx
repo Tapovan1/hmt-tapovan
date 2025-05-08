@@ -56,10 +56,19 @@ async function DashboardContent({
   const rawStats = await getDashboardStats(userId, month, year);
   const stats = {
     ...rawStats,
-    todayStatus: ["PRESENT", "LATE", "ABSENT", "NOT_MARKED"].includes(
-      rawStats.todayStatus
-    )
-      ? (rawStats.todayStatus as "PRESENT" | "LATE" | "ABSENT" | "NOT_MARKED")
+    todayStatus: [
+      "PRESENT",
+      "LATE",
+      "ABSENT",
+      "NOT_MARKED",
+      "ON_LEAVE",
+    ].includes(rawStats.todayStatus)
+      ? (rawStats.todayStatus as
+          | "PRESENT"
+          | "LATE"
+          | "ABSENT"
+          | "NOT_MARKED"
+          | "ON_LEAVE")
       : undefined,
   };
 

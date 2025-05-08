@@ -10,6 +10,25 @@ import { startOfMonth, endOfMonth } from "date-fns";
 import { getUser } from "./getUser";
 import { createUTCDateOnly, generateDateRange } from "../utils";
 
+//function to get pending leaves
+export async function getPendingLeaves() {
+  try {
+    const leaves = await prisma.teacherLeave.findMany({
+      where: {
+        status: "PENDING",
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+    });
+
+    return leaves;
+  } catch (error) {
+    console.error("Failed to fetch pending leaves:", error);
+    return [];
+  }
+}
+
 export async function getTeacherLeaves(month: number, year: number) {
   const user = await getUser();
   if (!user) {

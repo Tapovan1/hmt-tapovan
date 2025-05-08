@@ -2,12 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Calendar, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface Stats {
-  todayStatus?: "PRESENT" | "LATE" | "ABSENT" | "NOT_MARKED";
+  todayStatus?: "PRESENT" | "LATE" | "ABSENT" | "NOT_MARKED" | "ON_LEAVE";
   monthlyStats: {
     thisMonth: number;
     totalDays: number;
     presentDays: number;
     lateDays: number;
+    leaveDays: number;
     totalWorkHours: string;
   };
 }
@@ -31,6 +32,8 @@ export default function DashboardStats({ stats }: { stats: Stats }) {
                 ? "text-yellow-600"
                 : stats?.todayStatus === "ABSENT"
                 ? "text-red-600"
+                : stats?.todayStatus === "ON_LEAVE"
+                ? "text-orange-600"
                 : "text-muted-foreground"
             }`}
           >
@@ -77,6 +80,19 @@ export default function DashboardStats({ stats }: { stats: Stats }) {
             {stats.monthlyStats.lateDays}
           </div>
           <p className="text-xs text-muted-foreground">Days late this month</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Leave Days</CardTitle>
+          <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            {stats.monthlyStats.leaveDays}
+          </div>
+          <p className="text-xs text-muted-foreground">Days on leave</p>
         </CardContent>
       </Card>
 

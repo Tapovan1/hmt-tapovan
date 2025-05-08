@@ -1,12 +1,13 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { Status } from "@prisma/client";
+
 import { isTeacherOnLeave } from "./teacherLeave.action";
 import { getUser } from "./getUser";
 import { getSchedulesByDepartment } from "./work-schedule";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
+import { determineStatus } from "../attendance";
 
 const currentUtcTime = new Date();
 
@@ -76,6 +77,14 @@ export async function markAttendance(formData: FormData) {
       },
     });
 
+    const schedule = await getSchedulesByDepartment(user.department);
+    if (!schedule) {
+      return {
+        success: false,
+        error: "No schedule found for your department",
+      };
+    }
+
     if (!attendance) {
       // Create new attendance record
       attendance = await prisma.attendance.create({
@@ -84,7 +93,7 @@ export async function markAttendance(formData: FormData) {
           date: formattedIndianDate,
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
-          status: Status.PRESENT,
+          status: determineStatus(indiaTime, schedule),
           photo: photo || undefined,
           scheduleId: scheduleId || undefined,
         },

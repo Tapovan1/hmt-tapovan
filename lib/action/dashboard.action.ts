@@ -59,6 +59,9 @@ export const getDashboardStats = async (
   const absentDays = monthlyAttendance.filter(
     (a: { status: string }) => a.status === "ABSENT"
   ).length;
+  const leaveDays = monthlyAttendance.filter(
+    (a: { status: string }) => a.status === "ON_LEAVE"
+  ).length;
 
   const totalWorkHours = calculateMonthlyWorkHours(monthlyAttendance);
 
@@ -81,6 +84,7 @@ export const getDashboardStats = async (
       thisMonth: presentDays + lateDays,
       lateDays,
       absentDays,
+      leaveDays,
       totalWorkHours,
     },
     recentAttendance,

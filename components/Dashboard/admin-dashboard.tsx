@@ -3,8 +3,8 @@ import { Users, Clock, AlertCircle, UserX } from "lucide-react";
 // import { AttendanceChart } from "@/components/dashboard/attendance-chart";
 import { getAdminDashboardStats } from "@/lib/action/dashboard.action";
 
-import QuickActions from "./quickAction";
 import { formatIndianTime } from "@/lib/utils/date-format";
+import LeaveRequestAction from "./LeaveRequestAction";
 
 export async function AdminDashboard() {
   const data = await getAdminDashboardStats();
@@ -65,7 +65,7 @@ export async function AdminDashboard() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* <AttendanceChart /> */}
-        <QuickActions />
+        <LeaveRequestAction />
 
         <Card>
           <CardHeader>

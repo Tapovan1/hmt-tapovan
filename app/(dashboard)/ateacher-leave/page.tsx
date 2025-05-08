@@ -2,13 +2,17 @@ import { Suspense } from "react";
 
 import { AdminTeacherLeaveStats } from "./admin-teacher-leave-stats";
 import { AdminTeacherLeaveTable } from "./admin-teacher-leave-table";
-import { AdminTeacherLeaveFilters } from "./admin-teacher-leave-filters";
+
 import { getFilteredTeacherLeaves } from "@/lib/action/admin-teacher-leave.action";
 import LoadingBox from "@/components/LoadingBox";
 
 export default async function AdminTeacherLeavePage() {
   // Check if the user is an admin
-  const leaves = await getFilteredTeacherLeaves({});
+  const rawLeaves = await getFilteredTeacherLeaves({});
+  const leaves = rawLeaves.map((leave) => ({
+    ...leave,
+    totalDays: leave.totalDays ?? undefined,
+  }));
   // If not an admin, redirect to the home page
 
   return (
@@ -45,7 +49,7 @@ export default async function AdminTeacherLeavePage() {
                 </div>
               }
             >
-              <AdminTeacherLeaveFilters />
+              {/* <AdminTeacherLeaveFilters /> */}
             </Suspense>
 
             <Suspense

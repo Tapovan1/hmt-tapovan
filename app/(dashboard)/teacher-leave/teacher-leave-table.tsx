@@ -20,7 +20,6 @@ export async function TeacherLeaveTable({
 }: {
   month: number;
   year: number;
-  isAdmin?: boolean;
 }) {
   const leaves = await getTeacherLeaves(month, year);
 
@@ -36,7 +35,9 @@ export async function TeacherLeaveTable({
             <TableHead className="text-center">Department</TableHead>
             <TableHead className="text-center">Reason</TableHead>
             <TableHead className="text-center">Status</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            {leaves.some((leave) => leave.status === "PENDING") ? (
+              <TableHead className="text-center">Actions</TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,17 +78,18 @@ export async function TeacherLeaveTable({
                       leave.status.slice(1).toLowerCase()}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <TeacherLeaveDialog leave={leave}>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TeacherLeaveDialog>
-
-                    <DeleteButton id={leave.id} />
-                  </div>
-                </TableCell>
+                {leave.status === "PENDING" ? (
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-2">
+                      <TeacherLeaveDialog leave={leave}>
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TeacherLeaveDialog>
+                      <DeleteButton id={leave.id} />
+                    </div>
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))
           )}

@@ -15,11 +15,7 @@ export default function TeacherLeavesPage() {
       </div>
 
       <Suspense fallback={<div>Loading leave requests...</div>}>
-        <TeacherLeaveTable
-          month={currentMonth}
-          year={currentYear}
-          isAdmin={true}
-        />
+        <TeacherLeaveTable month={currentMonth} year={currentYear} />
       </Suspense>
     </div>
   );
