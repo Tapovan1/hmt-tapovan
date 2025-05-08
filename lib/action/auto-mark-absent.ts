@@ -1,3 +1,5 @@
+"use server";
+
 import {
   markTeachersAbsent,
   getTeachersForAbsent,
@@ -5,7 +7,7 @@ import {
 
 async function autoMarkAbsent() {
   const teachers = await getTeachersForAbsent();
-  const teacherIds = teachers.map((t) => t.id);
+  const teacherIds = teachers.map((t: { id: string }) => t.id);
 
   if (teacherIds.length > 0) {
     await markTeachersAbsent(teacherIds);
