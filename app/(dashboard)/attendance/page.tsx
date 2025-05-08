@@ -34,7 +34,7 @@ export default async function AttendancePage() {
   }
 
   const isOnLeave = attendance?.status === "ON_LEAVE";
-  const hasMarkedAttendance = attendance && !isOnLeave;
+  const hasMarkedAttendance = attendance?.checkOut && !isOnLeave;
 
   if (isOnLeave) {
     return (
