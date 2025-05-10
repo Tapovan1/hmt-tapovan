@@ -72,54 +72,80 @@ export default function AttendanceForm({
   useEffect(() => {
     // Get user's location when component mounts
     let isMounted = true;
+    let watchId: number | null = null;
 
     const getAndValidateLocation = async () => {
       if (navigator.geolocation) {
         try {
           // First set the component state to loading
           setLoading(true);
-
-          // Get position as a promise
-          const position = await new Promise<GeolocationPosition>(
-            (resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0,
-              });
-            }
-          );
-
-          if (!isMounted) return;
-
-          const userLocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          };
-
-          console.log("user-location", userLocation);
-          setLocation(userLocation);
           setLocationError(null);
 
-          // Set a timeout to show loading for at least 500ms to avoid UI flicker
+          // Use watchPosition instead of getCurrentPosition for continuous updates
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              if (!isMounted) return;
 
-          // Validate location
-          const validation = await validateLocation(
-            userLocation.latitude,
-            userLocation.longitude
+              const userLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              };
+
+              // Add accuracy information
+              const accuracy = position.coords.accuracy; // in meters
+
+              console.log("user-location", userLocation, "accuracy:", accuracy);
+
+              setLocation(userLocation);
+
+              // Validate location
+              const validation = await validateLocation(
+                accuracy,
+                userLocation.latitude,
+                userLocation.longitude
+              );
+
+              if (!isMounted) return;
+
+              if (!validation.success) {
+                setLocationError(validation.message);
+              } else {
+                // If location is valid, we can stop watching
+                if (watchId !== null) {
+                  navigator.geolocation.clearWatch(watchId);
+                  watchId = null;
+                }
+              }
+
+              setLoading(false);
+            },
+            (error) => {
+              if (!isMounted) return;
+
+              let errorMsg = "Unable to retrieve your location.";
+              switch (error.code) {
+                case error.PERMISSION_DENIED:
+                  errorMsg =
+                    "Location access denied. Please enable location services.";
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorMsg = "Location information is unavailable.";
+                  break;
+                case error.TIMEOUT:
+                  errorMsg = "Location request timed out.";
+                  break;
+              }
+
+              setLocationError(errorMsg);
+              console.error("Error getting location:", error);
+              setLoading(false);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0,
+            }
           );
-
-          if (!isMounted) return;
-
-          if (!validation.success) {
-            setLocationError(validation.message);
-          }
-
-          // Ensure we show loading for at least minLoadingTime
-
-          setTimeout(() => {
-            if (isMounted) setLoading(false);
-          });
         } catch (error) {
           if (!isMounted) return;
           setLocationError(
@@ -139,6 +165,10 @@ export default function AttendanceForm({
 
     return () => {
       isMounted = false;
+      // Clear the watch when component unmounts
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
     };
   }, []);
 
@@ -283,10 +313,10 @@ export default function AttendanceForm({
               )}
               {location && (
                 <div className="text-sm text-muted-foreground">
-                  <Clock className="inline-block mr-1 h-4 w-4" />
+                  <MapPin className="inline-block mr-1 h-4 w-4" />
                   {`Location: ${location.latitude?.toFixed(
-                    4
-                  )}, ${location.longitude?.toFixed(4)}`}
+                    6
+                  )}, ${location.longitude?.toFixed(6)}`}
                 </div>
               )}
 
@@ -299,6 +329,9 @@ export default function AttendanceForm({
                 <div className="text-green-600 text-sm p-2 bg-green-50 rounded-md">
                   <MapPin className="inline-block mr-1 h-4 w-4" />
                   Location detected successfully
+                  {loading && (
+                    <span className="ml-2">(Improving accuracy...)</span>
+                  )}
                 </div>
               ) : (
                 <div className="text-amber-500 text-sm p-2 bg-amber-50 rounded-md">

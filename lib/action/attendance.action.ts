@@ -8,6 +8,7 @@ import { getSchedulesByDepartment } from "./work-schedule";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { determineStatus } from "../attendance";
+import { calculateDistance, isWithinRadius } from "../utils/location-utils";
 
 const currentUtcTime = new Date();
 
@@ -120,7 +121,13 @@ export async function markAttendance(formData: FormData) {
   }
 }
 
-export async function validateLocation(latitude: number, longitude: number) {
+// Remove the existing calculateDistance and toRad functions since we're importing them
+
+export async function validateLocation(
+  accuracy: number,
+  latitude: number,
+  longitude: number
+) {
   try {
     const user = await getUser();
 
@@ -149,9 +156,28 @@ export async function validateLocation(latitude: number, longitude: number) {
       };
     }
 
-    const allowedRadius = schedule.locationRadius || 0.1; // Default radius is 0.1 km if not specified
+    if (!schedule.locationRadius) {
+      return {
+        success: false,
+        message: "Location radius not configured for your department",
+      };
+    }
 
-    // Calculate distance between user's location and allowed location
+    // Default radius is  (50m) if not specified
+    const allowedRadius = schedule.locationRadius * 1000;
+
+    // Use the utility function to check if within radius
+    const isWithinRange = isWithinRadius(
+      latitude,
+      longitude,
+      schedule.latitude,
+      schedule.longitude,
+      allowedRadius
+    );
+
+    console.log("isWithinRange", isWithinRange);
+
+    // Calculate distance for the message
     const distance = calculateDistance(
       latitude,
       longitude,
@@ -159,18 +185,33 @@ export async function validateLocation(latitude: number, longitude: number) {
       schedule.longitude
     );
 
-    // If distance is within allowed radius, allow attendance
-    const isWithinRange = distance <= allowedRadius;
+    console.log("Distance", distance);
+
+    // Log for debugging
+    console.log(
+      `Location check: User at [${latitude}, ${longitude}], School at [${schedule.latitude}, ${schedule.longitude}]`
+    );
+    console.log(
+      `Distance: ${(distance * 1000).toFixed(
+        0
+      )}m, Allowed: ${allowedRadius.toFixed(0)}m`
+    );
 
     return {
       success: isWithinRange,
       message: isWithinRange
         ? "Location validated successfully"
-        : `You are not within the allowed location range (${(
-            distance * 1000
-          ).toFixed(0)}m away, max ${(allowedRadius * 1000).toFixed(0)}m)`,
+        : `You are not within the allowed location range (${distance.toFixed(
+            0
+          )}m away, max ${allowedRadius.toFixed(
+            0
+          )}m) accuracy (${accuracy.toFixed(0)}m)`,
       distance: distance,
       allowedRadius: allowedRadius,
+      coordinates: {
+        user: { latitude, longitude },
+        school: { latitude: schedule.latitude, longitude: schedule.longitude },
+      },
     };
   } catch (error) {
     console.error("Location validation error:", error);
@@ -179,28 +220,4 @@ export async function validateLocation(latitude: number, longitude: number) {
       message: "An error occurred during location validation",
     };
   }
-}
-
-// Helper function to calculate distance between two points
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function toRad(degrees: number): number {
-  return degrees * (Math.PI / 180);
 }

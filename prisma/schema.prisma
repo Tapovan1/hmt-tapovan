@@ -52,14 +52,13 @@ model Attendance {
 
 model WorkSchedule {
   id                    String   @id @default(cuid())
-  name                  String
+ 
   department            String?
   startTime            String
   endTime              String
   graceMinutes         Int
   workDays             Int[]
-  isGlobal             Boolean  @default(false)
-  isDefault            Boolean  @default(false)
+  absentAutomation Boolean? @default(false)
   saturdayStartTime    String?
   saturdayEndTime      String?
   saturdayGraceMinutes Int?

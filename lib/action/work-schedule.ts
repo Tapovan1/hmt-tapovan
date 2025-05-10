@@ -51,62 +51,6 @@ export async function getGlobalSchedules() {
 }
 
 // Get default schedule
-export async function getDefaultSchedule() {
-  try {
-    const defaultSchedule = await prisma.workSchedule.findFirst({
-      where: { isDefault: true },
-    });
-
-    if (!defaultSchedule) {
-      // Fallback to any global schedule if no default is set
-      const globalSchedule = await prisma.workSchedule.findFirst({
-        where: { isGlobal: true },
-      });
-
-      return globalSchedule;
-    }
-
-    return defaultSchedule;
-  } catch (error) {
-    console.error("Error fetching default schedule:", error);
-    return null;
-  }
-}
-
-// Get default schedule for a department
-export async function getDefaultScheduleForDepartment(department: string) {
-  try {
-    // First try to find a department-specific default
-    const departmentSchedule = await prisma.workSchedule.findFirst({
-      where: {
-        department,
-        isDefault: true,
-      },
-    });
-
-    if (departmentSchedule) {
-      return departmentSchedule;
-    }
-
-    // Then try to find any schedule for this department
-    const anyDepartmentSchedule = await prisma.workSchedule.findFirst({
-      where: { department },
-    });
-
-    if (anyDepartmentSchedule) {
-      return anyDepartmentSchedule;
-    }
-
-    // Finally, fall back to the global default
-    return getDefaultSchedule();
-  } catch (error) {
-    console.error(
-      `Error fetching default schedule for department ${department}:`,
-      error
-    );
-    return getDefaultSchedule();
-  }
-}
 
 // Get schedule by ID
 export async function getScheduleById(id: string) {
@@ -124,12 +68,12 @@ export async function getScheduleById(id: string) {
 
 // Create a new schedule
 export async function createSchedule(data: {
-  name: string;
   department?: string | null;
   startTime: string;
   endTime: string;
   workDays: number[];
   graceMinutes: number;
+  absentAutomation?: boolean;
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
@@ -162,12 +106,13 @@ export async function createSchedule(data: {
 // Update an existing schedule
 export async function updateSchedule(data: {
   id: string;
-  name: string;
+
   department?: string | null;
   startTime: string;
   endTime: string;
   workDays: number[];
   graceMinutes: number;
+  absentAutomation?: boolean;
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
@@ -220,10 +165,10 @@ export async function deleteSchedule(id: string) {
       where: { id },
     });
 
-    if (schedule?.isDefault) {
+    if (!schedule) {
       return {
         success: false,
-        error: "Cannot delete the default schedule",
+        error: "Schedule not found",
       };
     }
 
@@ -260,91 +205,5 @@ export async function deleteSchedule(id: string) {
 }
 
 // Set a schedule as the default
-export async function setDefaultSchedule(id: string) {
-  try {
-    // Get the schedule to check if it's department-specific
-    const schedule = await prisma.workSchedule.findUnique({
-      where: { id },
-    });
-
-    if (!schedule) {
-      throw new Error("Schedule not found");
-    }
-
-    if (schedule.department) {
-      // If department-specific, only unset defaults for this department
-      await prisma.workSchedule.updateMany({
-        where: {
-          isDefault: true,
-          department: schedule.department,
-        },
-        data: { isDefault: false },
-      });
-    } else {
-      // If global, unset all defaults
-      await prisma.workSchedule.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
-      });
-    }
-
-    // Set the new default
-    await prisma.workSchedule.update({
-      where: { id },
-      data: { isDefault: true },
-    });
-
-    revalidatePath("/admin/settings");
-
-    return {
-      success: true,
-    };
-  } catch (error) {
-    console.error(`Error setting default schedule ${id}:`, error);
-    return {
-      success: false,
-      error: "Failed to set default schedule",
-    };
-  }
-}
 
 // For backward compatibility
-export async function getGlobalSchedule() {
-  return getDefaultSchedule();
-}
-
-// For backward compatibility
-export async function updateGlobalSchedule(data: {
-  startTime: string;
-  endTime: string;
-  workDays: number[];
-  graceMinutes: number;
-  isGlobal: boolean;
-}) {
-  try {
-    const existingGlobal = await prisma.workSchedule.findFirst({
-      where: { isGlobal: true },
-    });
-
-    if (existingGlobal) {
-      return updateSchedule({
-        ...data,
-        id: existingGlobal.id,
-        name: existingGlobal.name || "Global Schedule",
-        department: existingGlobal.department,
-      });
-    } else {
-      return createSchedule({
-        ...data,
-        name: "Global Schedule",
-        department: null,
-      });
-    }
-  } catch (error) {
-    console.error("Error updating global schedule:", error);
-    return {
-      success: false,
-      error: "Failed to update global schedule",
-    };
-  }
-}

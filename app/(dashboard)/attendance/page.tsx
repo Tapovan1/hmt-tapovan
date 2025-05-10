@@ -91,6 +91,14 @@ export default async function AttendancePage() {
   );
   async function AttendanceFormWrapper({ user }: { user: User }) {
     const workSchedule = await getSchedulesByDepartment(user.department);
+    if (!workSchedule) {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>No work schedule found for your department</span>
+        </div>
+      );
+    }
     const session = await verifySession();
     const attendance = await getAttendance({
       id: typeof session?.userId === "string" ? session.userId : "",
