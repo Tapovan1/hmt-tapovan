@@ -10,6 +10,13 @@ export const getTeachersForAbsent = async (department?: string) => {
 
   const today = new Date(indianDateString);
 
+  //skip logic if date today is sunday
+
+  const dayOfWeek = today.getDay();
+  if (dayOfWeek === 0) {
+    return []; // No teachers to mark absent on Sunday
+  }
+
   const whereClause = {
     ...(department && { department }),
     NOT: {
@@ -46,6 +53,12 @@ export const markTeachersAbsent = async (teacherIds: string[]) => {
     timeZone: "Asia/Kolkata",
   });
   const today = new Date(indianDateString);
+
+  // Check if the date is a Sunday
+  const dayOfWeek = today.getDay();
+  if (dayOfWeek === 0) {
+    return []; // No teachers to mark absent on Sunday
+  }
 
   const absentRecords = await prisma.attendance.createMany({
     data: teacherIds.map((userId) => ({

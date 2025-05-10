@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatIndianTime } from "@/lib/utils/date-format";
 
 interface IAttendanceStatusProps {
@@ -10,38 +10,49 @@ interface IAttendanceStatusProps {
 }
 
 export default function AttendanceStatus({ data }: IAttendanceStatusProps) {
-  const checkIn = formatIndianTime(data?.checkIn);
-  const checkOut = formatIndianTime(data?.checkOut);
+  const checkIn = formatIndianTime(data?.checkIn) || "N/A";
+  const checkOut = formatIndianTime(data?.checkOut) || "N/A";
   const statusText = data?.status || "Pending";
 
-  const statusClass =
-    data?.status === "PRESENT"
-      ? "text-green-600"
-      : data?.status === "LATE"
-      ? "text-yellow-600"
-      : data?.status === "ABSENT"
-      ? "text-red-600"
-      : "text-gray-600";
+  const getStatusColor = () => {
+    switch (data?.status) {
+      case "PRESENT":
+        return "text-green-600";
+      case "LATE":
+        return "text-yellow-600";
+      case "ABSENT":
+        return "text-red-600";
+      default:
+        return "text-slate-600";
+    }
+  };
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Today&apos;s Status</h2>
-        <div className="space-y-4">
+    <div className="space-y-4">
+      <div className="bg-emerald-500 text-white py-3 px-4 rounded-t-lg font-medium">
+        Today's Status
+      </div>
+
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+        <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <span>Check-in Time:</span>
-            <span className="font-medium">{checkIn}</span>
+            <span className="text-slate-600 font-medium">Check-in Time:</span>
+            <span className="font-semibold text-slate-800">{checkIn}</span>
           </div>
+
           <div className="flex justify-between items-center">
-            <span>Check-out Time:</span>
-            <span className="font-medium">{checkOut}</span>
+            <span className="text-slate-600 font-medium">Check-out Time:</span>
+            <span className="font-semibold text-slate-800">{checkOut}</span>
           </div>
+
           <div className="flex justify-between items-center">
-            <span>Status:</span>
-            <span className={`font-medium ${statusClass}`}>{statusText}</span>
+            <span className="text-slate-600 font-medium">Status:</span>
+            <span className={`font-semibold ${getStatusColor()}`}>
+              {statusText}
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

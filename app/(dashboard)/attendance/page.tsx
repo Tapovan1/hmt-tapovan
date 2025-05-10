@@ -1,16 +1,11 @@
 import { Suspense } from "react";
-import { CheckCircle, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle, Clock, CalendarDays, Calendar } from "lucide-react";
 import { getAttendance } from "@/lib/action/attendance.action";
-
-import AttendanceForm from "./attendance-form";
-import AttendanceStatus from "./attendance-status";
-import WorkScheduleDisplay from "./work-schedule-display";
 import { verifySession } from "@/lib/session";
 import { getUser } from "@/lib/action/getUser";
 import { getSchedulesByDepartment } from "@/lib/action/work-schedule";
-
-import { CalendarDays } from "lucide-react";
+import AttendanceStatus from "./attendance-status";
+import AttendanceForm from "./attendance-form";
 
 export const experimental_ppr = true;
 
@@ -34,12 +29,13 @@ export default async function AttendancePage() {
   }
 
   const isOnLeave = attendance?.status === "ON_LEAVE";
-  const hasMarkedAttendance = attendance?.checkOut && !isOnLeave;
+  const hasMarkedAttendance =
+    (attendance?.checkOut && !isOnLeave) || attendance?.status === "ABSENT";
 
   if (isOnLeave) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50 px-4">
-        <div className="p-6 flex flex-col items-center justify-center space-y-4 text-center bg-amber-50 rounded-xl shadow-sm border border-amber-200">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
+        <div className="p-6 flex flex-col items-center justify-center space-y-4 text-center bg-white rounded-xl shadow-sm border border-amber-200">
           <CalendarDays className="w-10 h-10 text-amber-600" />
           <h1 className="text-2xl font-semibold text-amber-800">
             On Approved Leave
@@ -53,49 +49,61 @@ export default async function AttendancePage() {
     );
   }
 
-  if (hasMarkedAttendance) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50 px-4">
-        <div className="p-6 flex flex-col items-center justify-center space-y-4 text-center bg-green-50 rounded-xl shadow-sm border border-green-200">
-          <CheckCircle className="w-10 h-10 text-green-600" />
-          <h1 className="text-2xl font-semibold text-green-800">
-            Attendance Already Marked
-          </h1>
-          <p className="text-green-700">
-            You’ve already marked your attendance for today. No further action
-            is needed.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Mark Attendance</h1>
-        <Suspense fallback={<WorkSchedulePlaceholder />}>
-          {user && <WorkScheduleDisplay user={user} />}
-        </Suspense>
+    <div className="min-h-screen bg-slate-50">
+      <div className="flex items-center gap-1 justify-center p-4 ">
+        <Calendar className="h-7 w-7 text-slate-700" />
+        <h1 className="text-2xl font-bold text-slate-800"> Attendance</h1>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Suspense fallback={<AttendanceFormPlaceholder />}>
-          {user && <AttendanceFormWrapper user={user} />}
-        </Suspense>
+      <div className="container grid gap-6 md:grid-cols-2 mx-auto p-4">
+        {hasMarkedAttendance ? (
+          <div className="flex items-center justify-center  ">
+            <div className=" p-8 flex flex-col items-center justify-center space-y-4 text-center bg-white rounded-xl shadow-sm border border-green-200 max-w-md">
+              <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h1 className="text-xl font-semibold text-green-800">
+                Attendance Marked
+              </h1>
+              <p className="text-green-700">
+                You&#39;ve successfully recorded your attendance for today.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div>
+              <div className="space-y-4">
+                <div className="bg-emerald-500 text-white py-3 px-4 rounded-t-lg font-medium">
+                  Check In/Out
+                </div>
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                  <Suspense fallback={<AttendanceFormPlaceholder />}>
+                    <AttendanceFormWrapper user={user} />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
         <Suspense fallback={<AttendanceStatusPlaceholder />}>
           <AttendanceStatusWrapper />
         </Suspense>
       </div>
     </div>
   );
+
   async function AttendanceFormWrapper({ user }: { user: User }) {
     const workSchedule = await getSchedulesByDepartment(user.department);
     if (!workSchedule) {
       return (
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>No work schedule found for your department</span>
+        <div className="flex items-center justify-center p-4 bg-amber-50 rounded-lg border border-amber-200">
+          <div className="flex items-center space-x-3 text-amber-700">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm">
+              No work schedule found for your department
+            </span>
+          </div>
         </div>
       );
     }
@@ -106,20 +114,8 @@ export default async function AttendancePage() {
 
     return (
       <AttendanceForm
-        // @ts-expect-error: WorkSchedule type may not match the expected type
-        initialWorkSchedule={
-          workSchedule || {
-            name: "Default Schedule",
-            department: user.department,
-            startTime: "",
-            endTime: "",
-            workDays: [],
-            graceMinutes: 0,
-            saturdayStartTime: "",
-            saturdayEndTime: "",
-            saturdayGraceMinutes: 0,
-          }
-        }
+        // @ts-expect-error: initialWorkSchedule prop type mismatch with AttendanceForm, but required for passing schedule data
+        initialWorkSchedule={workSchedule}
         hasCheckedIn={!!attendance?.checkIn}
         hasCheckedOut={!!attendance?.checkOut}
       />
@@ -141,31 +137,36 @@ export default async function AttendancePage() {
     );
   }
 
-  function WorkSchedulePlaceholder() {
+  function AttendanceFormPlaceholder() {
     return (
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <Clock className="h-4 w-4" />
-        <span>Loading work schedule...</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-12 bg-slate-200 rounded-md animate-pulse"></div>
+        <div className="h-12 bg-slate-200 rounded-md animate-pulse"></div>
       </div>
     );
   }
 
-  function AttendanceFormPlaceholder() {
-    return <div className="h-64 bg-muted rounded-lg animate-pulse"></div>;
-  }
-
   function AttendanceStatusPlaceholder() {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Today&apos;s Status</h2>
-          <div className="space-y-4">
-            <div className="h-6 bg-muted rounded animate-pulse"></div>
-            <div className="h-6 bg-muted rounded animate-pulse"></div>
-            <div className="h-6 bg-muted rounded animate-pulse"></div>
+      <div className="space-y-4">
+        <div className="h-12 bg-slate-200 rounded-t-lg animate-pulse"></div>
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-24 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-5 w-16 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-24 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-5 w-16 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-24 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-5 w-16 bg-slate-200 rounded animate-pulse"></div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 }
