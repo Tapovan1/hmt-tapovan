@@ -60,8 +60,7 @@ interface Schedule {
   endTime: string;
   graceMinutes: number;
   workDays: number[];
-  isGlobal: boolean;
-  isDefault: boolean;
+
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
@@ -121,8 +120,7 @@ const ScheduleSettingsForm = ({
             endTime: "17:00",
             graceMinutes: 5,
             workDays: [1, 2, 3, 4, 5, 6],
-            isGlobal: true,
-            isDefault: true,
+
             saturdayStartTime: "09:00",
             saturdayEndTime: "14:00",
             saturdayGraceMinutes: 15,
@@ -162,8 +160,7 @@ const ScheduleSettingsForm = ({
         endTime: "17:00",
         graceMinutes: 5,
         workDays: [1, 2, 3, 4, 5],
-        isGlobal: false,
-        isDefault: false,
+
         isModified: true,
         latitude: null,
         longitude: null,
