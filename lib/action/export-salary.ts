@@ -77,7 +77,7 @@ export async function getSalaryData(params: {
       const offDays = leaveDays;
 
       // Calculate working days (hajar divas)
-      const hajarDivas = daysInMonth - offDays + absentDays;
+      const hajarDivas = daysInMonth - offDays - absentDays;
 
       // Get base salary (default to 0 if not set)
       const baseSalary = user.salary || 0;
@@ -219,10 +219,10 @@ export async function exportSalaryToExcel(params: {
       }
 
       // Calculate total off days (absent + leave)
-      const offDays = absentDays + leaveDays;
+      const offDays = leaveDays;
 
       // Calculate working days (hajar divas)
-      const hajarDivas = daysInMonth - offDays;
+      const hajarDivas = daysInMonth - offDays - absentDays;
 
       // Get base salary (default to 0 if not set)
       const baseSalary = user.salary || 0;
@@ -240,6 +240,7 @@ export async function exportSalaryToExcel(params: {
       const lateDeduction = lateMinutes * salaryPerMinute;
 
       // Calculate deduction for absent days
+      const absentDeduction = offDays * salaryPerDay;
 
       // Calculate pay salary values
       const paySalary01 = lateDeduction; // PAY SALARY 01 is the late minute penalty for hajardivas
@@ -250,7 +251,7 @@ export async function exportSalaryToExcel(params: {
       const proTax = baseSalary >= 10000 ? 200 : 0;
 
       // Calculate final total
-      const total = paySalary02 - proTax - paySalary01;
+      const total = paySalary02 - proTax;
 
       return {
         no: index + 1,
