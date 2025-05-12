@@ -28,6 +28,7 @@ import { addEmployee } from "@/lib/action/user.action";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
+  salary: z.string().min(1, { message: "Salary must be at least 1." }),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
@@ -54,7 +55,7 @@ const EmploteeDialog = () => {
       email: "",
       password: "",
       department: "",
-
+      salary: "",
       role: "",
     },
   });
@@ -66,6 +67,7 @@ const EmploteeDialog = () => {
         name: data.name,
         email: data.email,
         password: data.password,
+        salary: data.salary,
         department: data.department,
         role: data.role.toUpperCase() as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
       });
@@ -132,7 +134,7 @@ const EmploteeDialog = () => {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="domain">Domain</Label>
+              <Label htmlFor="department">Department</Label>
               <Controller
                 name="department"
                 control={control}
@@ -160,6 +162,7 @@ const EmploteeDialog = () => {
                       <SelectItem value="Peon">Peon</SelectItem>
                       <SelectItem value="Security">Security</SelectItem>
                       <SelectItem value="Guest">Guest</SelectItem>
+                      <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -170,6 +173,19 @@ const EmploteeDialog = () => {
                 </p>
               )}
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="salary">Salary</Label>
+              <Input
+                id="salary"
+                type="number"
+                placeholder="1000"
+                {...register("salary")}
+              />
+              {errors.salary && (
+                <p className="text-sm text-red-500">{errors.salary.message}</p>
+              )}
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="role">Role</Label>
               <Controller

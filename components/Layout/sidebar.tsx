@@ -65,6 +65,11 @@ const SuperadminItems = [
     icon: Users,
     href: "/ateacher-leave",
   },
+  {
+    title: "Salary Report",
+    icon: FileText,
+    href: "/salary-report",
+  },
 ];
 
 const adminRole = [

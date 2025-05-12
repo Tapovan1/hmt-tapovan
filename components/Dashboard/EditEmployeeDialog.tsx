@@ -30,6 +30,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().optional(),
   department: z.string().min(1, { message: "Please select a domain." }),
+  salary: z.number().optional(),
   role: z.string().min(1, { message: "Please select a role." }),
 });
 
@@ -40,6 +41,7 @@ interface EditEmployeeDialogProps {
     email: string;
     department: string;
     role: string;
+    salary?: number;
   };
 }
 
@@ -61,6 +63,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
       email: employee.email,
       password: "",
       department: employee.department,
+      salary: employee.salary,
       role: employee.role,
     },
   });
@@ -72,6 +75,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         email: employee.email,
         password: "",
         department: employee.department,
+        salary: employee.salary,
         role: employee.role,
       });
     }
@@ -86,6 +90,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         email: data.email,
         password: data.password || undefined,
         department: data.department,
+        salary: data.salary ?? 0,
         role: data.role as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
       });
 
@@ -177,6 +182,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
                     <SelectItem value="Peon">Peon</SelectItem>
                     <SelectItem value="Security">Security</SelectItem>
                     <SelectItem value="Guest">Guest</SelectItem>
+                    <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -185,6 +191,18 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
               <p className="text-sm text-red-500">
                 {errors.department.message}
               </p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="salary">Salary</Label>
+            <Input
+              id="salary"
+              type="number"
+              placeholder="1000"
+              {...register("salary", { valueAsNumber: true })}
+            />
+            {errors.salary && (
+              <p className="text-sm text-red-500">{errors.salary.message}</p>
             )}
           </div>
           <div className="grid gap-2">

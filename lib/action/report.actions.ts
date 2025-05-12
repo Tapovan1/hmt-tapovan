@@ -1,7 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { calculateMonthlyWorkHours } from "@/lib/utils/time-calculations";
-import { getSchedulesByDepartment } from "./work-schedule";
+
 import { Status } from "@prisma/client";
 
 export interface ReportData {
@@ -33,8 +33,6 @@ export async function getReportData(params: {
   page?: number;
 }) {
   const { department, start, end, page = 1 } = params;
-  console.log("start", start);
-  console.log("end", end);
 
   const itemsPerPage = 10;
 
@@ -47,11 +45,11 @@ export async function getReportData(params: {
 
   // Add one day to both dates
 
-  console.log("startDate", startDate);
-  console.log("endDate", endDate);
-  // Query users
   const usersQuery = {
-    where: department ? { department } : {},
+    where: {
+      ...(department ? { department } : {}),
+      NOT: [{ role: "SUPERADMIN" }],
+    },
     skip: (page - 1) * itemsPerPage,
     take: itemsPerPage,
   };
@@ -65,11 +63,12 @@ export async function getReportData(params: {
   const reportData: ReportData[] = await Promise.all(
     users.map(async (user) => {
       // Get department schedule
-      const schedule = await getSchedulesByDepartment(user.department);
 
       const attendanceQuery = {
         where: {
           userId: user.id,
+          //exclude SUPERADMIN role
+
           date: {
             gte: startDate,
             lte: endDate,
@@ -84,31 +83,11 @@ export async function getReportData(params: {
 
       const transformedAttendance = attendance.map((att) => {
         // Calculate minutes late
-        let minutesLate = 0;
-        if (att.checkIn && schedule) {
-          const expectedStartTime = new Date(att.date);
-          const [startHour, startMinute] = schedule.startTime
-            .split(":")
-            .map(Number);
-          expectedStartTime.setHours(
-            startHour,
-            startMinute + schedule.graceMinutes,
-            0,
-            0
-          ); // Add grace period
-          expectedStartTime.setTime(
-            expectedStartTime.getTime() -
-              expectedStartTime.getTimezoneOffset() * 60000
-          ); // Adjust for local timezone
-          const diff =
-            (att.checkIn.getTime() - expectedStartTime.getTime()) / 60000; // Convert milliseconds to minutes
-          minutesLate = diff > 0 ? diff : 0;
-        }
 
         return {
           date: att.date,
           status: att.status,
-          minutesLate,
+          minutesLate: att.late ?? 0,
           checkIn: att.checkIn,
           checkOut: att.checkOut,
         };
@@ -154,6 +133,22 @@ export async function getReportData(params: {
     totalPages: Math.ceil(totalUsers / itemsPerPage),
   };
 }
+export const SgetEmployees = async () => {
+  try {
+    const getEmployeeData = await prisma?.user.findMany({
+      where: {
+        NOT: [{ role: "SUPERADMIN" }],
+      },
+    });
+    if (!getEmployeeData) {
+      return [];
+    }
+
+    return getEmployeeData;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 export async function getDepartments() {
   // Get unique departments from users who are teachers
@@ -161,7 +156,7 @@ export async function getDepartments() {
     where: {
       NOT: {
         role: {
-          in: ["ADMIN", "SUPERADMIN"],
+          in: ["SUPERADMIN"],
         },
       },
     },
