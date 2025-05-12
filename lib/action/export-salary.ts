@@ -74,10 +74,10 @@ export async function getSalaryData(params: {
       }
 
       // Calculate total off days (absent + leave)
-      const offDays = absentDays + leaveDays;
+      const offDays = leaveDays;
 
       // Calculate working days (hajar divas)
-      const hajarDivas = daysInMonth - offDays;
+      const hajarDivas = daysInMonth - offDays + absentDays;
 
       // Get base salary (default to 0 if not set)
       const baseSalary = user.salary || 0;
@@ -106,7 +106,7 @@ export async function getSalaryData(params: {
       const proTax = baseSalary >= 10000 ? 200 : 0;
 
       // Calculate final total
-      const total = paySalary02 - proTax - paySalary01;
+      const total = paySalary02 - proTax;
 
       return {
         no: index + 1,
