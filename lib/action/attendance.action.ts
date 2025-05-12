@@ -25,6 +25,7 @@ export const getAttendance = async (user: { id: string }) => {
       checkIn: true,
       checkOut: true,
       status: true,
+      late: true,
     },
   });
 
@@ -37,6 +38,7 @@ export const getAttendance = async (user: { id: string }) => {
     checkIn: attendance.checkIn?.toISOString(),
     checkOut: attendance.checkOut?.toISOString(),
     status: attendance.status,
+    late: attendance.late,
   };
 };
 
@@ -79,6 +81,30 @@ export async function markAttendance(formData: FormData) {
     });
 
     const schedule = await getSchedulesByDepartment(user.department);
+
+    let minutesLate = 0;
+    if (action === "checkIn" && schedule) {
+      const expectedStartTime = new Date(formattedIndianDate);
+      const [startHour, startMinute] = schedule.startTime
+        .split(":")
+        .map(Number);
+      expectedStartTime.setHours(
+        startHour,
+        startMinute + schedule.graceMinutes,
+        0,
+        0
+      ); // Add grace period
+
+      // Adjust for timezone if needed
+      expectedStartTime.setTime(
+        expectedStartTime.getTime() -
+          expectedStartTime.getTimezoneOffset() * 60000
+      );
+
+      const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000; // Convert milliseconds to minutes
+      minutesLate = diff > 0 ? Math.round(diff) : 0;
+    }
+
     if (!schedule) {
       return {
         success: false,
@@ -95,6 +121,7 @@ export async function markAttendance(formData: FormData) {
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
           status: determineStatus(indiaTime, schedule),
+          late: minutesLate,
           photo: photo || undefined,
           scheduleId: scheduleId || undefined,
         },
@@ -207,6 +234,7 @@ export async function validateLocation(
             0
           )}m) accuracy (${accuracy.toFixed(0)}m)`,
       distance: distance,
+      isWithinRange: isWithinRange,
       allowedRadius: allowedRadius,
       coordinates: {
         user: { latitude, longitude },

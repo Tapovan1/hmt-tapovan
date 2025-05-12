@@ -21,6 +21,8 @@ model User {
   password            String
   role                String
   department          String
+  salary              Int @default(0)
+  
   totalLeavesTaken    Int        @default(0)  // Add this field
   totalLeavesApproved Int        @default(0)  // Add this field
   totalLeavesRejected Int        @default(0)  // Add this field
@@ -35,10 +37,11 @@ model User {
 model Attendance {
   id          String    @id @default(cuid())
   userId      String
-  date        DateTime @db.Date()
+  date        DateTime @db.Date
   checkIn     DateTime? 
   checkOut    DateTime?
   status      Status
+  late        Int?
   photo       String?
   user        User      @relation(fields: [userId], references: [id])
   scheduleId  String?

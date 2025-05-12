@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatIndianTime } from "@/lib/utils/date-format";
 
 interface IAttendanceStatusProps {
@@ -6,6 +5,7 @@ interface IAttendanceStatusProps {
     checkIn?: string;
     checkOut?: string;
     status?: string;
+    late?: number;
   };
 }
 
@@ -30,7 +30,7 @@ export default function AttendanceStatus({ data }: IAttendanceStatusProps) {
   return (
     <div className="space-y-4">
       <div className="bg-emerald-500 text-white py-3 px-4 rounded-t-lg font-medium">
-        Today's Status
+        Today&#39;s Status
       </div>
 
       <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
@@ -51,6 +51,15 @@ export default function AttendanceStatus({ data }: IAttendanceStatusProps) {
               {statusText}
             </span>
           </div>
+          {/* i need if late status there so late minute data show */}
+          {data?.status === "LATE" && (
+            <div className="flex justify-between items-center">
+              <span className="text-slate-600 font-medium">Late Minutes:</span>
+              <span className="font-semibold text-red-800">
+                {data?.late} minutes
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -46,6 +46,7 @@ export default function AttendanceForm({
   const [isOnLeave, setIsOnLeave] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isLocationValid, setIsLocationValid] = useState<boolean>(false);
 
   const router = useRouter();
   const webcamRef = useRef<Webcam>(null);
@@ -98,6 +99,12 @@ export default function AttendanceForm({
                 userLocation.latitude,
                 userLocation.longitude
               );
+
+              if (validation.isWithinRange) {
+                setIsLocationValid(true);
+              } else {
+                setIsLocationValid(false);
+              }
 
               if (!isMounted) return;
 
@@ -206,6 +213,7 @@ export default function AttendanceForm({
           `${action === "checkIn" ? "Checked In" : "Checked Out"} successfully!`
         );
         setLoading(false);
+        setCapturedImage(null);
         router.refresh();
 
         // Refresh the page to update the UI
@@ -228,23 +236,9 @@ export default function AttendanceForm({
     }
   };
 
+  console.log("laoationvalid", isLocationValid);
+
   // If the user is on leave, show a message instead of the form
-  if (isOnLeave) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
-        <div className="p-6 flex flex-col items-center justify-center space-y-4 text-center bg-white rounded-xl shadow-sm border border-amber-200">
-          <Clock className="w-10 h-10 text-amber-600" />
-          <h1 className="text-2xl font-semibold text-amber-800">
-            On Approved Leave
-          </h1>
-          <p className="text-amber-700">
-            {leaveMessage ||
-              "You are on approved leave today and do not need to mark your attendance."}
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -294,9 +288,13 @@ export default function AttendanceForm({
             </div>
           ) : (
             <div
-              onClick={() => isAllowedTime && setIsCameraOpen(true)}
+              onClick={() =>
+                isLocationValid && isAllowedTime && setIsCameraOpen(true)
+              }
               className={`bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-center items-center h-20 cursor-pointer hover:bg-slate-100 ${
-                !isAllowedTime ? "cursor-not-allowed opacity-50" : ""
+                !isAllowedTime || !isLocationValid
+                  ? "cursor-not-allowed opacity-50"
+                  : ""
               }`}
             >
               <div className="flex items-center gap-2 text-slate-600">

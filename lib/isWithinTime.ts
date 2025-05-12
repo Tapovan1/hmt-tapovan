@@ -44,6 +44,7 @@ import { WorkSchedule } from "@/lib/types/work-schedule";
 export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
   // Get current day and check if it's Saturday
   const day = now.getDay();
+
   const isSaturday = day === 6;
   // const day = 6;
   // const isSaturday = true;

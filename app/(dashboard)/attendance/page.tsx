@@ -55,21 +55,27 @@ export default async function AttendancePage() {
         <Calendar className="h-7 w-7 text-slate-700" />
         <h1 className="text-2xl font-bold text-slate-800"> Attendance</h1>
       </div>
+
       <div className="container grid gap-6 md:grid-cols-2 mx-auto p-4">
         {hasMarkedAttendance ? (
-          <div className="flex items-center justify-center  ">
-            <div className=" p-8 flex flex-col items-center justify-center space-y-4 text-center bg-white rounded-xl shadow-sm border border-green-200 max-w-md">
-              <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+          <>
+            <div className="">
+              <div className="bg-emerald-500 text-white py-3 px-4 rounded-t-lg font-medium w-full text-left">
+                Check In/Out
               </div>
-              <h1 className="text-xl font-semibold text-green-800">
-                Attendance Marked
-              </h1>
-              <p className="text-green-700">
-                You&#39;ve successfully recorded your attendance for today.
-              </p>
+              <div className="p-8 flex flex-col items-center justify-center space-y-4 text-center bg-white rounded-xl shadow-sm border border-green-200 mt-4">
+                <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h1 className="text-xl font-semibold text-green-800">
+                  Attendance Marked
+                </h1>
+                <p className="text-green-700">
+                  You&#39;ve successfully recorded your attendance for today.
+                </p>
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <>
             <div>
