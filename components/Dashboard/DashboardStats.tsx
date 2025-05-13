@@ -1,5 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Calendar, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  Clock,
+  Calendar,
+  CheckCircle2,
+  AlertTriangle,
+  Clock4,
+  CalendarDays,
+} from "lucide-react";
 
 interface Stats {
   todayStatus?: "PRESENT" | "LATE" | "ABSENT" | "NOT_MARKED" | "ON_LEAVE";
@@ -14,104 +21,89 @@ interface Stats {
 }
 
 export default function DashboardStats({ stats }: { stats: Stats }) {
+  const statCards = [
+    {
+      title: "Today's Status",
+      value: stats?.todayStatus || "NOT_MARKED",
+      icon: Clock,
+      valueColor:
+        stats?.todayStatus === "PRESENT"
+          ? "text-green-600"
+          : stats?.todayStatus === "LATE"
+          ? "text-amber-500"
+          : stats?.todayStatus === "ABSENT"
+          ? "text-red-600"
+          : stats?.todayStatus === "ON_LEAVE"
+          ? "text-orange-600"
+          : "text-gray-600",
+      description: "",
+      iconColor: "text-[#3b82f6]",
+    },
+    {
+      title: "This Month",
+      value: `${stats.monthlyStats.thisMonth}/${stats.monthlyStats.totalDays}`,
+      description: "Days present",
+      icon: Calendar,
+      iconColor: "text-[#3b82f6]",
+    },
+    {
+      title: "On Time",
+      value: stats.monthlyStats.presentDays,
+      description: "Days on time this month",
+      icon: CheckCircle2,
+      iconColor: "text-green-600",
+    },
+    {
+      title: "Late Arrivals",
+      value: stats.monthlyStats.lateDays,
+      description: "Days late this month",
+      icon: AlertTriangle,
+      iconColor: "text-amber-500",
+    },
+    {
+      title: "Leave Days",
+      value: stats.monthlyStats.leaveDays,
+      description: "Days on leave",
+      icon: CalendarDays,
+      iconColor: "text-orange-500",
+    },
+    {
+      title: "Total Minutes Late",
+      value: stats.monthlyStats.totalMinuteLate,
+      description: "Total minutes late this month",
+      icon: Clock4,
+      valueColor: "text-red-500",
+      iconColor: "text-red-500",
+    },
+  ];
+
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">
-            Today&apos;s Status
-          </CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div
-            className={`text-2xl font-bold ${
-              stats?.todayStatus === "PRESENT"
-                ? "text-green-600"
-                : stats?.todayStatus === "LATE"
-                ? "text-yellow-600"
-                : stats?.todayStatus === "ABSENT"
-                ? "text-red-600"
-                : stats?.todayStatus === "ON_LEAVE"
-                ? "text-orange-600"
-                : "text-muted-foreground"
-            }`}
-          >
-            {stats?.todayStatus || "Not Marked"}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">This Month</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.monthlyStats.thisMonth}/{stats.monthlyStats.totalDays}
-          </div>
-          <p className="text-xs text-muted-foreground">Days present</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">On Time</CardTitle>
-          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.monthlyStats.presentDays}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Days on time this month
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Late Arrivals</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.monthlyStats.lateDays}
-          </div>
-          <p className="text-xs text-muted-foreground">Days late this month</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Leave Days</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.monthlyStats.leaveDays}
-          </div>
-          <p className="text-xs text-muted-foreground">Days on leave</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Total Minutes Late
-          </CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-500">
-            {stats.monthlyStats.totalMinuteLate}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Total minutes late this month
-          </p>
-        </CardContent>
-      </Card>
+      {statCards.map((card, index) => (
+        <Card
+          key={index}
+          className="border border-gray-200 shadow-none rounded-lg overflow-hidden"
+        >
+          <CardHeader className="flex flex-row items-center justify-between py-3 px-4 pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-gray-700">
+              {card.title}
+            </CardTitle>
+            <card.icon className={`h-5 w-5 ${card.iconColor}`} />
+          </CardHeader>
+          <CardContent className="py-3 px-4 pt-1">
+            <div
+              className={`text-2xl font-bold ${
+                card.valueColor || "text-gray-800"
+              }`}
+            >
+              {card.value}
+            </div>
+            {card.description && (
+              <p className="text-xs text-gray-500 mt-1">{card.description}</p>
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </>
   );
 }
