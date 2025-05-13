@@ -54,16 +54,23 @@ export default function ReportPage() {
 
   const handleFetchData = async (page: number = 1) => {
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
       return;
     }
+    const adjustedStartDate = new Date(startDate);
+    const adjustedEndDate = new Date(endDate);
+
+    adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+
+    adjustedStartDate.setHours(0, 0, 0, 0);
+    adjustedEndDate.setHours(0, 0, 0, 0);
 
     setLoading(true);
     try {
       const { data, totalPages } = await getReportData({
         department: selectedDepartment,
-        start: startDate,
-        end: endDate,
+        start: adjustedStartDate,
+        end: adjustedEndDate,
         page,
       });
       setReportData(data);
@@ -79,16 +86,22 @@ export default function ReportPage() {
 
   const handleExport = async () => {
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
       return;
     }
+    const adjustedStartDate = new Date(startDate);
+    const adjustedEndDate = new Date(endDate);
 
+    adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+
+    adjustedStartDate.setHours(0, 0, 0, 0);
+    adjustedEndDate.setHours(0, 0, 0, 0);
     setExporting(true);
     try {
       const buffer = await exportToExcel({
         department: selectedDepartment,
-        start: startDate,
-        end: endDate,
+        start: adjustedStartDate,
+        end: adjustedEndDate,
       });
 
       // Create blob and download
@@ -214,7 +227,7 @@ export default function ReportPage() {
                 Leave Days
               </TableHead>
               <TableHead className="py-4 px-3 md:px-6 font-semibold">
-                Total Work Hours
+                Total Minute Late
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -262,7 +275,7 @@ export default function ReportPage() {
                     {userData.stats.leaveCount}
                   </TableCell>
                   <TableCell className="py-4 px-3 md:px-6">
-                    {userData.stats.totalWorkHours}
+                    {userData.stats.totalMinuteLate}
                   </TableCell>
                 </TableRow>
               ))

@@ -47,16 +47,23 @@ export default function SalaryReportPage() {
 
   const handleExportSalary = async () => {
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
       return;
     }
+    const adjustedStartDate = new Date(startDate);
+    const adjustedEndDate = new Date(endDate);
+
+    adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+
+    adjustedStartDate.setHours(0, 0, 0, 0);
+    adjustedEndDate.setHours(0, 0, 0, 0);
 
     setExporting(true);
     try {
       const buffer = await exportSalaryToExcel({
         department: selectedDepartment,
-        start: startDate,
-        end: endDate,
+        start: adjustedStartDate,
+        end: adjustedEndDate,
       });
 
       const blob = new Blob([buffer], {
@@ -81,17 +88,23 @@ export default function SalaryReportPage() {
   };
 
   const handlePreviewSalaryData = async () => {
+    setLoading(true);
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
       return;
     }
+    const adjustedStartDate = new Date(startDate);
+    const adjustedEndDate = new Date(endDate);
 
-    setLoading(true);
+    adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+
+    adjustedStartDate.setHours(0, 0, 0, 0);
+    adjustedEndDate.setHours(0, 0, 0, 0);
     try {
       const data = await getSalaryData({
         department: selectedDepartment,
-        start: startDate,
-        end: endDate,
+        start: adjustedStartDate,
+        end: adjustedEndDate,
       });
       setSalaryData(data);
     } catch (error) {

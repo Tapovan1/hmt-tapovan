@@ -1,6 +1,5 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { calculateMonthlyWorkHours } from "@/lib/utils/time-calculations";
 
 import { Status } from "@prisma/client";
 
@@ -15,7 +14,7 @@ export interface ReportData {
     absentCount: number;
     lateCount: number;
     leaveCount: number;
-    totalWorkHours: string;
+    totalMinuteLate: string;
   };
   dailyAttendance: {
     date: Date;
@@ -42,6 +41,8 @@ export async function getReportData(params: {
   // Set time to midnight (00:00:00)
   startDate.setUTCHours(0, 0, 0, 0);
   endDate.setUTCHours(0, 0, 0, 0);
+
+  // Add one day to both dates
 
   // Add one day to both dates
 
@@ -90,6 +91,7 @@ export async function getReportData(params: {
           minutesLate: att.late ?? 0,
           checkIn: att.checkIn,
           checkOut: att.checkOut,
+          late: att.late,
         };
       });
 
@@ -111,7 +113,12 @@ export async function getReportData(params: {
       );
 
       // Calculate total work hours
-      const totalWorkHours = calculateMonthlyWorkHours(attendance);
+      // const totalWorkHours = calculateMonthlyWorkHours(attendance);
+
+      const totalMinuteLate = transformedAttendance.reduce(
+        (acc, curr) => acc + (curr.late ?? 0),
+        0
+      );
 
       return {
         user: {
@@ -121,7 +128,7 @@ export async function getReportData(params: {
         },
         stats: {
           ...stats,
-          totalWorkHours,
+          totalMinuteLate,
         },
         dailyAttendance: transformedAttendance,
       };

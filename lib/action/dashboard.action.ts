@@ -46,6 +46,7 @@ export const getDashboardStats = async (
       status: true,
       checkIn: true,
       checkOut: true,
+      late: true,
     },
   });
 
@@ -63,7 +64,12 @@ export const getDashboardStats = async (
     (a: { status: string }) => a.status === "ON_LEAVE"
   ).length;
 
-  const totalWorkHours = calculateMonthlyWorkHours(monthlyAttendance);
+  // const totalWorkHours = calculateMonthlyWorkHours(monthlyAttendance);
+  //caclulate total late minute count in db alrdy have late filed minute add all
+  const totalMinuteLate = monthlyAttendance.reduce(
+    (acc: number, curr: { late: number | null }) => acc + (curr.late ?? 0),
+    0
+  );
 
   // Get recent attendance records
   const recentAttendance = await prisma.attendance.findMany({
@@ -85,7 +91,7 @@ export const getDashboardStats = async (
       lateDays,
       absentDays,
       leaveDays,
-      totalWorkHours,
+      totalMinuteLate,
     },
     recentAttendance,
   };

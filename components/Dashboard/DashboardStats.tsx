@@ -9,7 +9,7 @@ interface Stats {
     presentDays: number;
     lateDays: number;
     leaveDays: number;
-    totalWorkHours: string;
+    totalMinuteLate: string;
   };
 }
 
@@ -99,15 +99,17 @@ export default function DashboardStats({ stats }: { stats: Stats }) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Total Work Hours
+            Total Minutes Late
           </CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.monthlyStats.totalWorkHours}
+          <div className="text-2xl font-bold text-red-500">
+            {stats.monthlyStats.totalMinuteLate}
           </div>
-          <p className="text-xs text-muted-foreground">Hours this month</p>
+          <p className="text-xs text-muted-foreground">
+            Total minutes late this month
+          </p>
         </CardContent>
       </Card>
     </>
