@@ -45,9 +45,12 @@ export async function markAttendance(formData: FormData) {
     const indiaOffset = 330;
 
     const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-    // indiatme need date and ime 000000
+    // indiatme need date and ime 000000 need format ISO 9001 prisma
 
-    const formattedIndianDate = format(indiaTime, "yyyy-MM-dd");
+    const formattedIndianDate = format(
+      indiaTime,
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    );
     if (!user) {
       return { success: false, error: "User not found" };
     }
