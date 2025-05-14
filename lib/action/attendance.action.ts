@@ -10,10 +10,6 @@ import { revalidatePath } from "next/cache";
 import { determineStatus } from "../attendance";
 import { calculateDistance, isWithinRadius } from "../utils/location-utils";
 
-const currentUtcTime = new Date();
-
-const formattedIndianDate = new Date(format(currentUtcTime, "yyyy-MM-dd"));
-
 export const getAttendance = async (user: { id: string }) => {
   const attendance = await prisma.attendance.findFirst({
     where: {
@@ -49,6 +45,9 @@ export async function markAttendance(formData: FormData) {
     const indiaOffset = 330;
 
     const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+    // indiatme need date and ime 000000
+
+    const formattedIndianDate = format(indiaTime, "yyyy-MM-dd");
     if (!user) {
       return { success: false, error: "User not found" };
     }
