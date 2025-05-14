@@ -21,9 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const SuperadminItems = [
   {
@@ -120,7 +118,7 @@ const Teacher = [
   {
     title: "Leave",
     icon: Users,
-    href: "/leave",
+    href: "/teacher-leave",
   },
 ];
 

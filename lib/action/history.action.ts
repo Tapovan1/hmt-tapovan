@@ -123,6 +123,14 @@ export const getAttendanceHistory = async (
       orderBy: {
         date: "desc",
       },
+      select: {
+        id: true,
+        date: true,
+        checkIn: true,
+        checkOut: true,
+        status: true,
+        late: true,
+      },
     });
   }
 

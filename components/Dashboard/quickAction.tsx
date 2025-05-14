@@ -9,7 +9,7 @@ export default function QuickActions() {
       title: "Mark Attendance",
       href: "/attendance",
       icon: Clock,
-      variant: "default",
+      variant: "default" as const,
       color: "bg-[#3b82f6] hover:bg-[#2563eb]",
     },
     {
@@ -21,7 +21,7 @@ export default function QuickActions() {
     },
     {
       title: "Request Leave",
-      href: "/leave/request",
+      href: "/teacher-leave",
       icon: CalendarPlus,
       variant: "outline" as const,
       color: "border-gray-200 hover:bg-gray-50",

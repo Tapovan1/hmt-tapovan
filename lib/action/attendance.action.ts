@@ -11,10 +11,19 @@ import { determineStatus } from "../attendance";
 import { calculateDistance, isWithinRadius } from "../utils/location-utils";
 
 export const getAttendance = async (user: { id: string }) => {
+  if (!user) {
+    return null;
+  }
+
+  // Get today's date with time set to 00:00:00 asia/kolkata time zone
+  const currentUtcTime = new Date();
+  const indiaOffset = 330;
+  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date: new Date(),
+      date: indiaTime,
     },
 
     select: {

@@ -36,12 +36,13 @@ export function DatePicker({
           {date ? format(date, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0" forceMount>
         <Calendar
           mode="single"
           selected={date}
           onSelect={setDate}
           initialFocus
+          className="pointer-events-auto"
         />
       </PopoverContent>
     </Popover>

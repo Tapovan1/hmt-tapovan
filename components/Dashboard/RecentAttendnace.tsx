@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatIndianTime } from "@/lib/utils/date-format";
 import { format, parseISO } from "date-fns";
 import { CheckCircle, Clock, XCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ export default function RecentAttendance({
   recentAttendance: {
     date: string;
     checkIn?: string;
-    status: "PRESENT" | "LATE" | "ABSENT";
+    status: "PRESENT" | "LATE" | "ABSENT" | "ON_LEAVE";
   }[];
 }) {
   return (
@@ -33,7 +34,7 @@ export default function RecentAttendance({
                 <div className="text-sm text-gray-500 flex items-center mt-1">
                   <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
                   {record.checkIn
-                    ? format(parseISO(record.checkIn), "h:mm a")
+                    ? formatIndianTime(record.checkIn)
                     : "Not marked"}
                 </div>
               </div>
@@ -62,7 +63,11 @@ export default function RecentAttendance({
   );
 }
 
-function StatusBadge({ status }: { status: "PRESENT" | "LATE" | "ABSENT" }) {
+function StatusBadge({
+  status,
+}: {
+  status: "PRESENT" | "LATE" | "ABSENT" | "ON_LEAVE";
+}) {
   if (status === "PRESENT") {
     return (
       <div className="flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
@@ -77,6 +82,15 @@ function StatusBadge({ status }: { status: "PRESENT" | "LATE" | "ABSENT" }) {
       <div className="flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
         <Clock className="h-3.5 w-3.5 mr-1" />
         Late
+      </div>
+    );
+  }
+
+  if (status === "ON_LEAVE") {
+    return (
+      <div className="flex items-center px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-medium">
+        <Clock className="h-3.5 w-3.5 mr-1" />
+        On Leave
       </div>
     );
   }
