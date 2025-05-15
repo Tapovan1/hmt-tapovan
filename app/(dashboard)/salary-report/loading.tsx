@@ -1,4 +1,4 @@
-import LoadingBox from "@/components/LoadingBox";
+import { LoadingBox } from "@/components/LoadingBox";
 import React from "react";
 
 const loading = () => {

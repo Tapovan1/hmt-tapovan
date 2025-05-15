@@ -22,7 +22,7 @@ export default async function Layout({ children }: LayoutProps) {
     <SidebarProvider>
       <AppSidebar userRole={user?.role || "TEACHER"} />
       <SidebarInset>
-        <header className="flex h-16 items-center border-b px-4 bg-gradient-to-r from-background to-background/80">
+        <header className="flex h-16 items-center border-b px-4 ">
           <SidebarTrigger className="mr-2" />
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">

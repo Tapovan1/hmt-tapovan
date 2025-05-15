@@ -80,8 +80,8 @@ export function TeacherLeaveDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] p-0 sm:p-6 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="p-4 sm:p-0 sticky top-0 bg-background z-10">
+      <DialogContent className="sm:max-w-[600px] px-4 py-6 sm:p-6 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
           <DialogTitle>
             {leave ? "Edit Leave Request" : "New Leave Request"}
           </DialogTitle>
@@ -92,7 +92,8 @@ export function TeacherLeaveDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Date Fields - Stack on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <DatePicker
             date={startDate}
             setDate={setStartDate}
@@ -105,8 +106,11 @@ export function TeacherLeaveDialog({
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Reason for Leave</label>
+        {/* Reason */}
+        <div className="space-y-2 mb-4">
+          <label className="text-sm font-medium text-gray-700">
+            Reason for Leave
+          </label>
           <Textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -115,20 +119,17 @@ export function TeacherLeaveDialog({
           />
         </div>
 
-        <DialogFooter className="pt-4 sm:pt-0 flex flex-col sm:flex-row gap-2">
+        {/* Buttons */}
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
           <Button
             type="button"
             variant="outline"
             onClick={() => setOpen(false)}
-            className="w-full sm:w-auto order-2 sm:order-1"
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
-          <Button
-            onClick={onSubmit}
-            type="submit"
-            className="w-full sm:w-auto order-1 sm:order-2"
-          >
+          <Button onClick={onSubmit} type="submit" className="w-full sm:w-auto">
             {leave ? "Update" : "Submit"}
           </Button>
         </DialogFooter>

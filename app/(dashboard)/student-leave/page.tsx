@@ -23,7 +23,8 @@ export default async function StudentAbsencePage({
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        {/* Title + Icon */}
         <div className="flex items-center gap-2">
           <div className="bg-[#e6eef8] p-2 rounded-full">
             <Users className="h-6 w-6 text-[#4285f4]" />
@@ -32,7 +33,9 @@ export default async function StudentAbsencePage({
             Student Leave Management
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Date selector and add button in column on mobile */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <DateSelector />
           <StudentAbsenceDialog />
         </div>

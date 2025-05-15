@@ -21,7 +21,7 @@ interface UserProps {
 
 export function Header({ user }: { user: UserProps }) {
   return (
-    <header className="flex h-16 items-center border-b border-gray-200 px-4 lg:px-6 bg-white">
+    <header className="flex h-16 items-center border-b border-gray-200 px-4 lg:px-6 ">
       <div className="flex flex-1 items-center justify-end space-x-4">
         <div className="flex items-center space-x-3">
           <DropdownMenu>
