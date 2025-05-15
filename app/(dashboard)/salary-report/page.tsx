@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
 import { DatePicker } from "@/components/date-picker";
 import {
   Table,
@@ -18,8 +18,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Download } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Loader2,
+  Download,
+  FileText,
+  CalendarRange,
+  Building2,
+} from "lucide-react";
 import { exportSalaryToExcel, getSalaryData } from "@/lib/action/export-salary";
+import { toast } from "sonner";
 
 const DEPARTMENTS = [
   { id: "Admin", name: "Admin" },
@@ -47,8 +55,10 @@ export default function SalaryReportPage() {
 
   const handleExportSalary = async () => {
     if (!startDate || !endDate) {
+      toast.error("Please select both start and end dates");
       return;
     }
+
     const adjustedStartDate = new Date(startDate);
     const adjustedEndDate = new Date(endDate);
 
@@ -79,19 +89,22 @@ export default function SalaryReportPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success("Salary report exported successfully");
     } catch (error) {
       console.error("Error exporting salary data:", error);
-      alert("Failed to export salary data. Please try again.");
+      toast.error("Failed to export salary data. Please try again.");
     } finally {
       setExporting(false);
     }
   };
 
   const handlePreviewSalaryData = async () => {
-    setLoading(true);
     if (!startDate || !endDate) {
+      toast.error("Please select both start and end dates");
       return;
     }
+
+    setLoading(true);
     const adjustedStartDate = new Date(startDate);
     const adjustedEndDate = new Date(endDate);
 
@@ -100,6 +113,7 @@ export default function SalaryReportPage() {
 
     adjustedStartDate.setHours(0, 0, 0, 0);
     adjustedEndDate.setHours(0, 0, 0, 0);
+
     try {
       const data = await getSalaryData({
         department: selectedDepartment,
@@ -107,174 +121,239 @@ export default function SalaryReportPage() {
         end: adjustedEndDate,
       });
       setSalaryData(data);
+      if (data.length === 0) {
+        toast.info("No salary data found for the selected criteria");
+      }
     } catch (error) {
       console.error("Error generating preview data:", error);
-      alert("Failed to generate preview data. Please try again.");
+      toast.error("Failed to generate preview data. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto py-3 px-3 md:px-6">
-      <div className="flex justify-between items-center mb-4 md:mb-6">
-        <h1 className="text-2xl font-bold">Salary Report</h1>
-        <Button
-          onClick={handleExportSalary}
-          disabled={exporting || salaryData.length === 0}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          {exporting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Exporting...
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4" />
-              Export Salary to Excel
-            </>
-          )}
-        </Button>
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="bg-[#e6eef8] p-3 rounded-full">
+          <FileText className="h-6 w-6 text-[#4285f4]" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Salary Report
+        </h1>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 md:mb-6">
-        <Select
-          value={selectedDepartment}
-          onValueChange={setSelectedDepartment}
-        >
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Select Department" />
-          </SelectTrigger>
-          <SelectContent>
-            {DEPARTMENTS.map((dept) => (
-              <SelectItem key={dept.id} value={dept.id}>
-                {dept.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Card className="mb-2 border-gray-100 shadow-sm">
+        <CardContent className="">
+          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <Building2 className="h-4 w-4 text-[#4285f4]" />
+                Department
+              </label>
+              <Select
+                value={selectedDepartment}
+                onValueChange={setSelectedDepartment}
+              >
+                <SelectTrigger className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="w-full sm:w-auto">
-          <DatePicker
-            date={startDate}
-            setDate={setStartDate}
-            placeholder="Start Date"
-          />
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <CalendarRange className="h-4 w-4 text-[#4285f4]" />
+                Start Date
+              </label>
+              <DatePicker
+                date={startDate}
+                setDate={setStartDate}
+                placeholder="Select start date"
+                className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]"
+              />
+            </div>
 
-        <div className="w-full sm:w-auto">
-          <DatePicker
-            date={endDate}
-            setDate={setEndDate}
-            placeholder="End Date"
-          />
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <CalendarRange className="h-4 w-4 text-[#4285f4]" />
+                End Date
+              </label>
+              <DatePicker
+                date={endDate}
+                setDate={setEndDate}
+                placeholder="Select end date"
+                className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]"
+              />
+            </div>
 
-        <Button
-          onClick={handlePreviewSalaryData}
-          disabled={loading}
-          className="w-full sm:w-auto min-w-[100px]"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            "Preview Salary"
+            <div className="flex items-end md:col-span-1 lg:col-span-2">
+              <Button
+                onClick={handlePreviewSalaryData}
+                disabled={loading}
+                className="h-10 w-full md:w-auto bg-[#4285f4] hover:bg-[#3b78e7] text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Preview Salary"
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="flex items-center justify-between bg-[#4285f4] text-white py-3 px-6">
+          <div className="font-medium flex items-center">
+            <FileText className="h-5 w-5 mr-2" />
+            <span>Salary Summary</span>
+          </div>
+          {salaryData.length > 0 && (
+            <Button
+              onClick={handleExportSalary}
+              disabled={exporting}
+              variant="outline"
+              size="sm"
+              className="bg-white hover:bg-gray-100 text-[#4285f4] border-white"
+            >
+              {exporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export to Excel
+                </>
+              )}
+            </Button>
           )}
-        </Button>
-      </div>
+        </div>
 
-      {/* Table wrapper without fixed max-width */}
-      <div className="rounded-lg border shadow-sm overflow-x-auto">
-        <Table className="w-full">
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="text-center font-semibold">NO</TableHead>
-              <TableHead className="text-center font-semibold">NAME</TableHead>
-              <TableHead className=" text-center font-semibold">
-                DEPARTMENT
-              </TableHead>
-              <TableHead className=" text-center font-semibold">
-                SALARY
-              </TableHead>
-              <TableHead className="text-center font-semibold">
-                LATE TIME
-              </TableHead>
-              <TableHead className="text-centerfont-semibold">OFF</TableHead>
-              <TableHead className="text-center font-semibold">
-                HAJAR DIVAS
-              </TableHead>
-              <TableHead className="text-centerfont-semibold">
-                PAY SALARY 01
-              </TableHead>
-              <TableHead className="text-center font-semibold">
-                PAY SALARY 02
-              </TableHead>
-              <TableHead className=" text-center font-semibold">
-                PRO TAX
-              </TableHead>
-              <TableHead className="text-center font-semibold">TOTAL</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={11} className="py-8 text-center">
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                    <span className="text-muted-foreground">
-                      Loading data...
-                    </span>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  NO
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  NAME
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  DEPARTMENT
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  SALARY
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  LATE TIME
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  OFF
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  HAJAR DIVAS
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  PAY SALARY 01
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  PAY SALARY 02
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  PRO TAX
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  TOTAL
+                </TableHead>
               </TableRow>
-            ) : salaryData.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={11}
-                  className="py-8 text-center text-muted-foreground"
-                >
-                  No data available. Please select dates and click "Preview
-                  Salary".
-                </TableCell>
-              </TableRow>
-            ) : (
-              salaryData.map((item) => (
-                <TableRow key={item.no} className="hover:bg-muted/50">
-                  <TableCell className=" text-center">{item.no}</TableCell>
-                  <TableCell className=" text-center font-medium">
-                    {item.name}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {item.department}
-                  </TableCell>
-                  <TableCell className=" text-center">{item.salary}</TableCell>
-                  <TableCell className=" text-center">
-                    {item.lateTime}
-                  </TableCell>
-                  <TableCell className=" text-center">{item.off}</TableCell>
-                  <TableCell className=" text-center">
-                    {item.hajarDivas}
-                  </TableCell>
-                  <TableCell className=" text-center">
-                    {item.paySalary01.toFixed(2)}
-                  </TableCell>
-                  <TableCell className=" text-center">
-                    {item.paySalary02.toFixed(2)}
-                  </TableCell>
-                  <TableCell className=" text-center">{item.proTax}</TableCell>
-                  <TableCell className=" text-center font-medium">
-                    {item.total.toFixed(2)}
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={11} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-[#4285f4] mb-3" />
+                      <span className="text-gray-500">
+                        Loading salary data...
+                      </span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : salaryData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText className="h-12 w-12 text-gray-300 mb-3" />
+                      <h3 className="text-lg font-medium text-gray-700 mb-1">
+                        No Salary Data
+                      </h3>
+                      <p className="text-gray-500 max-w-md">
+                        Select a department and date range, then click "Preview
+                        Salary" to view salary statistics.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                salaryData.map((item) => (
+                  <TableRow
+                    key={item.no}
+                    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <TableCell className="py-3 px-4 text-center">
+                      {item.no}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center font-medium text-gray-800">
+                      {item.name}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.department}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.salary}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.lateTime}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.off}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.hajarDivas}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.paySalary01.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.paySalary02.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.proTax}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center font-medium text-gray-800">
+                      {item.total.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

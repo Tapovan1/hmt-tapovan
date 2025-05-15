@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { TeacherLeaveTable } from "./teacher-leave-table";
 import { TeacherLeaveDialog } from "./teacher-leave-dialog";
 import { CalendarDays } from "lucide-react";
-import DateSelector from "@/components/month-year";
 
 export default function TeacherLeavesPage() {
   const currentDate = new Date();

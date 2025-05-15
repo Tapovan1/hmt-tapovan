@@ -73,9 +73,7 @@ const EmploteeDialog = () => {
       });
       if (result.success) {
         setLoading(false);
-        toast("Success", {
-          description: "Employee added successfully",
-        });
+        toast("Employee added successfully");
         setIsDialogOpen(false);
 
         reset();
@@ -84,15 +82,12 @@ const EmploteeDialog = () => {
       setLoading(false);
       console.log(error);
 
-      toast("Error", {
-        description: "Failed to add employee",
-      });
+      toast("Failed to add employee");
     }
   };
 
   return (
     <div className="flex justify-between items-center">
-      <h1 className="text-3xl font-bold">Employees</h1>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button>

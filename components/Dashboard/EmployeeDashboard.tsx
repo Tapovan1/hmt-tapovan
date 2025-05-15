@@ -82,11 +82,11 @@ async function DashboardContent({
   return (
     <>
       {/* Stats Grid */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="w-full">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Attendance Overview
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid ">
           <DashboardStats stats={stats} />
         </div>
       </div>

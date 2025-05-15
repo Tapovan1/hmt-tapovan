@@ -78,32 +78,31 @@ export default function DashboardStats({ stats }: { stats: Stats }) {
   ];
 
   return (
-    <>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 w-full ">
       {statCards.map((card, index) => (
-        <Card
-          key={index}
-          className="border border-gray-200 shadow-none rounded-lg overflow-hidden"
-        >
-          <CardHeader className="flex flex-row items-center justify-between py-3 px-4 pb-2 space-y-0">
+        <Card key={index} className="border-gray-100 shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">
               {card.title}
             </CardTitle>
             <card.icon className={`h-5 w-5 ${card.iconColor}`} />
           </CardHeader>
-          <CardContent className="py-3 px-4 pt-1">
+          <CardContent className="py-1 px-4">
             <div
-              className={`text-2xl font-bold ${
+              className={`text-2xl font-bold ml-2 ${
                 card.valueColor || "text-gray-800"
               }`}
             >
               {card.value}
             </div>
             {card.description && (
-              <p className="text-xs text-gray-500 mt-1">{card.description}</p>
+              <p className="text-xs text-gray-500 mt-1 ml-2">
+                {card.description}
+              </p>
             )}
           </CardContent>
         </Card>
       ))}
-    </>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { getStudentAbsences } from "@/lib/action/student-absence.action";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,11 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, UserX } from "lucide-react";
-import { StudentAbsenceDialog } from "./student-absence-dialog";
-import DeleteButton from "./delete-button";
+import { UserX } from "lucide-react";
+import { ConfirmStatusButton } from "./confirm-status-button";
+import { ViewPhotoButton } from "./view-photo-button";
+import { formatIndianTime } from "@/lib/utils/date-format";
 
-export async function StudentAbsenceTable({
+export async function SecurityAbsenceTable({
   month,
   year,
 }: {
@@ -33,8 +33,8 @@ export async function StudentAbsenceTable({
           No leave records found
         </h3>
         <p className="text-gray-500 mt-2">
-          No student leave records found for this period. Use the "Add Student
-          Leave" button to create a new record.
+          No student leave records found for this period. Records will appear
+          here when students request to leave.
         </p>
       </div>
     );
@@ -103,22 +103,16 @@ export async function StudentAbsenceTable({
               </TableCell>
               <TableCell className="py-4 px-6 text-gray-700">
                 {absence.outTime
-                  ? format(new Date(absence.outTime), "hh:mm a")
+                  ? formatIndianTime(absence.outTime.toISOString())
                   : "N/A"}
               </TableCell>
               <TableCell className="py-4 px-6">
                 <div className="flex justify-center gap-2">
-                  <StudentAbsenceDialog absence={absence}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-500 hover:text-[#4285f4]"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                  </StudentAbsenceDialog>
-                  <DeleteButton id={absence.id} />
+                  <ViewPhotoButton absenceId={absence.id} />
+                  <ConfirmStatusButton
+                    absenceId={absence.id}
+                    currentStatus={absence.status}
+                  />
                 </div>
               </TableCell>
             </TableRow>

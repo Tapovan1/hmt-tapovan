@@ -112,7 +112,7 @@ export const addEmployee = async (formData: IFormData) => {
         name,
         email,
         role,
-        salary,
+        salary: Number(salary),
         password: hashedPassword,
         department,
       },
@@ -154,7 +154,7 @@ export const updateEmployee = async (formData: IUpdateFormData) => {
       name,
       email,
       role,
-      salary,
+      salary: Number(salary),
       department,
     };
 

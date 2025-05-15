@@ -17,6 +17,11 @@ import {
   ChevronRightIcon,
   CalendarIcon,
   MapPinIcon,
+  Clock,
+  Save,
+  AlertTriangle,
+  Info,
+  CheckCircle,
 } from "lucide-react";
 import {
   Table,
@@ -42,6 +47,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Import server actions
 import {
@@ -54,13 +61,11 @@ import { toast } from "sonner";
 
 interface Schedule {
   id?: string;
-
   department: string | null;
   startTime: string;
   endTime: string;
   graceMinutes: number;
   workDays: number[];
-
   saturdayStartTime?: string | null;
   saturdayEndTime?: string | null;
   saturdayGraceMinutes?: number | null;
@@ -68,7 +73,7 @@ interface Schedule {
   latitude?: number | null;
   longitude?: number | null;
   locationRadius?: number | null;
-  absentAutomation?: boolean; // Added for absent automation
+  absentAutomation?: boolean;
 }
 
 interface ScheduleSettingsFormProps {
@@ -111,7 +116,7 @@ const ScheduleSettingsForm = ({
           ...schedule,
           id: schedule.id || undefined,
           isModified: false,
-          absentAutomation: schedule.absentAutomation || false, // Initialize with existing value or false
+          absentAutomation: schedule.absentAutomation || false,
         }))
       : [
           {
@@ -120,7 +125,6 @@ const ScheduleSettingsForm = ({
             endTime: "17:00",
             graceMinutes: 5,
             workDays: [1, 2, 3, 4, 5, 6],
-
             saturdayStartTime: "09:00",
             saturdayEndTime: "14:00",
             saturdayGraceMinutes: 15,
@@ -128,7 +132,7 @@ const ScheduleSettingsForm = ({
             latitude: null,
             longitude: null,
             locationRadius: 0.05,
-            absentAutomation: false, // Default to false
+            absentAutomation: false,
           },
         ]
   );
@@ -154,18 +158,16 @@ const ScheduleSettingsForm = ({
       ...prev,
       {
         id: undefined,
-
         department: null,
         startTime: "09:00",
         endTime: "17:00",
         graceMinutes: 5,
         workDays: [1, 2, 3, 4, 5],
-
         isModified: true,
         latitude: null,
         longitude: null,
         locationRadius: null,
-        absentAutomation: false, // Default to false for new schedules
+        absentAutomation: false,
       },
     ]);
   }, []);
@@ -311,23 +313,24 @@ const ScheduleSettingsForm = ({
         <Button
           variant="outline"
           size="sm"
-          className="w-full h-8 justify-between"
+          className="w-full h-9 justify-between"
         >
           <span>{getSelectedDaysText(schedule.workDays)}</span>
-          <CalendarIcon className="h-3 w-3 ml-2" />
+          <CalendarIcon className="h-4 w-4 ml-2 text-gray-500" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Select Work Days</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-2 py-4">
+        <div className="grid gap-3 py-4">
           {daysOfWeek.map((day) => (
             <div key={day.value} className="flex items-center space-x-2">
               <Checkbox
                 id={`day-${day.value}-${index}`}
                 checked={schedule.workDays.includes(day.value)}
                 onCheckedChange={() => toggleWorkDay(index, day.value)}
+                className="text-[#4285f4] border-gray-300"
               />
               <Label htmlFor={`day-${day.value}-${index}`}>{day.label}</Label>
             </div>
@@ -343,10 +346,10 @@ const ScheduleSettingsForm = ({
         <Button
           variant="outline"
           size="sm"
-          className="w-full h-8 justify-between"
+          className="w-full h-9 justify-between"
         >
           {schedule.saturdayStartTime ? "Configured" : "Not Set"}
-          <ChevronRightIcon className="h-3 w-3 ml-2" />
+          <ChevronRightIcon className="h-4 w-4 ml-2 text-gray-500" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -359,6 +362,7 @@ const ScheduleSettingsForm = ({
               id={`enable-sat-${index}`}
               checked={!!schedule.saturdayStartTime}
               onCheckedChange={() => toggleSaturdaySchedule(index)}
+              className="text-[#4285f4] border-gray-300"
             />
             <Label htmlFor={`enable-sat-${index}`} className="ml-2">
               Enable Saturday Schedule
@@ -366,38 +370,46 @@ const ScheduleSettingsForm = ({
           </div>
 
           {schedule.saturdayStartTime && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label>Start Time</Label>
-                  <Input
-                    type="time"
-                    value={schedule.saturdayStartTime}
-                    onChange={(e) =>
-                      updateScheduleData(
-                        index,
-                        "saturdayStartTime",
-                        e.target.value
-                      )
-                    }
-                  />
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="time"
+                      value={schedule.saturdayStartTime}
+                      onChange={(e) =>
+                        updateScheduleData(
+                          index,
+                          "saturdayStartTime",
+                          e.target.value
+                        )
+                      }
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label>End Time</Label>
-                  <Input
-                    type="time"
-                    value={schedule.saturdayEndTime || ""}
-                    onChange={(e) =>
-                      updateScheduleData(
-                        index,
-                        "saturdayEndTime",
-                        e.target.value
-                      )
-                    }
-                  />
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="time"
+                      value={schedule.saturdayEndTime || ""}
+                      onChange={(e) =>
+                        updateScheduleData(
+                          index,
+                          "saturdayEndTime",
+                          e.target.value
+                        )
+                      }
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label>Grace Minutes</Label>
                 <Input
                   type="number"
@@ -424,18 +436,26 @@ const ScheduleSettingsForm = ({
         <Button
           variant="outline"
           size="sm"
-          className="w-full h-8 justify-between"
+          className="w-full h-9 justify-between"
         >
           {schedule.latitude ? "Configured" : "Not Set"}
-          <MapPinIcon className="h-3 w-3 ml-2" />
+          <MapPinIcon className="h-4 w-4 ml-2 text-gray-500" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Location Settings</DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-3">
-          <div className="space-y-1">
+        <div className="py-4 space-y-4">
+          <Alert variant="outline" className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-blue-700 text-sm">
+              Set the location where attendance can be marked. Only users within
+              the specified radius will be able to mark attendance.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-2">
             <Label>Latitude</Label>
             <Input
               type="number"
@@ -451,7 +471,7 @@ const ScheduleSettingsForm = ({
               placeholder="e.g. 21.1910656"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label>Longitude</Label>
             <Input
               type="number"
@@ -467,8 +487,8 @@ const ScheduleSettingsForm = ({
               placeholder="e.g. 72.8530944"
             />
           </div>
-          <div className="space-y-1">
-            <Label>Radius (m)</Label>
+          <div className="space-y-2">
+            <Label>Radius (meters)</Label>
             <Input
               type="text"
               value={
@@ -486,7 +506,7 @@ const ScheduleSettingsForm = ({
               }}
               placeholder="50"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Enter distance in meters (e.g., 50 for 50 meters)
             </p>
           </div>
@@ -495,7 +515,7 @@ const ScheduleSettingsForm = ({
           <Button
             variant="default"
             onClick={() => fetchCurrentLocation(index)}
-            className="w-full"
+            className="w-full bg-[#4285f4] hover:bg-[#3b78e7]"
           >
             <MapPinIcon className="h-4 w-4 mr-2" /> Get Current Location
           </Button>
@@ -507,7 +527,7 @@ const ScheduleSettingsForm = ({
   // New component for the Absent Automation radio buttons
   const renderAbsentAutomationRadio = (schedule: Schedule, index: number) => (
     <div className="space-y-1">
-      <Label className="text-xs font-medium">Auto Absent</Label>
+      <Label className="text-sm font-medium">Auto Absent</Label>
       <RadioGroup
         value={schedule.absentAutomation ? "true" : "false"}
         onValueChange={(value) => {
@@ -516,14 +536,22 @@ const ScheduleSettingsForm = ({
         className="flex items-center space-x-4"
       >
         <div className="flex items-center space-x-1">
-          <RadioGroupItem value="true" id={`auto-absent-yes-${index}`} />
-          <Label htmlFor={`auto-absent-yes-${index}`} className="text-xs">
+          <RadioGroupItem
+            value="true"
+            id={`auto-absent-yes-${index}`}
+            className="text-[#4285f4]"
+          />
+          <Label htmlFor={`auto-absent-yes-${index}`} className="text-sm">
             Yes
           </Label>
         </div>
         <div className="flex items-center space-x-1">
-          <RadioGroupItem value="false" id={`auto-absent-no-${index}`} />
-          <Label htmlFor={`auto-absent-no-${index}`} className="text-xs">
+          <RadioGroupItem
+            value="false"
+            id={`auto-absent-no-${index}`}
+            className="text-[#4285f4]"
+          />
+          <Label htmlFor={`auto-absent-no-${index}`} className="text-sm">
             No
           </Label>
         </div>
@@ -532,26 +560,36 @@ const ScheduleSettingsForm = ({
   );
 
   return (
-    <Card className="border-0 shadow-none">
-      <CardContent className="px-4 py-2">
-        <div className="space-y-3">
-          {/* Mobile View: Card-based layout */}
-          <div className="block md:hidden">
+    <div className="space-y-4 p-0">
+      <Alert variant="outline" className="bg-amber-50 border-amber-200">
+        <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <AlertDescription className="text-amber-800">
+          Changes to work schedules will affect attendance marking and
+          reporting. Make sure to save your changes.
+        </AlertDescription>
+      </Alert>
+
+      {/* Mobile View: Card-based layout with tabs */}
+      <div className="block lg:hidden">
+        <Tabs defaultValue="schedules" className="w-full">
+          <TabsContent value="schedules" className="space-y-4">
             {schedules.map((schedule, index) => (
-              <Card key={index} className="mb-3 shadow-sm">
-                <CardContent className="p-3 space-y-2">
-                  {/* Name and Department */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-medium">Department</label>
+              <Card key={index} className="shadow-sm border-gray-200">
+                <CardContent className="p-4 space-y-4">
+                  {/* Header with Department */}
+                  <div className="flex items-center justify-between">
+                    <div className="w-full">
+                      <Label className="text-sm font-medium mb-1 block">
+                        Department
+                      </Label>
                       <Select
                         value={schedule.department || ""}
                         onValueChange={(value) =>
                           updateScheduleData(index, "department", value)
                         }
                       >
-                        <SelectTrigger className="h-8 text-sm">
-                          <SelectValue placeholder="Select" />
+                        <SelectTrigger className="h-9 text-sm border-gray-200">
+                          <SelectValue placeholder="Select Department" />
                         </SelectTrigger>
                         <SelectContent>
                           {departmentOptions.map((dept) => (
@@ -565,284 +603,13 @@ const ScheduleSettingsForm = ({
                   </div>
 
                   {/* Time Settings */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs font-medium">Start</label>
-                      <Input
-                        type="time"
-                        value={schedule.startTime}
-                        onChange={(e) =>
-                          updateScheduleData(index, "startTime", e.target.value)
-                        }
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">End</label>
-                      <Input
-                        type="time"
-                        value={schedule.endTime}
-                        onChange={(e) =>
-                          updateScheduleData(index, "endTime", e.target.value)
-                        }
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Grace Min</label>
-                      <Input
-                        type="number"
-                        value={schedule.graceMinutes}
-                        onChange={(e) =>
-                          updateScheduleData(
-                            index,
-                            "graceMinutes",
-                            Number(e.target.value)
-                          )
-                        }
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Work Days */}
-                  <div>
-                    <label className="text-xs font-medium">Work Days</label>
-                    {renderWorkDaysDialog(schedule, index)}
-                  </div>
-
-                  {/* Absent Automation */}
-                  {renderAbsentAutomationRadio(schedule, index)}
-
-                  {/* Saturday Schedule - Collapsible */}
-                  <Collapsible className="border rounded-md">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm font-medium">
-                      <span>Saturday Schedule</span>
-                      <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="p-2 pt-0">
-                      <div className="flex items-center mb-2">
-                        <Checkbox
-                          id={`enable-sat-${index}-mobile`}
-                          checked={!!schedule.saturdayStartTime}
-                          onCheckedChange={() => toggleSaturdaySchedule(index)}
-                        />
-                        <Label
-                          htmlFor={`enable-sat-${index}-mobile`}
-                          className="ml-2 text-xs"
-                        >
-                          Enable Saturday Schedule
-                        </Label>
-                      </div>
-
-                      {schedule.saturdayStartTime && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <label className="text-xs font-medium">Start</label>
-                            <Input
-                              type="time"
-                              value={schedule.saturdayStartTime}
-                              onChange={(e) =>
-                                updateScheduleData(
-                                  index,
-                                  "saturdayStartTime",
-                                  e.target.value
-                                )
-                              }
-                              className="h-8 text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-medium">End</label>
-                            <Input
-                              type="time"
-                              value={schedule.saturdayEndTime || ""}
-                              onChange={(e) =>
-                                updateScheduleData(
-                                  index,
-                                  "saturdayEndTime",
-                                  e.target.value
-                                )
-                              }
-                              className="h-8 text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-medium">Grace</label>
-                            <Input
-                              type="number"
-                              value={schedule.saturdayGraceMinutes || 0}
-                              onChange={(e) =>
-                                updateScheduleData(
-                                  index,
-                                  "saturdayGraceMinutes",
-                                  Number(e.target.value)
-                                )
-                              }
-                              className="h-8 text-sm"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  {/* Location Settings - Collapsible */}
-                  <Collapsible className="border rounded-md">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm font-medium">
-                      <span>Location Settings</span>
-                      <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="p-2 pt-0">
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-xs font-medium">
-                            Latitude
-                          </label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={schedule.latitude || ""}
-                            onChange={(e) =>
-                              updateScheduleData(
-                                index,
-                                "latitude",
-                                e.target.value ? Number(e.target.value) : null
-                              )
-                            }
-                            className="h-8 text-sm"
-                            placeholder="e.g. 21.19"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">
-                            Longitude
-                          </label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={schedule.longitude || ""}
-                            onChange={(e) =>
-                              updateScheduleData(
-                                index,
-                                "longitude",
-                                e.target.value ? Number(e.target.value) : null
-                              )
-                            }
-                            className="h-8 text-sm"
-                            placeholder="e.g. 72.85"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">
-                            Radius (m)
-                          </label>
-                          <Input
-                            type="text"
-                            value={
-                              schedule.locationRadius
-                                ? (schedule.locationRadius * 1000).toString()
-                                : ""
-                            }
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              updateScheduleData(
-                                index,
-                                "locationRadius",
-                                value ? Number(value) / 1000 : null
-                              );
-                            }}
-                            className="h-8 text-sm"
-                            placeholder="50"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="w-full text-xs"
-                          onClick={() => fetchCurrentLocation(index)}
-                        >
-                          <MapPinIcon className="h-3 w-3 mr-1" /> Get Current
-                          Location
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  {/* Actions */}
-                  <div className="flex justify-end gap-2 pt-1">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleSaveRow(schedule, index)}
-                      disabled={!schedule.isModified}
-                      className="h-7 text-xs"
-                    >
-                      {schedule.isModified ? "Save" : "Saved"}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeSchedule(index)}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Trash2Icon className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Desktop View: Table layout */}
-          <div className="hidden md:block">
-            <ScrollArea className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[140px]">Department</TableHead>
-                    <TableHead className="w-[100px]">Start Time</TableHead>
-                    <TableHead className="w-[100px]">End Time</TableHead>
-                    <TableHead className="w-[80px]">Grace Min</TableHead>
-                    <TableHead className="w-[120px]">Work Days</TableHead>
-                    <TableHead className="w-[100px]">Auto Absent</TableHead>
-                    <TableHead className="w-[140px]">
-                      Saturday Schedule
-                    </TableHead>
-                    <TableHead className="w-[140px]">Location</TableHead>
-                    <TableHead className="text-right w-[120px]">
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {schedules.map((schedule, index) => (
-                    <TableRow
-                      key={index}
-                      className={schedule.isModified ? "bg-muted/50" : ""}
-                    >
-                      <TableCell className="py-2">
-                        <Select
-                          value={schedule.department || ""}
-                          onValueChange={(value) =>
-                            updateScheduleData(index, "department", value)
-                          }
-                        >
-                          <SelectTrigger className="h-8 text-sm w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departmentOptions.map((dept) => (
-                              <SelectItem key={dept} value={dept}>
-                                {dept}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="py-2">
+                      <Label className="text-sm font-medium mb-1 block">
+                        Start Time
+                      </Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                         <Input
                           type="time"
                           value={schedule.startTime}
@@ -853,117 +620,476 @@ const ScheduleSettingsForm = ({
                               e.target.value
                             )
                           }
-                          className="h-8 text-sm"
+                          className="h-9 text-sm pl-9 border-gray-200"
                         />
-                      </TableCell>
-                      <TableCell className="py-2">
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-1 block">
+                        End Time
+                      </Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                         <Input
                           type="time"
                           value={schedule.endTime}
                           onChange={(e) =>
                             updateScheduleData(index, "endTime", e.target.value)
                           }
-                          className="h-8 text-sm"
+                          className="h-9 text-sm pl-9 border-gray-200"
                         />
-                      </TableCell>
-                      <TableCell className="py-2">
-                        <Input
-                          type="number"
-                          value={schedule.graceMinutes}
-                          onChange={(e) =>
-                            updateScheduleData(
-                              index,
-                              "graceMinutes",
-                              Number(e.target.value)
-                            )
-                          }
-                          className="h-8 text-sm"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {renderWorkDaysDialog(schedule, index)}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        <RadioGroup
-                          value={schedule.absentAutomation ? "true" : "false"}
-                          onValueChange={(value) => {
-                            updateScheduleData(
-                              index,
-                              "absentAutomation",
-                              value === "true"
-                            );
-                          }}
-                          className="flex flex-col space-y-1"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem
-                              value="true"
-                              id={`auto-absent-yes-desktop-${index}`}
-                            />
-                            <Label
-                              htmlFor={`auto-absent-yes-desktop-${index}`}
-                              className="text-xs"
-                            >
-                              Yes
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem
-                              value="false"
-                              id={`auto-absent-no-desktop-${index}`}
-                            />
-                            <Label
-                              htmlFor={`auto-absent-no-desktop-${index}`}
-                              className="text-xs"
-                            >
-                              No
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {renderSaturdayDialog(schedule, index)}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {renderLocationDialog(schedule, index)}
-                      </TableCell>
-                      <TableCell className="text-right py-2">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleSaveRow(schedule, index)}
-                            disabled={!schedule.isModified}
-                            className="h-7 text-xs"
-                          >
-                            {schedule.isModified ? "Save" : "Saved"}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => removeSchedule(index)}
-                            className="h-7 w-7"
-                          >
-                            <Trash2Icon className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </div>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-1 block">
+                        Grace Min
+                      </Label>
+                      <Input
+                        type="number"
+                        value={schedule.graceMinutes}
+                        onChange={(e) =>
+                          updateScheduleData(
+                            index,
+                            "graceMinutes",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="h-9 text-sm border-gray-200"
+                      />
+                    </div>
+                  </div>
 
-          {/* Actions */}
-          <div className="flex justify-end pt-2">
-            <Button onClick={addSchedule} size="sm" className="h-8">
-              <PlusIcon className="mr-1 h-3 w-3" /> Add Schedule
-            </Button>
-          </div>
+                  {/* Work Days */}
+                  <div>
+                    <Label className="text-sm font-medium mb-1 block">
+                      Work Days
+                    </Label>
+                    {renderWorkDaysDialog(schedule, index)}
+                  </div>
+
+                  {/* Absent Automation */}
+                  {renderAbsentAutomationRadio(schedule, index)}
+
+                  {/* Collapsible Sections */}
+                  <div className="space-y-3">
+                    {/* Saturday Schedule */}
+                    <Collapsible className="border border-gray-200 rounded-md">
+                      <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
+                        <span>Saturday Schedule</span>
+                        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
+                        <div className="flex items-center mb-3">
+                          <Checkbox
+                            id={`enable-sat-${index}-mobile`}
+                            checked={!!schedule.saturdayStartTime}
+                            onCheckedChange={() =>
+                              toggleSaturdaySchedule(index)
+                            }
+                            className="text-[#4285f4] border-gray-300"
+                          />
+                          <Label
+                            htmlFor={`enable-sat-${index}-mobile`}
+                            className="ml-2 text-sm"
+                          >
+                            Enable Saturday Schedule
+                          </Label>
+                        </div>
+
+                        {schedule.saturdayStartTime && (
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <Label className="text-xs font-medium mb-1 block">
+                                Start
+                              </Label>
+                              <Input
+                                type="time"
+                                value={schedule.saturdayStartTime}
+                                onChange={(e) =>
+                                  updateScheduleData(
+                                    index,
+                                    "saturdayStartTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="h-9 text-sm border-gray-200"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium mb-1 block">
+                                End
+                              </Label>
+                              <Input
+                                type="time"
+                                value={schedule.saturdayEndTime || ""}
+                                onChange={(e) =>
+                                  updateScheduleData(
+                                    index,
+                                    "saturdayEndTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="h-9 text-sm border-gray-200"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium mb-1 block">
+                                Grace
+                              </Label>
+                              <Input
+                                type="number"
+                                value={schedule.saturdayGraceMinutes || 0}
+                                onChange={(e) =>
+                                  updateScheduleData(
+                                    index,
+                                    "saturdayGraceMinutes",
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="h-9 text-sm border-gray-200"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Location Settings */}
+                    <Collapsible className="border border-gray-200 rounded-md">
+                      <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
+                        <span>Location Settings</span>
+                        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
+                        <div className="grid grid-cols-3 gap-3 mb-3">
+                          <div>
+                            <Label className="text-xs font-medium mb-1 block">
+                              Latitude
+                            </Label>
+                            <Input
+                              type="number"
+                              step="any"
+                              value={schedule.latitude || ""}
+                              onChange={(e) =>
+                                updateScheduleData(
+                                  index,
+                                  "latitude",
+                                  e.target.value ? Number(e.target.value) : null
+                                )
+                              }
+                              className="h-9 text-sm border-gray-200"
+                              placeholder="e.g. 21.19"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium mb-1 block">
+                              Longitude
+                            </Label>
+                            <Input
+                              type="number"
+                              step="any"
+                              value={schedule.longitude || ""}
+                              onChange={(e) =>
+                                updateScheduleData(
+                                  index,
+                                  "longitude",
+                                  e.target.value ? Number(e.target.value) : null
+                                )
+                              }
+                              className="h-9 text-sm border-gray-200"
+                              placeholder="e.g. 72.85"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium mb-1 block">
+                              Radius (m)
+                            </Label>
+                            <Input
+                              type="text"
+                              value={
+                                schedule.locationRadius
+                                  ? (schedule.locationRadius * 1000).toString()
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateScheduleData(
+                                  index,
+                                  "locationRadius",
+                                  value ? Number(value) / 1000 : null
+                                );
+                              }}
+                              className="h-9 text-sm border-gray-200"
+                              placeholder="50"
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="w-full text-sm bg-[#4285f4] hover:bg-[#3b78e7]"
+                          onClick={() => fetchCurrentLocation(index)}
+                        >
+                          <MapPinIcon className="h-4 w-4 mr-2" /> Get Current
+                          Location
+                        </Button>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleSaveRow(schedule, index)}
+                      disabled={!schedule.isModified}
+                      className={`h-9 ${
+                        schedule.isModified
+                          ? "bg-[#4285f4] hover:bg-[#3b78e7]"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
+                    >
+                      {schedule.isModified ? (
+                        <>
+                          <Save className="h-4 w-4 mr-2" /> Save
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" /> Saved
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeSchedule(index)}
+                      className="h-9"
+                    >
+                      <Trash2Icon className="h-4 w-4 mr-2" /> Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="actions">
+            <Card className="shadow-sm border-gray-200">
+              <CardContent className="p-4">
+                <Button
+                  onClick={addSchedule}
+                  className="w-full bg-[#4285f4] hover:bg-[#3b78e7]"
+                >
+                  <PlusIcon className="mr-2 h-4 w-4" /> Add New Schedule
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Desktop View: Table layout */}
+      <div className="hidden lg:block">
+        <ScrollArea className="border border-gray-200 rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="w-[140px] py-3 font-medium text-gray-700">
+                  Department
+                </TableHead>
+                <TableHead className="w-[100px] py-3 font-medium text-gray-700">
+                  Start Time
+                </TableHead>
+                <TableHead className="w-[100px] py-3 font-medium text-gray-700">
+                  End Time
+                </TableHead>
+                <TableHead className="w-[80px] py-3 font-medium text-gray-700">
+                  Grace Min
+                </TableHead>
+                <TableHead className="w-[120px] py-3 font-medium text-gray-700">
+                  Work Days
+                </TableHead>
+                <TableHead className="w-[100px] py-3 font-medium text-gray-700">
+                  Auto Absent
+                </TableHead>
+                <TableHead className="w-[140px] py-3 font-medium text-gray-700">
+                  Saturday Schedule
+                </TableHead>
+                <TableHead className="w-[140px] py-3 font-medium text-gray-700">
+                  Location
+                </TableHead>
+                <TableHead className="text-right w-[160px] py-3 font-medium text-gray-700">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {schedules.map((schedule, index) => (
+                <TableRow
+                  key={index}
+                  className={`border-b border-gray-100 ${
+                    schedule.isModified ? "bg-blue-50/30" : ""
+                  }`}
+                >
+                  <TableCell className="py-3">
+                    <Select
+                      value={schedule.department || ""}
+                      onValueChange={(value) =>
+                        updateScheduleData(index, "department", value)
+                      }
+                    >
+                      <SelectTrigger className="h-9 text-sm w-full border-gray-200">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departmentOptions.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {dept}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="time"
+                        value={schedule.startTime}
+                        onChange={(e) =>
+                          updateScheduleData(index, "startTime", e.target.value)
+                        }
+                        className="h-9 text-sm pl-9 border-gray-200"
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="time"
+                        value={schedule.endTime}
+                        onChange={(e) =>
+                          updateScheduleData(index, "endTime", e.target.value)
+                        }
+                        className="h-9 text-sm pl-9 border-gray-200"
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <Input
+                      type="number"
+                      value={schedule.graceMinutes}
+                      onChange={(e) =>
+                        updateScheduleData(
+                          index,
+                          "graceMinutes",
+                          Number(e.target.value)
+                        )
+                      }
+                      className="h-9 text-sm border-gray-200"
+                    />
+                  </TableCell>
+                  <TableCell className="py-3">
+                    {renderWorkDaysDialog(schedule, index)}
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <RadioGroup
+                      value={schedule.absentAutomation ? "true" : "false"}
+                      onValueChange={(value) => {
+                        updateScheduleData(
+                          index,
+                          "absentAutomation",
+                          value === "true"
+                        );
+                      }}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-1">
+                        <RadioGroupItem
+                          value="true"
+                          id={`auto-absent-yes-desktop-${index}`}
+                          className="text-[#4285f4]"
+                        />
+                        <Label
+                          htmlFor={`auto-absent-yes-desktop-${index}`}
+                          className="text-sm"
+                        >
+                          Yes
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <RadioGroupItem
+                          value="false"
+                          id={`auto-absent-no-desktop-${index}`}
+                          className="text-[#4285f4]"
+                        />
+                        <Label
+                          htmlFor={`auto-absent-no-desktop-${index}`}
+                          className="text-sm"
+                        >
+                          No
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    {renderSaturdayDialog(schedule, index)}
+                  </TableCell>
+                  <TableCell className="py-3">
+                    {renderLocationDialog(schedule, index)}
+                  </TableCell>
+                  <TableCell className="text-right py-3">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleSaveRow(schedule, index)}
+                        disabled={!schedule.isModified}
+                        className={`h-9 ${
+                          schedule.isModified
+                            ? "bg-[#4285f4] hover:bg-[#3b78e7]"
+                            : "bg-green-500 hover:bg-green-600"
+                        }`}
+                      >
+                        {schedule.isModified ? (
+                          <>
+                            <Save className="h-4 w-4 mr-2" /> Save
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" /> Saved
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeSchedule(index)}
+                        className="h-9"
+                      >
+                        <Trash2Icon className="h-4 w-4 mr-2" /> Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+
+        {/* Add Schedule Button */}
+        <div className="flex justify-end pt-4">
+          <Button
+            onClick={addSchedule}
+            className="bg-[#4285f4] hover:bg-[#3b78e7]"
+          >
+            <PlusIcon className="mr-2 h-4 w-4" /> Add New Schedule
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

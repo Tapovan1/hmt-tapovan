@@ -14,7 +14,7 @@ const studentAbsenceSchema = z.object({
   rollNo: z.string().min(1),
   studentName: z.string().min(1),
   class: z.string().min(1),
-  standard: z.string().min(1),
+  standard: z.string().min(1).optional(),
   parentName: z.string().min(1),
   reason: z.string().min(1),
   status: z

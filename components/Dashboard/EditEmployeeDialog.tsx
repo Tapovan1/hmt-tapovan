@@ -96,18 +96,14 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
 
       if (result.success) {
         setLoading(false);
-        toast("Success", {
-          description: "Employee updated successfully",
-        });
+        toast("Employee updated successfully");
         setIsDialogOpen(false);
         reset();
       }
     } catch (error) {
       setLoading(false);
       console.log(error);
-      toast("Error", {
-        description: "Failed to update employee",
-      });
+      toast("Failed to update employee");
     }
   };
 

@@ -8,6 +8,7 @@ import {
   updateStudentAbsence,
   getStudentAbsenceById,
 } from "@/lib/action/student-absence.action";
+import { useRouter } from "next/navigation";
 
 export function ConfirmStatusButton({
   absenceId,
@@ -17,11 +18,11 @@ export function ConfirmStatusButton({
   currentStatus: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleConfirm = async () => {
     if (currentStatus === "DONE") {
       toast("Already confirmed");
-
       return;
     }
 
@@ -37,23 +38,20 @@ export function ConfirmStatusButton({
       // Update with the current data plus the new status and outTime
       await updateStudentAbsence({
         id: absenceId,
+
         rollNo: absence.rollNo,
         studentName: absence.studentName,
         class: absence.class,
-        standard: absence.standard,
         parentName: absence.parentName,
         reason: absence.purpose,
         status: "DONE",
-        photo: absence.photo || undefined,
       });
 
-      toast("Status updated");
-
-      // Refresh the page to show updated data
-      window.location.reload();
+      toast.success("Student leave confirmed successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to update status:", error);
-      toast("Failed to update status");
+      toast.error("Failed to update status");
     } finally {
       setLoading(false);
     }
@@ -65,6 +63,11 @@ export function ConfirmStatusButton({
       size="icon"
       onClick={handleConfirm}
       disabled={loading || currentStatus === "DONE"}
+      className={
+        currentStatus === "DONE"
+          ? "border-green-200 text-green-600"
+          : "bg-[#4285f4] hover:bg-[#3b78e7]"
+      }
     >
       <Check className="h-4 w-4" />
     </Button>
