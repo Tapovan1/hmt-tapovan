@@ -40,8 +40,11 @@ export function generateDateRange(startDate: Date, endDate: Date): Date[] {
 
   // Generate dates until we reach the end date
   while (currentDate <= end) {
-    dates.push(new Date(currentDate));
-    // Add one day (in milliseconds)
+    //skip date sunday
+    if (currentDate.getDay() !== 0) {
+      dates.push(new Date(currentDate));
+    }
+    // Move to the next day
     currentDate.setUTCDate(currentDate.getUTCDate() + 1);
   }
 

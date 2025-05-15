@@ -351,20 +351,7 @@ export function AdminTeacherLeaveTable({ leaves }: { leaves: TeacherLeave[] }) {
                   </p>
                   <div className="flex items-center gap-1 text-base text-gray-700">
                     <Calendar className="h-4 w-4 text-[#4285f4]" />
-                    <span>
-                      {selectedLeave.totalDays ||
-                        calculateDays(
-                          selectedLeave.startDate,
-                          selectedLeave.endDate
-                        )}{" "}
-                      {selectedLeave.totalDays === 1 ||
-                      calculateDays(
-                        selectedLeave.startDate,
-                        selectedLeave.endDate
-                      ) === 1
-                        ? "day"
-                        : "days"}
-                    </span>
+                    {selectedLeave.totalDays}
                   </div>
                 </div>
                 <div>

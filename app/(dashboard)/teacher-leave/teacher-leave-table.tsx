@@ -56,7 +56,7 @@ export async function TeacherLeaveTable({
             </th>
 
             <th className="text-center py-4 px-6 font-medium text-gray-700">
-              Department
+              Total Days
             </th>
             <th className="text-center py-4 px-6 font-medium text-gray-700">
               Reason
@@ -85,7 +85,7 @@ export async function TeacherLeaveTable({
               </td>
 
               <td className="py-4 px-6 text-center  text-gray-700">
-                {leave.department}
+                {leave.totalDays}
               </td>
               <td className="py-4 px-6 text-center text-gray-700 max-w-[200px] truncate">
                 {leave.reason}
@@ -106,6 +106,7 @@ export async function TeacherLeaveTable({
                         <span className="sr-only">Edit</span>
                       </Button>
                     </TeacherLeaveDialog>
+
                     <DeleteButton id={leave.id} />
                   </div>
                 </td>

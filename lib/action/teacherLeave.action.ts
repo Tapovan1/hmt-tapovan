@@ -96,6 +96,34 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
       throw new Error("User not authenticated");
     }
 
+    // Check if the leave request overlaps with existing approved leaves
+    const existingLeaves = await prisma.teacherLeave.findMany({
+      where: {
+        userId: user.id,
+        status: "APPROVED",
+        OR: [
+          {
+            startDate: {
+              lte: endDate,
+            },
+            endDate: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+    });
+    if (existingLeaves.length > 0) {
+      return {
+        success: false,
+        error: "Leave request overlaps with existing approved leaves.",
+      };
+    }
+    const days = generateDateRange(startDate, endDate);
+    const totalDays = days.length;
+
+    console.log("totalDays", totalDays);
+
     const leave = await prisma.teacherLeave.create({
       data: {
         userId: user.id,
@@ -104,6 +132,7 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
         startDate: startDate,
         endDate: endDate,
         reason: data.reason,
+        totalDays: totalDays,
         status: "PENDING",
       },
     });

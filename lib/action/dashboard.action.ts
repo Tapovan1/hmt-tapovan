@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { startOfDay, endOfDay } from "date-fns";
-import { calculateMonthlyWorkHours } from "@/lib/utils/time-calculations";
 
 export const getDashboardStats = async (
   userId: string,
@@ -49,8 +48,21 @@ export const getDashboardStats = async (
       late: true,
     },
   });
+  //count total days in month and return value exclude sunday
+  const totalDaysInMonth = new Date(
+    selectedYear,
+    selectedMonth + 1,
+    0
+  ).getDate(); // Get the last date of the month
+  const totalDaysInMonthArray = Array.from(
+    { length: totalDaysInMonth },
+    (_, i) => new Date(selectedYear, selectedMonth, i + 1)
+  );
+  const totalDays = totalDaysInMonthArray.filter((date) => {
+    const dayOfWeek = date.getDay();
+    return dayOfWeek !== 0; // Exclude Sundays (0)
+  }).length;
 
-  const totalDays = monthlyAttendance.length;
   const presentDays = monthlyAttendance.filter(
     (a: { status: string }) => a.status === "PRESENT"
   ).length;
