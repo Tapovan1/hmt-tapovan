@@ -571,322 +571,310 @@ const ScheduleSettingsForm = ({
 
       {/* Mobile View: Card-based layout with tabs */}
       <div className="block lg:hidden">
-        <Tabs defaultValue="schedules" className="w-full">
-          <TabsContent value="schedules" className="space-y-4">
-            {schedules.map((schedule, index) => (
-              <Card key={index} className="shadow-sm border-gray-200">
-                <CardContent className="p-4 space-y-4">
-                  {/* Header with Department */}
-                  <div className="flex items-center justify-between">
-                    <div className="w-full">
-                      <Label className="text-sm font-medium mb-1 block">
-                        Department
-                      </Label>
-                      <Select
-                        value={schedule.department || ""}
-                        onValueChange={(value) =>
-                          updateScheduleData(index, "department", value)
-                        }
-                      >
-                        <SelectTrigger className="h-9 text-sm border-gray-200">
-                          <SelectValue placeholder="Select Department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departmentOptions.map((dept) => (
-                            <SelectItem key={dept} value={dept}>
-                              {dept}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+        {schedules.map((schedule, index) => (
+          <Card key={index} className="shadow-sm border-gray-200">
+            <CardContent className="p-4 space-y-4">
+              {/* Header with Department */}
+              <div className="flex items-center justify-between">
+                <div className="w-full">
+                  <Label className="text-sm font-medium mb-1 block">
+                    Department
+                  </Label>
+                  <Select
+                    value={schedule.department || ""}
+                    onValueChange={(value) =>
+                      updateScheduleData(index, "department", value)
+                    }
+                  >
+                    <SelectTrigger className="h-9 text-sm border-gray-200">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departmentOptions.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-                  {/* Time Settings */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-sm font-medium mb-1 block">
-                        Start Time
+              {/* Time Settings */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    Start Time
+                  </Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="time"
+                      value={schedule.startTime}
+                      onChange={(e) =>
+                        updateScheduleData(index, "startTime", e.target.value)
+                      }
+                      className="h-9 text-sm pl-9 border-gray-200"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    End Time
+                  </Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="time"
+                      value={schedule.endTime}
+                      onChange={(e) =>
+                        updateScheduleData(index, "endTime", e.target.value)
+                      }
+                      className="h-9 text-sm pl-9 border-gray-200"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">
+                    Grace Min
+                  </Label>
+                  <Input
+                    type="number"
+                    value={schedule.graceMinutes}
+                    onChange={(e) =>
+                      updateScheduleData(
+                        index,
+                        "graceMinutes",
+                        Number(e.target.value)
+                      )
+                    }
+                    className="h-9 text-sm border-gray-200"
+                  />
+                </div>
+              </div>
+
+              {/* Work Days */}
+              <div>
+                <Label className="text-sm font-medium mb-1 block">
+                  Work Days
+                </Label>
+                {renderWorkDaysDialog(schedule, index)}
+              </div>
+
+              {/* Absent Automation */}
+              {renderAbsentAutomationRadio(schedule, index)}
+
+              {/* Collapsible Sections */}
+              <div className="space-y-3">
+                {/* Saturday Schedule */}
+                <Collapsible className="border border-gray-200 rounded-md">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
+                    <span>Saturday Schedule</span>
+                    <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
+                    <div className="flex items-center mb-3">
+                      <Checkbox
+                        id={`enable-sat-${index}-mobile`}
+                        checked={!!schedule.saturdayStartTime}
+                        onCheckedChange={() => toggleSaturdaySchedule(index)}
+                        className="text-[#4285f4] border-gray-300"
+                      />
+                      <Label
+                        htmlFor={`enable-sat-${index}-mobile`}
+                        className="ml-2 text-sm"
+                      >
+                        Enable Saturday Schedule
                       </Label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    </div>
+
+                    {schedule.saturdayStartTime && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-xs font-medium mb-1 block">
+                            Start
+                          </Label>
+                          <Input
+                            type="time"
+                            value={schedule.saturdayStartTime}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "saturdayStartTime",
+                                e.target.value
+                              )
+                            }
+                            className="h-9 text-sm border-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium mb-1 block">
+                            End
+                          </Label>
+                          <Input
+                            type="time"
+                            value={schedule.saturdayEndTime || ""}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "saturdayEndTime",
+                                e.target.value
+                              )
+                            }
+                            className="h-9 text-sm border-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium mb-1 block">
+                            Grace
+                          </Label>
+                          <Input
+                            type="number"
+                            value={schedule.saturdayGraceMinutes || 0}
+                            onChange={(e) =>
+                              updateScheduleData(
+                                index,
+                                "saturdayGraceMinutes",
+                                Number(e.target.value)
+                              )
+                            }
+                            className="h-9 text-sm border-gray-200"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Location Settings */}
+                <Collapsible className="border border-gray-200 rounded-md">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
+                    <span>Location Settings</span>
+                    <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">
+                          Latitude
+                        </Label>
                         <Input
-                          type="time"
-                          value={schedule.startTime}
+                          type="number"
+                          step="any"
+                          value={schedule.latitude || ""}
                           onChange={(e) =>
                             updateScheduleData(
                               index,
-                              "startTime",
-                              e.target.value
+                              "latitude",
+                              e.target.value ? Number(e.target.value) : null
                             )
                           }
-                          className="h-9 text-sm pl-9 border-gray-200"
+                          className="h-9 text-sm border-gray-200"
+                          placeholder="e.g. 21.19"
                         />
                       </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium mb-1 block">
-                        End Time
-                      </Label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">
+                          Longitude
+                        </Label>
                         <Input
-                          type="time"
-                          value={schedule.endTime}
+                          type="number"
+                          step="any"
+                          value={schedule.longitude || ""}
                           onChange={(e) =>
-                            updateScheduleData(index, "endTime", e.target.value)
+                            updateScheduleData(
+                              index,
+                              "longitude",
+                              e.target.value ? Number(e.target.value) : null
+                            )
                           }
-                          className="h-9 text-sm pl-9 border-gray-200"
+                          className="h-9 text-sm border-gray-200"
+                          placeholder="e.g. 72.85"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">
+                          Radius (m)
+                        </Label>
+                        <Input
+                          type="text"
+                          value={
+                            schedule.locationRadius
+                              ? (schedule.locationRadius * 1000).toString()
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateScheduleData(
+                              index,
+                              "locationRadius",
+                              value ? Number(value) / 1000 : null
+                            );
+                          }}
+                          className="h-9 text-sm border-gray-200"
+                          placeholder="50"
                         />
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium mb-1 block">
-                        Grace Min
-                      </Label>
-                      <Input
-                        type="number"
-                        value={schedule.graceMinutes}
-                        onChange={(e) =>
-                          updateScheduleData(
-                            index,
-                            "graceMinutes",
-                            Number(e.target.value)
-                          )
-                        }
-                        className="h-9 text-sm border-gray-200"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Work Days */}
-                  <div>
-                    <Label className="text-sm font-medium mb-1 block">
-                      Work Days
-                    </Label>
-                    {renderWorkDaysDialog(schedule, index)}
-                  </div>
-
-                  {/* Absent Automation */}
-                  {renderAbsentAutomationRadio(schedule, index)}
-
-                  {/* Collapsible Sections */}
-                  <div className="space-y-3">
-                    {/* Saturday Schedule */}
-                    <Collapsible className="border border-gray-200 rounded-md">
-                      <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
-                        <span>Saturday Schedule</span>
-                        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
-                        <div className="flex items-center mb-3">
-                          <Checkbox
-                            id={`enable-sat-${index}-mobile`}
-                            checked={!!schedule.saturdayStartTime}
-                            onCheckedChange={() =>
-                              toggleSaturdaySchedule(index)
-                            }
-                            className="text-[#4285f4] border-gray-300"
-                          />
-                          <Label
-                            htmlFor={`enable-sat-${index}-mobile`}
-                            className="ml-2 text-sm"
-                          >
-                            Enable Saturday Schedule
-                          </Label>
-                        </div>
-
-                        {schedule.saturdayStartTime && (
-                          <div className="grid grid-cols-3 gap-3">
-                            <div>
-                              <Label className="text-xs font-medium mb-1 block">
-                                Start
-                              </Label>
-                              <Input
-                                type="time"
-                                value={schedule.saturdayStartTime}
-                                onChange={(e) =>
-                                  updateScheduleData(
-                                    index,
-                                    "saturdayStartTime",
-                                    e.target.value
-                                  )
-                                }
-                                className="h-9 text-sm border-gray-200"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium mb-1 block">
-                                End
-                              </Label>
-                              <Input
-                                type="time"
-                                value={schedule.saturdayEndTime || ""}
-                                onChange={(e) =>
-                                  updateScheduleData(
-                                    index,
-                                    "saturdayEndTime",
-                                    e.target.value
-                                  )
-                                }
-                                className="h-9 text-sm border-gray-200"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium mb-1 block">
-                                Grace
-                              </Label>
-                              <Input
-                                type="number"
-                                value={schedule.saturdayGraceMinutes || 0}
-                                onChange={(e) =>
-                                  updateScheduleData(
-                                    index,
-                                    "saturdayGraceMinutes",
-                                    Number(e.target.value)
-                                  )
-                                }
-                                className="h-9 text-sm border-gray-200"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {/* Location Settings */}
-                    <Collapsible className="border border-gray-200 rounded-md">
-                      <CollapsibleTrigger className="flex w-full items-center justify-between p-3 text-sm font-medium">
-                        <span>Location Settings</span>
-                        <ChevronRightIcon className="h-4 w-4 transition-transform duration-200 ui-open:rotate-90" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="p-3 pt-0 border-t border-gray-200">
-                        <div className="grid grid-cols-3 gap-3 mb-3">
-                          <div>
-                            <Label className="text-xs font-medium mb-1 block">
-                              Latitude
-                            </Label>
-                            <Input
-                              type="number"
-                              step="any"
-                              value={schedule.latitude || ""}
-                              onChange={(e) =>
-                                updateScheduleData(
-                                  index,
-                                  "latitude",
-                                  e.target.value ? Number(e.target.value) : null
-                                )
-                              }
-                              className="h-9 text-sm border-gray-200"
-                              placeholder="e.g. 21.19"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium mb-1 block">
-                              Longitude
-                            </Label>
-                            <Input
-                              type="number"
-                              step="any"
-                              value={schedule.longitude || ""}
-                              onChange={(e) =>
-                                updateScheduleData(
-                                  index,
-                                  "longitude",
-                                  e.target.value ? Number(e.target.value) : null
-                                )
-                              }
-                              className="h-9 text-sm border-gray-200"
-                              placeholder="e.g. 72.85"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium mb-1 block">
-                              Radius (m)
-                            </Label>
-                            <Input
-                              type="text"
-                              value={
-                                schedule.locationRadius
-                                  ? (schedule.locationRadius * 1000).toString()
-                                  : ""
-                              }
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                updateScheduleData(
-                                  index,
-                                  "locationRadius",
-                                  value ? Number(value) / 1000 : null
-                                );
-                              }}
-                              className="h-9 text-sm border-gray-200"
-                              placeholder="50"
-                            />
-                          </div>
-                        </div>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="w-full text-sm bg-[#4285f4] hover:bg-[#3b78e7]"
-                          onClick={() => fetchCurrentLocation(index)}
-                        >
-                          <MapPinIcon className="h-4 w-4 mr-2" /> Get Current
-                          Location
-                        </Button>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex justify-end gap-2 pt-2">
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => handleSaveRow(schedule, index)}
-                      disabled={!schedule.isModified}
-                      className={`h-9 ${
-                        schedule.isModified
-                          ? "bg-[#4285f4] hover:bg-[#3b78e7]"
-                          : "bg-green-500 hover:bg-green-600"
-                      }`}
+                      className="w-full text-sm bg-[#4285f4] hover:bg-[#3b78e7]"
+                      onClick={() => fetchCurrentLocation(index)}
                     >
-                      {schedule.isModified ? (
-                        <>
-                          <Save className="h-4 w-4 mr-2" /> Save
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" /> Saved
-                        </>
-                      )}
+                      <MapPinIcon className="h-4 w-4 mr-2" /> Get Current
+                      Location
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeSchedule(index)}
-                      className="h-9"
-                    >
-                      <Trash2Icon className="h-4 w-4 mr-2" /> Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
 
-          <TabsContent value="actions">
-            <Card className="shadow-sm border-gray-200">
-              <CardContent className="p-4">
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
-                  onClick={addSchedule}
-                  className="w-full bg-[#4285f4] hover:bg-[#3b78e7]"
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleSaveRow(schedule, index)}
+                  disabled={!schedule.isModified}
+                  className={`h-9 ${
+                    schedule.isModified
+                      ? "bg-[#4285f4] hover:bg-[#3b78e7]"
+                      : "bg-green-500 hover:bg-green-600"
+                  }`}
                 >
-                  <PlusIcon className="mr-2 h-4 w-4" /> Add New Schedule
+                  {schedule.isModified ? (
+                    <>
+                      <Save className="h-4 w-4 mr-2" /> Save
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" /> Saved
+                    </>
+                  )}
                 </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeSchedule(index)}
+                  className="h-9"
+                >
+                  <Trash2Icon className="h-4 w-4 mr-2" /> Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        <Card className="shadow-sm border-gray-200">
+          <CardContent className="p-4">
+            <Button
+              onClick={addSchedule}
+              className="w-full bg-[#4285f4] hover:bg-[#3b78e7]"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> Add New Schedule
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Desktop View: Table layout */}
