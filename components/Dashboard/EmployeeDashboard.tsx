@@ -5,7 +5,6 @@ import RecentAttendance from "@/components/Dashboard/RecentAttendnace";
 import QuickActions from "@/components/Dashboard/quickAction";
 import DashboardSkeleton from "@/components/Dashboard/DashboardSkeleton";
 import DateSelector from "@/components/month-year";
-import { User } from "lucide-react";
 
 interface Employee {
   id: string;
@@ -77,6 +76,10 @@ async function DashboardContent({
           | "NOT_MARKED"
           | "ON_LEAVE")
       : undefined,
+    monthlyStats: {
+      ...rawStats.monthlyStats,
+      totalMinuteLate: String(rawStats.monthlyStats.totalMinuteLate),
+    },
   };
 
   return (
@@ -105,6 +108,9 @@ async function DashboardContent({
               date: attendance.date.toISOString(),
               checkIn: attendance.checkIn
                 ? attendance.checkIn.toISOString()
+                : undefined,
+              checkOut: attendance.checkOut
+                ? attendance.checkOut.toISOString()
                 : undefined,
               status: attendance.status as "PRESENT" | "LATE" | "ABSENT",
             }))}
