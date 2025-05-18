@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { isWithinAllowedTime } from "@/lib/isWithinTime";
 import { formatTimeTo12Hour } from "@/lib/utils/date-format";
 import { Button } from "@/components/ui/button";
+import ImprovedGeolocation from "./location-accurecy-enhancer";
 
 interface WorkSchedule {
   department: string;
@@ -29,6 +30,9 @@ interface WorkSchedule {
   saturdayEndTime?: string;
   saturdayGraceMinutes?: number;
   id?: string;
+  latitude?: number;
+  longitude?: number;
+  locationRadius?: number;
 }
 
 export default function AttendanceForm({
@@ -46,14 +50,16 @@ export default function AttendanceForm({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{
-    latitude: number | null;
-    longitude: number | null;
-  }>({ latitude: null, longitude: null });
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    isReliable: boolean;
+  } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isOnLeave, setIsOnLeave] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState("");
-  const [loading, setLoading] = useState(true);
   const [isLocationValid, setIsLocationValid] = useState<boolean>(false);
+  const [validationInProgress, setValidationInProgress] = useState(false);
 
   const router = useRouter();
   const webcamRef = useRef<Webcam>(null);
@@ -71,114 +77,57 @@ export default function AttendanceForm({
     return () => clearInterval(intervalId);
   }, [workSchedule]);
 
-  useEffect(() => {
-    // Get user's location when component mounts
-    let isMounted = true;
-    let watchId: number | null = null;
+  // Handle location update from the improved geolocation component
+  const handleLocationUpdate = async (
+    newLocation: {
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+      isReliable: boolean;
+    } | null
+  ) => {
+    if (!newLocation) return;
 
-    const getAndValidateLocation = async () => {
-      if (navigator.geolocation) {
-        try {
-          // First set the component state to loading
-          setLoading(true);
-          setLocationError(null);
+    setLocation(newLocation);
 
-          // Use watchPosition instead of getCurrentPosition for continuous updates
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              if (!isMounted) return;
+    // Only validate location if it's reliable or we don't have a valid location yet
+    if ((newLocation.isReliable || !isLocationValid) && !validationInProgress) {
+      validateLocationWithServer(newLocation);
+    }
+  };
 
-              const userLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              };
+  // Validate location with server
+  const validateLocationWithServer = async (loc: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+  }) => {
+    try {
+      setValidationInProgress(true);
 
-              // Add accuracy information
-              const accuracy = position.coords.accuracy; // in meters
+      const validation = await validateLocation(
+        loc.accuracy,
+        loc.latitude,
+        loc.longitude
+      );
 
-              console.log("user-location", userLocation, "accuracy:", accuracy);
-
-              setLocation(userLocation);
-
-              // Validate location
-              const validation = await validateLocation(
-                accuracy,
-                userLocation.latitude,
-                userLocation.longitude
-              );
-
-              if (validation.isWithinRange) {
-                setIsLocationValid(true);
-              } else {
-                setIsLocationValid(false);
-              }
-
-              if (!isMounted) return;
-
-              if (!validation.success) {
-                setLocationError(validation.message);
-              } else {
-                // If location is valid, we can stop watching
-                if (watchId !== null) {
-                  navigator.geolocation.clearWatch(watchId);
-                  watchId = null;
-                }
-              }
-
-              setLoading(false);
-            },
-            (error) => {
-              if (!isMounted) return;
-
-              let errorMsg = "Unable to retrieve your location.";
-              switch (error.code) {
-                case error.PERMISSION_DENIED:
-                  errorMsg =
-                    "Location access denied. Please enable location services.";
-                  break;
-                case error.POSITION_UNAVAILABLE:
-                  errorMsg = "Location information is unavailable.";
-                  break;
-                case error.TIMEOUT:
-                  errorMsg = "Location request timed out.";
-                  break;
-              }
-
-              setLocationError(errorMsg);
-              console.error("Error getting location:", error);
-              setLoading(false);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0,
-            }
-          );
-        } catch (error) {
-          if (!isMounted) return;
-          setLocationError(
-            "Unable to retrieve your location. Please enable location services."
-          );
-          console.error("Error getting location:", error);
-          setLoading(false);
-        }
+      if (validation.isWithinRange) {
+        setIsLocationValid(true);
+        setLocationError(null);
       } else {
-        if (!isMounted) return;
-        setLocationError("Geolocation is not supported by your browser.");
-        setLoading(false);
+        // Only set as invalid if we have good accuracy
+        if (loc.accuracy < 100) {
+          setIsLocationValid(false);
+          setLocationError(validation.message);
+        }
       }
-    };
-
-    getAndValidateLocation();
-
-    return () => {
-      isMounted = false;
-      // Clear the watch when component unmounts
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, []);
+    } catch (error) {
+      console.error("Error validating location:", error);
+      setLocationError("Error validating your location. Please try again.");
+    } finally {
+      setValidationInProgress(false);
+    }
+  };
 
   const capturePhoto = () => {
     if (webcamRef.current) {
@@ -189,13 +138,12 @@ export default function AttendanceForm({
   };
 
   const handleSubmit = async (action: "checkIn" | "checkOut") => {
-    setLoading(true);
     if (!capturedImage) {
       toast("Please capture a photo before submitting.");
       return;
     }
 
-    if (!location.latitude || !location.longitude) {
+    if (!location) {
       toast("Please wait for your location to be detected.");
       return;
     }
@@ -208,6 +156,7 @@ export default function AttendanceForm({
     formData.append("photo", capturedImage);
     formData.append("latitude", location.latitude.toString());
     formData.append("longitude", location.longitude.toString());
+    formData.append("accuracy", location.accuracy.toString());
     if (initialWorkSchedule.id) {
       formData.append("scheduleId", initialWorkSchedule.id);
     }
@@ -219,11 +168,8 @@ export default function AttendanceForm({
         toast(
           `${action === "checkIn" ? "Checked In" : "Checked Out"} successfully!`
         );
-        setLoading(false);
         setCapturedImage(null);
         router.refresh();
-
-        // Refresh the page to update the UI
       } else {
         // Check if the error is due to being on leave
         if (result.isOnLeave) {
@@ -299,7 +245,7 @@ export default function AttendanceForm({
               onClick={() =>
                 isLocationValid && isAllowedTime && setIsCameraOpen(true)
               }
-              className={`bg-gray-50 border border-gray-200 rounded-xl p-8 flex flex-col justify-center items-center h-20 cursor-pointer hover:bg-gray-100 transition-colors ${
+              className={`bg-gray-50 border border-gray-200 rounded-xl p-8 flex flex-col justify-center items-center h-48 cursor-pointer hover:bg-gray-100 transition-colors ${
                 !isAllowedTime || !isLocationValid
                   ? "cursor-not-allowed opacity-50"
                   : ""
@@ -307,19 +253,54 @@ export default function AttendanceForm({
             >
               <Camera className="h-10 w-10 text-gray-400 mb-3" />
               <div className="text-gray-600 font-medium">Take Photo</div>
-              <div className="text-gray-500 text-sm mt-1">
-                Click to capture your attendance photo
+              <div className="text-gray-500 text-sm mt-1 text-center">
+                {!isLocationValid
+                  ? "Please wait for location validation"
+                  : !isAllowedTime
+                  ? "Outside of allowed check-in hours"
+                  : "Click to capture your attendance photo"}
               </div>
             </div>
           )}
 
-          <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-600">
-            <MapPin className="h-5 w-5 text-[#4285f4]" />
-            <span>
-              Location: {location.latitude?.toFixed(6) || "..."},{" "}
-              {location.longitude?.toFixed(6) || "..."}
-            </span>
-          </div>
+          {location && (
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-600">
+              <MapPin className="h-5 w-5 text-[#4285f4]" />
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <span>Location:</span>
+                  <span className="font-medium">
+                    {location.latitude.toFixed(6)},{" "}
+                    {location.longitude.toFixed(6)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs mt-1">
+                  <span>Accuracy: ±{Math.round(location.accuracy)}m</span>
+                  <span>
+                    {location.isReliable
+                      ? "✓ Good accuracy"
+                      : "Improving accuracy..."}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Improved geolocation component */}
+          <ImprovedGeolocation
+            onLocationUpdate={handleLocationUpdate}
+            targetLocation={
+              workSchedule.latitude && workSchedule.longitude
+                ? {
+                    latitude: workSchedule.latitude,
+                    longitude: workSchedule.longitude,
+                  }
+                : undefined
+            }
+            requiredAccuracy={50} // Aim for 50m accuracy
+            maxTime={45000} // Try for 45 seconds
+            onError={setLocationError}
+          />
 
           {locationError && (
             <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-100 text-red-600">
@@ -328,15 +309,10 @@ export default function AttendanceForm({
             </div>
           )}
 
-          {!locationError && location.latitude && location.longitude && (
+          {isLocationValid && (
             <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-100 text-green-600">
               <CheckCircle className="h-5 w-5" />
-              <span>
-                Location detected successfully
-                {loading && (
-                  <span className="ml-2">(Improving accuracy...)</span>
-                )}
-              </span>
+              <span>Location validated successfully</span>
             </div>
           )}
 
@@ -345,19 +321,19 @@ export default function AttendanceForm({
               onClick={() => handleSubmit("checkIn")}
               disabled={
                 !isAllowedTime ||
-                loading ||
+                !isLocationValid ||
                 hasCheckedIn ||
                 isSubmitting ||
                 !capturedImage ||
-                !location.latitude
+                !location
               }
               className={`bg-[#4285f4] hover:bg-[#3b78e7] text-white h-12 rounded-lg ${
-                loading ||
                 !isAllowedTime ||
+                !isLocationValid ||
                 hasCheckedIn ||
                 isSubmitting ||
                 !capturedImage ||
-                !location.latitude
+                !location
                   ? "opacity-50 cursor-not-allowed"
                   : ""
               }`}
@@ -370,17 +346,20 @@ export default function AttendanceForm({
                 !isAllowedTime ||
                 !hasCheckedIn ||
                 hasCheckedOut ||
+                !isLocationValid ||
                 isSubmitting ||
                 !capturedImage ||
-                !location.latitude
+                !location
               }
               variant="outline"
               className={`border-gray-200 text-gray-700 h-12 rounded-lg ${
+                !isAllowedTime ||
                 !hasCheckedIn ||
                 hasCheckedOut ||
+                !isLocationValid ||
                 isSubmitting ||
                 !capturedImage ||
-                !location.latitude
+                !location
                   ? "opacity-50 cursor-not-allowed"
                   : ""
               }`}
