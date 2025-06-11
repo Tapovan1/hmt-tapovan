@@ -53,12 +53,15 @@ export interface DeleteUserParams {
   id: string;
 }
 
-export const getEmployees = async () => {
+export const getEmployees = async (department:string) => {
+
+  const where = {
+    department: department,
+  }
   try {
-    const getEmployeeData = await prisma?.user.findMany({});
-    if (!getEmployeeData) {
-      return [];
-    }
+    const getEmployeeData = await prisma?.user.findMany({
+      where,
+    })
 
     return getEmployeeData;
   } catch (error) {

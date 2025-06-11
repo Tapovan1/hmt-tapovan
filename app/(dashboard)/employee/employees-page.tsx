@@ -9,6 +9,23 @@ import { Users, Search } from "lucide-react"
 import EmploteeDialog from "@/components/Dashboard/EmployeeDialog"
 import Delete from "./Delete"
 import EditEmployeeDialog from "@/components/Dashboard/EditEmployeeDialog"
+import { DepartmentFilter } from "./department-filter"
+
+const departmentList = [
+  "Admin",
+  "Computer Operator",
+  "Clerk",
+  "Primary",
+  "SSC",
+  "HSC",
+  "Foundation",
+  "HSC (Ahmd)",
+  "GCI",
+  "Peon",
+  "Security",
+  "Guest",
+  "Accountant",
+];
 
 interface Employee {
   id: string
@@ -45,7 +62,7 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
           </div>
           <h1 className="text-2xl font-bold text-gray-800">Manage Employee Data</h1>
         </div>
-
+        <DepartmentFilter departments={departmentList}/>
         <EmploteeDialog />
       </div>
 

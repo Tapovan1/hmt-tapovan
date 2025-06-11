@@ -19,6 +19,9 @@ export const getTeachersForAbsent = async (department?: string) => {
 
   const whereClause = {
     ...(department && { department }),
+    role:{
+      not:"SUPERADMIN"
+    },
     NOT: {
       attendances: {
         some: {
