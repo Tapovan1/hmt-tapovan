@@ -15,7 +15,9 @@ export default function RootLayout({
           &copy; {new Date().getFullYear()} Made with ❤️ by{" "}
           <a
             className="text-blue-500 hover:underline"
-            href="www.bluecoreit.tech"
+            href="https://www.bluecoreit.tech"
+            target="_blank"
+           
           >
             Bluecore IT
           </a>

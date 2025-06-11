@@ -55,16 +55,26 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-[#e6eef8] p-2.5 rounded-full">
-            <Users className="h-5 w-5 text-[#4285f4]" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Employee Data</h1>
-        </div>
-        <DepartmentFilter departments={departmentList}/>
-        <EmploteeDialog />
-      </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div className="flex items-center gap-3">
+    <div className="bg-[#e6eef8] p-2.5 rounded-full">
+      <Users className="h-5 w-5 text-[#4285f4]" />
+    </div>
+    <h1 className="text-2xl font-bold text-gray-800">Manage Employee Data</h1>
+  </div>
+
+  <div className="flex flex-wrap items-center gap-3">
+    <div className="flex-1 min-w-[140px]">
+      <DepartmentFilter departments={departmentList} />
+    </div>
+    <div className="flex-shrink-0">
+      <EmploteeDialog />
+    </div>
+  </div>
+</div>
+
+
+
 
       {/* Search Bar */}
       <div className="mb-4">
