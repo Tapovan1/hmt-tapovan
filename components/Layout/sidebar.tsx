@@ -11,6 +11,7 @@ import {
   Users,
   FileText,
   UserX,
+  User,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -22,6 +23,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+
 
 const SuperadminItems = [
   {
@@ -120,6 +122,11 @@ const Teacher = [
     icon: Users,
     href: "/teacher-leave",
   },
+  {
+    title:"Profile",
+    icon: User,
+    href: "/profile",
+  }
 ];
 
 const TeacherE = [

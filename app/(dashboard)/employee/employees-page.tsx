@@ -10,6 +10,8 @@ import EmploteeDialog from "@/components/Dashboard/EmployeeDialog"
 import Delete from "./Delete"
 import EditEmployeeDialog from "@/components/Dashboard/EditEmployeeDialog"
 import { DepartmentFilter } from "./department-filter"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 const departmentList = [
   "Admin",
@@ -136,10 +138,18 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
               ) : (
                 filteredEmployees.map((employee) => (
                   <TableRow key={employee.id} className="hover:bg-gray-50/50 border-b border-gray-100">
-                    <TableCell className="py-2.5">
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="font-medium text-gray-800">{employee.name}</span>
-                      </div>
+                    <TableCell className="py-2.5 flex items-center justify-center">
+                    <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="text-[#4285f4] hover:text-[#3b78e7] hover:bg-[#e6eef8]"
+                  >
+                    <Link href={`/employee/${employee.id}`}>
+                     
+{employee.name.toUpperCase()}
+                    </Link> 
+                    </Button>
                     </TableCell>
                     <TableCell className="py-2.5">
                       <div className="flex items-center justify-center gap-3">

@@ -13,7 +13,37 @@ datasource db {
   url      = env("DATABASE_URL")
  
 }
+model UserProfile {
 
+id                String   @id @default(cuid())
+  userId            String   @unique
+  mobileNumber      String?
+  address           String?
+  nativePlace       String?
+  dateOfBirth       DateTime?
+  degree            String?
+  bloodGroup        String?
+  aadharNumber      String?
+  panNumber         String?
+  bankAccountNumber String?
+  seriousIllness    String?
+  fatherName        String?
+  fatherMobile      String?
+  spouseName        String?
+  spouseMobile      String?
+  relativeName      String?
+  relativeMobile    String?
+  relativeAddress   String?
+  workExperience    String?
+  legalProceedings  String?  // "yes" or "no"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relation to User model
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Update the User model to include the relation
 model User {
   id                  String     @id @default(cuid())
   name                String
@@ -21,19 +51,19 @@ model User {
   password            String
   role                String
   department          String
-  salary              Int @default(0)
+  salary              Int        @default(0)
   
-  totalLeavesTaken    Int        @default(0)  // Add this field
-  totalLeavesApproved Int        @default(0)  // Add this field
-  totalLeavesRejected Int        @default(0)  // Add this field
+  totalLeavesTaken    Int        @default(0)
+  totalLeavesApproved Int        @default(0)
+  totalLeavesRejected Int        @default(0)
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
   attendances         Attendance[]
   scheduleId          String?
   schedule            WorkSchedule? @relation(fields: [scheduleId], references: [id])
   leaves              TeacherLeave[]
+  profile             UserProfile?  // Add this relation
 }
-
 model Attendance {
   id          String    @id @default(cuid())
   userId      String
