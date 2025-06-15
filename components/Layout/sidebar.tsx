@@ -209,7 +209,7 @@ export function AppSidebar({ userRole = "TEACHER" }: AppSidebarProps) {
   return (
     <Sidebar className="border-r border-gray-200 ">
       <SidebarHeader className="py-6 px-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-[#4285f4]">Dummy</h1>
+        <h1 className="text-2xl font-bold text-[#4285f4]">Tapovan School</h1>
       </SidebarHeader>
       <SidebarContent>
         <ScrollArea className="h-[calc(100vh-10rem)]">
