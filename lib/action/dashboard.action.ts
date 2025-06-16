@@ -23,11 +23,24 @@ export const getDashboardStats = async (
   });
   const formattedIndianDate = new Date(indianDateString);
 
+  const currentUtcTime = new Date();
+  const indiaOffset = 330;
+  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+
+  const startOfDay = new Date(indiaTime);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(indiaTime);
+  endOfDay.setHours(23, 59, 59, 999);
+
   // Get today's attendance
   const todayAttendance = await prisma.attendance.findFirst({
     where: {
       userId: userId,
-      date: formattedIndianDate,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
     },
   });
 
