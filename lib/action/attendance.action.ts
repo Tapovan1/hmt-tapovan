@@ -87,7 +87,7 @@ export async function markAttendance(formData: FormData) {
     let attendance = await prisma.attendance.findFirst({
       where: {
         userId: user.id,
-        date: formattedIndianDate,
+        date: today,
       },
     });
 
