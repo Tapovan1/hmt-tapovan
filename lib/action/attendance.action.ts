@@ -64,8 +64,13 @@ export async function markAttendance(formData: FormData) {
     const user = await getUser();
     const currentUtcTime = new Date();
     const indiaOffset = 330;
+    //need indianDate 
+
+  
 
     const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+    const indiaDateOnly = new Date(indiaTime);
+    indiaDateOnly.setHours(0, 0, 0, 0);
     // indiatme need date and ime 000000 need format ISO 9001 prisma
 
     const formattedIndianDate = format(
@@ -99,7 +104,7 @@ export async function markAttendance(formData: FormData) {
     let attendance = await prisma.attendance.findFirst({
       where: {
         userId: user.id,
-        date: indiaTime,
+        date: indiaDateOnly,
       },
     });
 
@@ -140,7 +145,7 @@ export async function markAttendance(formData: FormData) {
       attendance = await prisma.attendance.create({
         data: {
           userId: user.id,
-          date: formattedIndianDate,
+          date: indiaDateOnly,
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
           status: determineStatus(indiaTime, schedule),

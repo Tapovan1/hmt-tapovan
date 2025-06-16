@@ -67,7 +67,7 @@ model User {
 model Attendance {
   id          String    @id @default(cuid())
   userId      String
-  date        DateTime 
+  date        DateTime @db.Date
   checkIn     DateTime? 
   checkOut    DateTime?
   status      Status
