@@ -13,8 +13,7 @@ export async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
-    .sign(key);
+    .sign(key); // Removed setExpirationTime to make JWT not expire
 }
 
 export async function decrypt(session: string | undefined = "") {
@@ -35,13 +34,11 @@ export async function decrypt(session: string | undefined = "") {
 }
 
 export async function createSession(userId: string) {
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const session = await encrypt({ userId, expiresAt });
+  const session = await encrypt({ userId });
 
   (await cookies()).set("session", session, {
     httpOnly: true,
     secure: false,
-    expires: expiresAt,
     sameSite: "lax",
     path: "/",
   });
@@ -68,11 +65,9 @@ export async function updateSession() {
     return null;
   }
 
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   (await cookies()).set("session", session, {
     httpOnly: true,
     secure: true,
-    expires: expires,
     sameSite: "lax",
     path: "/",
   });

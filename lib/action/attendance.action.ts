@@ -15,27 +15,19 @@ export const getAttendance = async (user: { id: string }) => {
     return null;
   }
 
-  
-
   // Get today's date with time set to 00:00:00 asia/kolkata time zone
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+  const indiaDateOnly = new Date(indiaTime);
+  indiaDateOnly.setHours(0, 0, 0, 0);
 
-  const startOfDay = new Date(indiaTime);
-startOfDay.setHours(0, 0, 0, 0);
-
-const endOfDay = new Date(indiaTime);
-endOfDay.setHours(23, 59, 59, 999);
 
 
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
+      date:indiaDateOnly ,
     },
 
     select: {
@@ -64,9 +56,7 @@ export async function markAttendance(formData: FormData) {
     const user = await getUser();
     const currentUtcTime = new Date();
     const indiaOffset = 330;
-    //need indianDate 
-
-  
+    //need indianDate
 
     const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
     const indiaDateOnly = new Date(indiaTime);
@@ -111,26 +101,38 @@ export async function markAttendance(formData: FormData) {
     const schedule = await getSchedulesByDepartment(user.department);
 
     let minutesLate = 0;
+
     if (action === "checkIn" && schedule) {
-      const expectedStartTime = new Date(formattedIndianDate);
+      // Step 1: Get actual Indian time as base
+      const indiaTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
+
+      // Step 2: Create "today" in IST and reset to midnight
+      const today = new Date(indiaTime);
+      today.setHours(0, 0, 0, 0);
+
+      // Step 3: Use `today` to create the expected schedule time
+      const expectedStartTime = new Date(today); // starts at midnight IST
+
       const [startHour, startMinute] = schedule.startTime
         .split(":")
         .map(Number);
+
+      // Step 4: Add scheduled time and grace period
       expectedStartTime.setHours(
         startHour,
         startMinute + schedule.graceMinutes,
         0,
         0
-      ); // Add grace period
-
-      // Adjust for timezone if needed
-      expectedStartTime.setTime(
-        expectedStartTime.getTime() -
-          expectedStartTime.getTimezoneOffset() * 60000
       );
 
-      const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000; // Convert milliseconds to minutes
-      minutesLate = diff > 0 ? Math.round(diff) : 0;
+      // Step 5: Calculate the late time
+      const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000;
+      const minutesLate = diff > 0 ? Math.round(diff) : 0;
+
+     return minutesLate;
+     
     }
 
     if (!schedule) {
@@ -230,7 +232,7 @@ export async function validateLocation(
       allowedRadius
     );
 
-    console.log("isWithinRange", isWithinRange);
+ 
 
     // Calculate distance for the message
     const distance = calculateDistance(
@@ -240,17 +242,7 @@ export async function validateLocation(
       schedule.longitude
     );
 
-    console.log("Distance", distance);
-
-    // Log for debugging
-    console.log(
-      `Location check: User at [${latitude}, ${longitude}], School at [${schedule.latitude}, ${schedule.longitude}]`
-    );
-    console.log(
-      `Distance: ${(distance * 1000).toFixed(
-        0
-      )}m, Allowed: ${allowedRadius.toFixed(0)}m`
-    );
+  
 
     return {
       success: isWithinRange,
