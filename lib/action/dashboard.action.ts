@@ -125,9 +125,16 @@ export const getDashboardStats = async (
 // Include month and year in the cache key
 
 export async function getAdminDashboardStats() {
-  const today = new Date();
-  const startOfToday = startOfDay(today);
-  const endOfToday = endOfDay(today);
+  const currentUtcTime = new Date();
+  const indiaOffset = 330;
+  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+
+  const startOfDay = new Date(indiaTime);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(indiaTime);
+  endOfDay.setHours(23, 59, 59, 999);
+
 
   const totalEmployees = await prisma.user.count({
     where: {
@@ -139,9 +146,14 @@ export async function getAdminDashboardStats() {
     },
   });
 
+ 
+
   const todayAttendance = await prisma.attendance.findMany({
     where: {
-      date: today,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
     },
   });
 
@@ -158,8 +170,8 @@ export async function getAdminDashboardStats() {
   const recentActivities = await prisma.attendance.findMany({
     where: {
       date: {
-        gte: startOfToday,
-        lte: endOfToday,
+        gte: startOfDay,
+        lte: endOfDay,
       },
     },
     include: {
