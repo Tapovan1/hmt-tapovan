@@ -93,6 +93,6 @@ export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
   //   status: isWithinSchedule ? "Within Schedule" : "Outside Schedule",
   // });
 
-  // return isWithinSchedule;
-  return true;
+  return isWithinSchedule;
+  // return true;
 }
