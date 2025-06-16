@@ -15,15 +15,27 @@ export const getAttendance = async (user: { id: string }) => {
     return null;
   }
 
+  
+
   // Get today's date with time set to 00:00:00 asia/kolkata time zone
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
 
+  const startOfDay = new Date(indiaTime);
+startOfDay.setHours(0, 0, 0, 0);
+
+const endOfDay = new Date(indiaTime);
+endOfDay.setHours(23, 59, 59, 999);
+
+
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date: currentUtcTime,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
     },
 
     select: {
@@ -87,7 +99,7 @@ export async function markAttendance(formData: FormData) {
     let attendance = await prisma.attendance.findFirst({
       where: {
         userId: user.id,
-        date: today,
+        date: indiaTime,
       },
     });
 
