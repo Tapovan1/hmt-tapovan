@@ -23,7 +23,7 @@ export const getAttendance = async (user: { id: string }) => {
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date: indiaTime,
+      date: currentUtcTime,
     },
 
     select: {
