@@ -103,37 +103,30 @@ export async function markAttendance(formData: FormData) {
     let minutesLate = 0;
 
     if (action === "checkIn" && schedule) {
-      // Step 1: Get actual Indian time as base
       const indiaTime = new Date(
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
-
-      // Step 2: Create "today" in IST and reset to midnight
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
-
-      // Step 3: Use `today` to create the expected schedule time
-      const expectedStartTime = new Date(today); // starts at midnight IST
-
+    
+      const expectedStartTime = new Date(today);
       const [startHour, startMinute] = schedule.startTime
         .split(":")
         .map(Number);
-
-      // Step 4: Add scheduled time and grace period
+    
       expectedStartTime.setHours(
         startHour,
         startMinute + schedule.graceMinutes,
         0,
         0
       );
-
-      // Step 5: Calculate the late time
+    
       const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000;
-      const minutesLate = diff > 0 ? Math.round(diff) : 0;
-
-     return minutesLate;
+      minutesLate = diff > 0 ? Math.round(diff) : 0;
+    
      
     }
+    
 
     if (!schedule) {
       return {
@@ -173,6 +166,8 @@ export async function markAttendance(formData: FormData) {
 
     return { success: true, data: attendance };
   } catch (error) {
+    console.log("err",error);
+    
     console.error("Error marking attendance:", error);
     return { success: false, error: "Failed to mark attendance" };
   }
