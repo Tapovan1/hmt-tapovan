@@ -37,10 +37,11 @@ export const getTodayAdminAttendance = async (
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
-  const today = new Date(indianDateString);
+  const formattedIndianDate = new Date(indianDateString);
+  // const today = new Date(indianDateString);
 
   const whereClause = {
-    date: today,
+    date: formattedIndianDate,
     ...(department && {
       user: {
         department: department,

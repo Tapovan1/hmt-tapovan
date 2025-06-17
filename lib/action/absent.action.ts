@@ -14,13 +14,8 @@ export const getTeachersForAbsent = async (department?: string) => {
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
 
-  const startOfDay = new Date(indiaTime);
-  startOfDay.setHours(0, 0, 0, 0);
+  const formattedIndianDate = new Date(indianDateString);
   
-  const endOfDay = new Date(indiaTime);
-  endOfDay.setHours(23, 59, 59, 999);
-
-
   //skip logic if date today is sunday
 
   const dayOfWeek = today.getDay();
@@ -36,10 +31,7 @@ export const getTeachersForAbsent = async (department?: string) => {
     NOT: {
       attendances: {
         some: {
-          date: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          date:formattedIndianDate,
         },
       },
     },

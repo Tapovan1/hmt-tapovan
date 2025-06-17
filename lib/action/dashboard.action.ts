@@ -21,20 +21,26 @@ export const getDashboardStats = async (
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
+  
+  
   const formattedIndianDate = new Date(indianDateString);
+ 
+  
 
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
+ 
+  
   
 
   // Get today's attendance
   const todayAttendance = await prisma.attendance.findFirst({
     where: {
       userId: userId,
-      date: indiaDateOnly
+      date: formattedIndianDate
     },
   });
 
@@ -122,9 +128,22 @@ export async function getAdminDashboardStats() {
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+  console.log("indiaTime", indiaTime);
+
+  
 
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
+  console.log(indiaDateOnly);
+
+  const indianDateString = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+  
+  
+  const formattedIndianDate = new Date(indianDateString);
+
+  
 
 
   const totalEmployees = await prisma.user.count({
@@ -141,8 +160,7 @@ export async function getAdminDashboardStats() {
 
   const todayAttendance = await prisma.attendance.findMany({
     where: {
-      date: 
-        indiaDateOnly
+      date: formattedIndianDate,
       
     },
   });
@@ -159,7 +177,7 @@ export async function getAdminDashboardStats() {
 
   const recentActivities = await prisma.attendance.findMany({
     where: {
-      date: indiaDateOnly
+      date: formattedIndianDate
 
     },
     include: {
