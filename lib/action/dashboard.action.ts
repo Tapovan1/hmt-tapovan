@@ -24,6 +24,8 @@ export const getDashboardStats = async (
   
   
   const formattedIndianDate = new Date(indianDateString);
+  console.log("formattedIndianDate",formattedIndianDate);
+  
  
   
 
@@ -43,6 +45,12 @@ export const getDashboardStats = async (
       date: formattedIndianDate
     },
   });
+  console.log("todayAttendance",todayAttendance);
+
+  
+
+  console.log("formattedIndianDate",formattedIndianDate);
+  
 
   // Get monthly attendance stats for the selected month
   const monthlyAttendance = await prisma.attendance.findMany({

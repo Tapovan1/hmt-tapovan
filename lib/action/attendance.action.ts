@@ -22,12 +22,21 @@ export const getAttendance = async (user: { id: string }) => {
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
 
+  console.log("indiaDateOnly",indiaDateOnly);
+  const indianDateString = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+  
+  
+  const formattedIndianDate = new Date(indianDateString);
+  
+
 
 
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date:indiaDateOnly ,
+      date:formattedIndianDate ,
     },
 
     select: {
@@ -35,8 +44,13 @@ export const getAttendance = async (user: { id: string }) => {
       checkOut: true,
       status: true,
       late: true,
+      date:true,
     },
   });
+
+  console.log("attendance",attendance);
+
+  
 
   if (!attendance) {
     return null;
@@ -62,11 +76,17 @@ export async function markAttendance(formData: FormData) {
     const indiaDateOnly = new Date(indiaTime);
     indiaDateOnly.setHours(0, 0, 0, 0);
     // indiatme need date and ime 000000 need format ISO 9001 prisma
+    const indianDateString = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Kolkata",
+    });
+    
+    
+    const formattedIndianDate = new Date(indianDateString);
 
-    const formattedIndianDate = format(
-      indiaTime,
-      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    );
+    // const formattedIndianDate = format(
+    //   indiaTime,
+    //   "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    // );
     if (!user) {
       return { success: false, error: "User not found" };
     }
@@ -94,7 +114,7 @@ export async function markAttendance(formData: FormData) {
     let attendance = await prisma.attendance.findFirst({
       where: {
         userId: user.id,
-        date: indiaDateOnly,
+        date: formattedIndianDate,
       },
     });
 
@@ -140,7 +160,7 @@ export async function markAttendance(formData: FormData) {
       attendance = await prisma.attendance.create({
         data: {
           userId: user.id,
-          date: indiaDateOnly,
+          date: formattedIndianDate,
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
           status: determineStatus(indiaTime, schedule),
