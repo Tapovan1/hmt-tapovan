@@ -263,6 +263,9 @@ export default function SalaryReportPage() {
                   LATE TIME
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  ABSENT
+                </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   OFF
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
@@ -329,6 +332,9 @@ export default function SalaryReportPage() {
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.lateTime}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.absentDay}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.off}

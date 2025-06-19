@@ -11,6 +11,7 @@ interface SalaryData {
   salary: number;
   lateTime: number;
   off: number;
+  absentDay:number;
   hajarDivas: number;
   sundays: number; // Added to track Sundays
   paySalary01: number;
@@ -21,6 +22,10 @@ interface SalaryData {
 
 // Helper function to count Sundays in a date range
 function countSundaysInRange(startDate: Date, endDate: Date): number {
+  console.log("startDate",startDate);
+  console.log("endDate",endDate);
+  
+  
   let count = 0;
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -123,6 +128,8 @@ export async function getSalaryData(params: {
       // Calculate total off days (leave days)
       const offDays = leaveDays;
 
+      const absentDay = absentDays;
+
       // Calculate Sundays that aren't already counted in present or late days
       const additionalSundays = Math.max(
         0,
@@ -168,6 +175,7 @@ export async function getSalaryData(params: {
         salary: baseSalary,
         lateTime: lateMinutes,
         off: offDays,
+        absentDay:absentDay,
         hajarDivas: hajarDivas,
         sundays: additionalSundays, // Track Sundays for debugging
         paySalary01: Number(paySalary01.toFixed(2)),
@@ -295,6 +303,8 @@ export async function exportSalaryToExcel(params: {
       // Calculate total off days (leave days)
       const offDays = leaveDays;
 
+      const absentDay = absentDays;
+
       // Calculate Sundays that aren't already counted in present or late days
       const additionalSundays = Math.max(
         0,
@@ -338,6 +348,7 @@ export async function exportSalaryToExcel(params: {
         salary: baseSalary,
         lateTime: lateMinutes,
         off: offDays,
+        absentDay:absentDay,
         hajarDivas: hajarDivas,
         sundays: additionalSundays,
         paySalary01: Number(paySalary01.toFixed(2)),
@@ -364,6 +375,7 @@ export async function exportSalaryToExcel(params: {
       item.salary,
       item.lateTime,
       item.off,
+      item.absentDay,
       item.hajarDivas,
       item.sundays,
       item.paySalary01,
