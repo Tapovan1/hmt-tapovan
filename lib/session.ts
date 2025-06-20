@@ -41,6 +41,7 @@ export async function createSession(userId: string) {
     secure: false,
     sameSite: "lax",
     path: "/",
+    maxAge:60*60*24*30
   });
 
   redirect("/dashboard");

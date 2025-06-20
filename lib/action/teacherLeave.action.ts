@@ -197,13 +197,33 @@ export async function updateLeaveStatus(formData: FormData) {
       data: { status },
     });
 
-    // If the leave is approved, create attendance records for all days in the leave period
+    const startDate = createUTCDateOnly(leave.startDate);
+    const endDate = createUTCDateOnly(leave.endDate);
+
+    // If the leave is approved, create attendance records
     if (status === "APPROVED") {
       await createAttendanceRecordsForLeave(leave);
     }
 
+    // If the leave is rejected, delete existing ON_LEAVE attendance records
+    if (status === "REJECTED") {
+      await prisma.attendance.deleteMany({
+        where: {
+          userId: leave.userId,
+          status: "ON_LEAVE",
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      });
+    }
+
+    // Revalidate UI paths to reflect changes
     revalidatePath("/teacher-leaves");
     revalidatePath("/admin/teacher-leaves");
+    revalidatePath("/attendance");
+
     return { success: true };
   } catch (error) {
     console.error("Failed to update leave status:", error);
