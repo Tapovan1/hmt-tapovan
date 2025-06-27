@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Calendar,
 } from "lucide-react";
+import Link from "next/link";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -138,7 +139,12 @@ export default async function AdminHistoryPage({
                     className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                   >
                     <TableCell className="py-4 px-6 font-medium text-gray-800">
-                      {record.user.name}
+                      <Link
+                        href={`/ahistory/${record.id}`}
+                        className="flex items-center gap-2"
+                      >
+                        {record.user.name}
+                      </Link>
                     </TableCell>
                     <TableCell className="py-4 px-6 text-gray-700">
                       {record.user.department}

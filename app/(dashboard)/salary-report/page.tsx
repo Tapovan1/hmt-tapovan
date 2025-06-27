@@ -272,10 +272,10 @@ export default function SalaryReportPage() {
                   HAJAR DIVAS
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  PAY SALARY 01
+                 PENALTY
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  PAY SALARY 02
+                  SALARY
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   PRO TAX
