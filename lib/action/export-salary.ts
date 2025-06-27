@@ -11,6 +11,7 @@ interface SalaryData {
   salary: number;
   lateTime: number;
   off: number;
+  days:number;
   absentDay:number;
   hajarDivas: number;
   sundays: number; // Added to track Sundays
@@ -167,6 +168,10 @@ export async function getSalaryData(params: {
 
       // Calculate final total
       const total = paySalary02 - proTax;
+      console.log("paysalary1",paySalary01);
+      console.log("paysalry2",paySalary02);
+      
+      
 
       return {
         no: index + 1,
@@ -249,10 +254,12 @@ export async function exportSalaryToExcel(params: {
     "SALARY",
     "LATE TIME",
     "OFF",
+    "ABSENT",
     "HAJAR DIVAS",
-    "SUNDAYS",
-    "PENALTY",
+    "DAY",
+   
     "SALARY",
+    "LATE MINUTE CHAR.",
     "PRO TAX",
     "TOTAL",
   ];
@@ -350,7 +357,8 @@ export async function exportSalaryToExcel(params: {
         off: offDays,
         absentDay:absentDay,
         hajarDivas: hajarDivas,
-        sundays: additionalSundays,
+        days:daysInMonth,
+       
         paySalary01: Number(paySalary01.toFixed(2)),
         paySalary02: Number(paySalary02.toFixed(2)),
         proTax: proTax,
@@ -377,9 +385,11 @@ export async function exportSalaryToExcel(params: {
       item.off,
       item.absentDay,
       item.hajarDivas,
-      item.sundays,
-      item.paySalary01,
+      item.days,
+    
       item.paySalary02,
+      item.paySalary01,
+      
       item.proTax,
       item.total,
     ]);

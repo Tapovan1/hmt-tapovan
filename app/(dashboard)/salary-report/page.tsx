@@ -344,10 +344,10 @@ export default function SalaryReportPage() {
                       {item.hajarDivas}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.paySalary02.toFixed(2)}
+                      {item.paySalary02}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.paySalary01.toFixed(2)}
+                      {item.paySalary01}
                     </TableCell>
                    
                     <TableCell className="py-3 px-4 text-center text-gray-700">
