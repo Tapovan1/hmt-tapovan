@@ -260,24 +260,26 @@ export default function SalaryReportPage() {
                   SALARY
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  LATE TIME
-                </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  ABSENT
-                </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  OFF
+                  MONTH DAYS
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   HAJAR DIVAS
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  SALARY
+                  OFF DAYS
+                </TableHead>
+
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  LATE TIME
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                 PENALTY
+                  LATE TIME CHA.
                 </TableHead>
-              
+
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                  SALARY
+                </TableHead>
+
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   PRO TAX
                 </TableHead>
@@ -332,24 +334,25 @@ export default function SalaryReportPage() {
                       {item.salary}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.lateTime}
+                      {item.monthDays}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.absentDay}
+                      {item.hajarDivas}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.off}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.hajarDivas}
+                      {item.lateTime}
                     </TableCell>
+
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.paySalary02}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.paySalary01}
                     </TableCell>
-                   
+
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.proTax}
                     </TableCell>

@@ -11,8 +11,8 @@ interface SalaryData {
   salary: number;
   lateTime: number;
   off: number;
-  days:number;
-  absentDay:number;
+  daysInMonth: number;
+  absentDay: number;
   hajarDivas: number;
   sundays: number; // Added to track Sundays
   paySalary01: number;
@@ -23,10 +23,9 @@ interface SalaryData {
 
 // Helper function to count Sundays in a date range
 function countSundaysInRange(startDate: Date, endDate: Date): number {
-  console.log("startDate",startDate);
-  console.log("endDate",endDate);
-  
-  
+  console.log("startDate", startDate);
+  console.log("endDate", endDate);
+
   let count = 0;
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -127,9 +126,9 @@ export async function getSalaryData(params: {
       }
 
       // Calculate total off days (leave days)
-      const offDays = leaveDays;
+      const offDays = leaveDays + absentDays;
 
-      const absentDay = absentDays;
+      // const absentDay = absentDays;
 
       // Calculate Sundays that aren't already counted in present or late days
       const additionalSundays = Math.max(
@@ -168,10 +167,6 @@ export async function getSalaryData(params: {
 
       // Calculate final total
       const total = paySalary02 - proTax;
-      console.log("paysalary1",paySalary01);
-      console.log("paysalry2",paySalary02);
-      
-      
 
       return {
         no: index + 1,
@@ -180,7 +175,7 @@ export async function getSalaryData(params: {
         salary: baseSalary,
         lateTime: lateMinutes,
         off: offDays,
-        absentDay:absentDay,
+        monthDays: daysInMonth,
         hajarDivas: hajarDivas,
         sundays: additionalSundays, // Track Sundays for debugging
         paySalary01: Number(paySalary01.toFixed(2)),
@@ -252,14 +247,14 @@ export async function exportSalaryToExcel(params: {
     "NAME",
     "DIPARTMENT",
     "SALARY",
-    "LATE TIME",
-    "OFF",
-    "ABSENT",
+    "MONTH DAYS",
     "HAJAR DIVAS",
-    "DAY",
-   
+    "OFF DAYS",
+    "LATE MINUTES",
+    "LATE MINUTES CHAR.",
+
     "SALARY",
-    "LATE MINUTE CHAR.",
+
     "PRO TAX",
     "TOTAL",
   ];
@@ -308,9 +303,9 @@ export async function exportSalaryToExcel(params: {
       }
 
       // Calculate total off days (leave days)
-      const offDays = leaveDays;
+      const offDays = leaveDays + absentDays;
 
-      const absentDay = absentDays;
+      // const absentDay = absentDays;
 
       // Calculate Sundays that aren't already counted in present or late days
       const additionalSundays = Math.max(
@@ -343,7 +338,7 @@ export async function exportSalaryToExcel(params: {
       const paySalary02 = hajarDivas * salaryPerDay - lateDeduction;
 
       // Apply professional tax if salary is 10000 or above
-      const proTax = baseSalary >= 10000 ? 200 : 0;
+      const proTax = baseSalary >= 12500 ? 200 : 0;
 
       // Calculate final total
       const total = paySalary02 - proTax;
@@ -355,10 +350,9 @@ export async function exportSalaryToExcel(params: {
         salary: baseSalary,
         lateTime: lateMinutes,
         off: offDays,
-        absentDay:absentDay,
+        monthDays: daysInMonth,
         hajarDivas: hajarDivas,
-        days:daysInMonth,
-       
+        sundays: additionalSundays, // Track Sundays for debugging
         paySalary01: Number(paySalary01.toFixed(2)),
         paySalary02: Number(paySalary02.toFixed(2)),
         proTax: proTax,
@@ -381,15 +375,15 @@ export async function exportSalaryToExcel(params: {
       item.name,
       item.department,
       item.salary,
-      item.lateTime,
-      item.off,
-      item.absentDay,
+      daysInMonth,
       item.hajarDivas,
-      item.days,
-    
-      item.paySalary02,
+      item.off,
+      item.lateTime,
+
       item.paySalary01,
-      
+
+      item.paySalary02,
+
       item.proTax,
       item.total,
     ]);
