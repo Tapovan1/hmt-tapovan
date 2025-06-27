@@ -272,11 +272,12 @@ export default function SalaryReportPage() {
                   HAJAR DIVAS
                 </TableHead>
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                 PENALTY
-                </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   SALARY
                 </TableHead>
+                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                 PENALTY
+                </TableHead>
+              
                 <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
                   PRO TAX
                 </TableHead>
@@ -343,11 +344,12 @@ export default function SalaryReportPage() {
                       {item.hajarDivas}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-center text-gray-700">
-                      {item.paySalary01.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.paySalary02.toFixed(2)}
                     </TableCell>
+                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                      {item.paySalary01.toFixed(2)}
+                    </TableCell>
+                   
                     <TableCell className="py-3 px-4 text-center text-gray-700">
                       {item.proTax}
                     </TableCell>
