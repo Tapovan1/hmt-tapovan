@@ -163,7 +163,7 @@ export async function getSalaryData(params: {
       const paySalary02 = hajarDivas * salaryPerDay - lateDeduction;
 
       // Apply professional tax if salary is 10000 or above
-      const proTax = baseSalary >= 10000 ? 200 : 0;
+      const proTax = baseSalary >= 12500 ? 200 : 0;
 
       // Calculate final total
       const total = paySalary02 - proTax;
