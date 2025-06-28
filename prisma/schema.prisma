@@ -43,6 +43,29 @@ id                String   @id @default(cuid())
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Add this new model to your existing schema.prisma
+// Update your EmployeePenalty model in schema.prisma
+model EmployeePenalty {
+  id           String   @id @default(cuid())
+  userId       String
+  employeeName String
+  department   String
+  amount       Float    @default(0)
+  reason       String?
+  month        String?  // Format: "2025-01" for January 2025
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relation to User model
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Ensure unique penalty per user per month
+  @@unique([userId, month])
+  @@index([userId])
+  @@index([month])
+  @@index([department])
+}
+
 // Update the User model to include the relation
 model User {
   id                  String     @id @default(cuid())
@@ -63,6 +86,7 @@ model User {
   schedule            WorkSchedule? @relation(fields: [scheduleId], references: [id])
   leaves              TeacherLeave[]
   profile             UserProfile?  // Add this relation
+  penalties           EmployeePenalty[] // Add this relation for penalties
 }
 model Attendance {
   id          String    @id @default(cuid())
