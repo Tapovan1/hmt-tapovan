@@ -243,7 +243,7 @@ export async function exportSalaryToExcel(params: {
     "SALARY",
     "PRO TAX",
     "PENALTY",
-    "PENALTY REASON",
+
     "TOTAL",
   ];
 
@@ -268,7 +268,7 @@ export async function exportSalaryToExcel(params: {
       item.paySalary02,
       item.proTax,
       item.penalty,
-      item.penaltyReason,
+
       item.total,
     ]);
   });
