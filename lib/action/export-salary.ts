@@ -28,14 +28,9 @@ interface SalaryData {
 // Helper function to count Sundays in a date range
 function countSundaysInRange(startDate: Date, endDate: Date): number {
   let count = 0;
-  const start = new Date(startDate);
-  const end = new Date(endDate);
 
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
-
-  const currentDate = new Date(start);
-  while (currentDate <= end) {
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
     if (currentDate.getDay() === 0) {
       count++;
     }
@@ -51,8 +46,6 @@ export async function getSalaryData(params: {
   end?: Date;
 }) {
   try {
-    console.log("Getting salary data with params:", params);
-
     // Get report data for attendance
     const reportData = await getReportData({
       department: params.department,
@@ -68,7 +61,6 @@ export async function getSalaryData(params: {
 
     // Get month from start date for penalty lookup
     const month = getMonthFromDate(startDate);
-    console.log("Looking for penalties in month:", month);
 
     const daysInMonth = new Date(
       startDate.getFullYear(),
@@ -83,33 +75,24 @@ export async function getSalaryData(params: {
       ? users?.filter((user) => user.department === params.department)
       : users;
 
-    console.log("Filtered users count:", filteredUsers?.length);
-
     if (!filteredUsers || filteredUsers.length === 0) {
       return [];
     }
 
     // Get user IDs for penalty lookup
     const userIds = filteredUsers.map((user) => user.id);
-    console.log("User IDs for penalty lookup:", userIds.length);
 
     // Get penalties for these specific users in the month
     const penalties = await getPenaltiesForUsers(userIds, month);
-    console.log("Fetched penalties:", penalties.length);
 
     // Create a map for quick penalty lookup by userId
     const penaltyMap = new Map();
     penalties.forEach((penalty) => {
-      console.log(
-        `Mapping penalty for user ${penalty.userId}: ${penalty.amount}`
-      );
       penaltyMap.set(penalty.userId, {
         amount: penalty.amount,
         reason: penalty.reason || "",
       });
     });
-
-    console.log("Penalty map size:", penaltyMap.size);
 
     const salaryData: SalaryData[] = await Promise.all(
       filteredUsers.map(async (user, index) => {
@@ -146,7 +129,7 @@ export async function getSalaryData(params: {
           0,
           totalSundays - sundaysAlreadyCounted
         );
-        const hajarDivas = presentDays + lateDays + additionalSundays;
+        const hajarDivas = presentDays + lateDays + totalSundays;
 
         const baseSalary = user.salary || 0;
         const salaryPerDay = baseSalary / daysInMonth;
