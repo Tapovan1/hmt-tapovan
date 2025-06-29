@@ -109,7 +109,6 @@ export default function SalaryReportPage() {
       adjustedStartDate.setHours(0, 0, 0, 0);
 
       const month = getMonthFromDate(adjustedStartDate);
-      console.log("Saving penalty for month:", month);
 
       await saveEmployeePenalty({
         userId: selectedEmployee.id,
