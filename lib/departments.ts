@@ -12,4 +12,10 @@ export const departmentList = [
   "Security",
   "Guest",
   "Accountant",
+  "Science",
+  "Dhruv",
+  "Nachiketa",
+  "Prahlad",
+  "9-10",
+  "11-12",
 ];
