@@ -96,6 +96,8 @@ model Attendance {
   checkOut    DateTime?
   status      Status
   late        Int?
+  early       Int?
+  overTime    Int?
   photo       String?
   user        User      @relation(fields: [userId], references: [id])
   scheduleId  String?

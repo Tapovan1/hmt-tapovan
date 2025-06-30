@@ -47,22 +47,23 @@ import { toast } from "sonner";
 import { saveEmployeePenalty } from "@/lib/action/penalty.action";
 import { exportSalaryToExcel, getSalaryData } from "@/lib/action/export-salary";
 import { getMonthFromDate } from "@/lib/utils/month";
+import { departmentList } from "@/lib/departments";
 
-const DEPARTMENTS = [
-  { id: "Admin", name: "Admin" },
-  { id: "Computer Operator", name: "Computer Operator" },
-  { id: "Clerk", name: "Clerk" },
-  { id: "Primary", name: "Primary" },
-  { id: "SSC", name: "SSC" },
-  { id: "HSC", name: "HSC" },
-  { id: "Foundation", name: "Foundation" },
-  { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
-  { id: "GCI", name: "GCI" },
-  { id: "Peon", name: "Peon" },
-  { id: "Security", name: "Security" },
-  { id: "Guest", name: "Guest" },
-  { id: "Accountant", name: "Accountant" },
-];
+// const DEPARTMENTS = [
+//   { id: "Admin", name: "Admin" },
+//   { id: "Computer Operator", name: "Computer Operator" },
+//   { id: "Clerk", name: "Clerk" },
+//   { id: "Primary", name: "Primary" },
+//   { id: "SSC", name: "SSC" },
+//   { id: "HSC", name: "HSC" },
+//   { id: "Foundation", name: "Foundation" },
+//   { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
+//   { id: "GCI", name: "GCI" },
+//   { id: "Peon", name: "Peon" },
+//   { id: "Security", name: "Security" },
+//   { id: "Guest", name: "Guest" },
+//   { id: "Accountant", name: "Accountant" },
+// ];
 
 export default function SalaryReportPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>();
@@ -78,6 +79,11 @@ export default function SalaryReportPage() {
   const [penaltyAmount, setPenaltyAmount] = useState<number>(0);
 
   const [savingPenalty, setSavingPenalty] = useState(false);
+
+  const DEPARTMENTS = departmentList.map((dept) => ({
+    id: dept,
+    name: dept,
+  }));
 
   const handleOpenPenaltyModal = (employee: any) => {
     setSelectedEmployee(employee);

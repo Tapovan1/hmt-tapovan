@@ -21,36 +21,26 @@ export const getDashboardStats = async (
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
-  
-  
+
   const formattedIndianDate = new Date(indianDateString);
-  console.log("formattedIndianDate",formattedIndianDate);
-  
- 
-  
+  // console.log("formattedIndianDate",formattedIndianDate);
 
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
- 
-  
-  
 
   // Get today's attendance
   const todayAttendance = await prisma.attendance.findFirst({
     where: {
       userId: userId,
-      date: formattedIndianDate
+      date: formattedIndianDate,
     },
   });
-  console.log("todayAttendance",todayAttendance);
+  // console.log("todayAttendance",todayAttendance);
 
-  
-
-  console.log("formattedIndianDate",formattedIndianDate);
-  
+  // console.log("formattedIndianDate",formattedIndianDate);
 
   // Get monthly attendance stats for the selected month
   const monthlyAttendance = await prisma.attendance.findMany({
@@ -136,23 +126,17 @@ export async function getAdminDashboardStats() {
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-  console.log("indiaTime", indiaTime);
-
-  
+  // console.log("indiaTime", indiaTime);
 
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
-  console.log(indiaDateOnly);
+  // console.log(indiaDateOnly);
 
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
-  
-  
+
   const formattedIndianDate = new Date(indianDateString);
-
-  
-
 
   const totalEmployees = await prisma.user.count({
     where: {
@@ -164,12 +148,9 @@ export async function getAdminDashboardStats() {
     },
   });
 
- 
-
   const todayAttendance = await prisma.attendance.findMany({
     where: {
       date: formattedIndianDate,
-      
     },
   });
 
@@ -185,8 +166,7 @@ export async function getAdminDashboardStats() {
 
   const recentActivities = await prisma.attendance.findMany({
     where: {
-      date: formattedIndianDate
-
+      date: formattedIndianDate,
     },
     include: {
       user: {

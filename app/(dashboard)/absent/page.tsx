@@ -4,22 +4,7 @@ import { AbsentForm } from "./components/absent-form";
 
 import { UserX } from "lucide-react";
 import { DateSelector } from "./components/m-date-picker";
-
-const departmentList = [
-  "Admin",
-  "Computer Operator",
-  "Clerk",
-  "Primary",
-  "SSC",
-  "HSC",
-  "Foundation",
-  "HSC (Ahmd)",
-  "GCI",
-  "Peon",
-  "Security",
-  "Guest",
-  "Accountant",
-];
+import { departmentList } from "@/lib/departments";
 
 export default async function AdminAbsentPage({
   searchParams,

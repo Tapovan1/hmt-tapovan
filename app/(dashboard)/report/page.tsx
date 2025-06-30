@@ -29,22 +29,24 @@ import {
 import { exportToExcel } from "@/lib/action/export.actions";
 import { Pagination } from "@/components/pagination";
 import { Card, CardContent } from "@/components/ui/card";
+import { departmentList } from "@/lib/departments";
 
-const DEPARTMENTS = [
-  { id: "Admin", name: "Admin" },
-  { id: "Computer Operator", name: "Computer Operator" },
-  { id: "Clerk", name: "Clerk" },
-  { id: "Primary", name: "Primary" },
-  { id: "SSC", name: "SSC" },
-  { id: "HSC", name: "HSC" },
-  { id: "Foundation", name: "Foundation" },
-  { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
-  { id: "GCI", name: "GCI" },
-  { id: "Peon", name: "Peon" },
-  { id: "Security", name: "Security" },
-  { id: "Guest", name: "Guest" },
-  { id: "Accountant", name: "Accountant" },
-];
+// const DEPARTMENTS = [
+
+//   { id: "Admin", name: "Admin" },
+//   { id: "Computer Operator", name: "Computer Operator" },
+//   { id: "Clerk", name: "Clerk" },
+//   { id: "Primary", name: "Primary" },
+//   { id: "SSC", name: "SSC" },
+//   { id: "HSC", name: "HSC" },
+//   { id: "Foundation", name: "Foundation" },
+//   { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
+//   { id: "GCI", name: "GCI" },
+//   { id: "Peon", name: "Peon" },
+//   { id: "Security", name: "Security" },
+//   { id: "Guest", name: "Guest" },
+//   { id: "Accountant", name: "Accountant" },
+// ];
 
 export default function ReportPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>();
@@ -55,6 +57,10 @@ export default function ReportPage() {
   const [exporting, setExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const DEPARTMENTS = departmentList.map((dept) => ({
+    id: dept,
+    name: dept,
+  }));
 
   const handleFetchData = async (page = 1) => {
     if (!startDate || !endDate) {

@@ -22,21 +22,17 @@ export const getAttendance = async (user: { id: string }) => {
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
 
-  console.log("indiaDateOnly",indiaDateOnly);
+  console.log("indiaDateOnly", indiaDateOnly);
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
-  
-  
+
   const formattedIndianDate = new Date(indianDateString);
-  
-
-
 
   const attendance = await prisma.attendance.findFirst({
     where: {
       userId: user.id,
-      date:formattedIndianDate ,
+      date: formattedIndianDate,
     },
 
     select: {
@@ -44,13 +40,11 @@ export const getAttendance = async (user: { id: string }) => {
       checkOut: true,
       status: true,
       late: true,
-      date:true,
+      early: true,
+      overTime: true,
+      date: true,
     },
   });
-
-  console.log("attendance",attendance);
-
-  
 
   if (!attendance) {
     return null;
@@ -79,8 +73,7 @@ export async function markAttendance(formData: FormData) {
     const indianDateString = new Date().toLocaleDateString("en-CA", {
       timeZone: "Asia/Kolkata",
     });
-    
-    
+
     const formattedIndianDate = new Date(indianDateString);
 
     // const formattedIndianDate = format(
@@ -128,25 +121,46 @@ export async function markAttendance(formData: FormData) {
       );
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
-    
+
       const expectedStartTime = new Date(today);
       const [startHour, startMinute] = schedule.startTime
         .split(":")
         .map(Number);
-    
+
       expectedStartTime.setHours(
         startHour,
         startMinute + schedule.graceMinutes,
         0,
         0
       );
-    
+
       const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000;
       minutesLate = diff > 0 ? Math.round(diff) : 0;
-    
-     
     }
-    
+
+    let earlyExitMinutes = 0;
+    let overtimeMinutes = 0;
+
+    if (action === "checkOut" && schedule) {
+      const indiaTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
+      const today = new Date(indiaTime);
+      today.setHours(0, 0, 0, 0);
+
+      const expectedEndTime = new Date(today);
+      const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
+
+      expectedEndTime.setHours(endHour, endMinute, 0, 0);
+
+      const diff = (expectedEndTime.getTime() - indiaTime.getTime()) / 60000;
+
+      if (diff > 0) {
+        earlyExitMinutes = Math.round(diff);
+      } else {
+        overtimeMinutes = Math.abs(Math.round(diff)); // calculate overtime
+      }
+    }
 
     if (!schedule) {
       return {
@@ -164,7 +178,7 @@ export async function markAttendance(formData: FormData) {
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
           status: determineStatus(indiaTime, schedule),
-          late: minutesLate,
+          ...(minutesLate > 0 && { late: minutesLate }),
           photo: photo || undefined,
           scheduleId: scheduleId || undefined,
         },
@@ -176,6 +190,8 @@ export async function markAttendance(formData: FormData) {
         data: {
           checkIn: action === "checkIn" ? indiaTime : attendance.checkIn,
           checkOut: action === "checkOut" ? indiaTime : attendance.checkOut,
+          ...(earlyExitMinutes > 0 && { early: earlyExitMinutes }),
+          ...(overtimeMinutes > 0 && { overTime: overtimeMinutes }),
           photo: photo || attendance.photo,
         },
       });
@@ -186,8 +202,8 @@ export async function markAttendance(formData: FormData) {
 
     return { success: true, data: attendance };
   } catch (error) {
-    console.log("err",error);
-    
+    console.log("err", error);
+
     console.error("Error marking attendance:", error);
     return { success: false, error: "Failed to mark attendance" };
   }
@@ -247,8 +263,6 @@ export async function validateLocation(
       allowedRadius
     );
 
- 
-
     // Calculate distance for the message
     const distance = calculateDistance(
       latitude,
@@ -256,8 +270,6 @@ export async function validateLocation(
       schedule.latitude,
       schedule.longitude
     );
-
-  
 
     return {
       success: isWithinRange,

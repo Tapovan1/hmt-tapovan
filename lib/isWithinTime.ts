@@ -42,57 +42,30 @@
 import { WorkSchedule } from "@/lib/types/work-schedule";
 
 export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
-  // Get current day and check if it's Saturday
   const day = now.getDay();
-
   const isSaturday = day === 6;
-  // const day = 6;
-  // const isSaturday = true;
 
-  // Check if it's a working day
+  // If today is not a working day, return false
   if (!schedule.workDays.includes(day)) {
     console.log(`[Attendance] Not a working day. Current day: ${day}`);
     return false;
   }
 
-  // Determine which schedule to use (Saturday or regular)
+  // Use Saturday timing if today is Saturday
   const activeStartTime =
     isSaturday && schedule.saturdayStartTime
       ? schedule.saturdayStartTime
       : schedule.startTime;
 
-  const activeEndTime =
-    isSaturday && schedule.saturdayEndTime
-      ? schedule.saturdayEndTime
-      : schedule.endTime;
-
   // Convert current time to minutes
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  // Convert schedule times to minutes
+  // Convert schedule start time to minutes
   const [startHour, startMinute] = activeStartTime.split(":").map(Number);
-  const [endHour, endMinute] = activeEndTime.split(":").map(Number);
   const scheduleStartMinutes = startHour * 60 + startMinute;
-  const scheduleEndMinutes = endHour * 60 + endMinute;
 
-  // Check if current time is within schedule
-  const isWithinSchedule =
-    currentMinutes >= scheduleStartMinutes &&
-    currentMinutes <= scheduleEndMinutes;
+  // ✅ Only check if current time is after or equal to start time
+  const isAfterStart = currentMinutes >= scheduleStartMinutes;
 
-  // Log attendance check details
-  // console.log("[Attendance] Time Check:", {
-  //   currentTime: `${now.getHours().toString().padStart(2, "0")}:${now
-  //     .getMinutes()
-  //     .toString()
-  //     .padStart(2, "0")}`,
-  //   isSaturday,
-  //   schedule: isSaturday ? "Saturday" : "Regular",
-  //   allowedStart: activeStartTime,
-  //   allowedEnd: activeEndTime,
-  //   status: isWithinSchedule ? "Within Schedule" : "Outside Schedule",
-  // });
-
-  return isWithinSchedule;
-  // return true;
+  return isAfterStart;
 }

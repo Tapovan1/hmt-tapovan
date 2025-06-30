@@ -12,6 +12,8 @@ interface IAttendanceStatusProps {
     checkOut?: string;
     status?: string;
     late?: number;
+    early?: number;
+    overTime?: number;
   };
 }
 
@@ -92,6 +94,26 @@ export default function AttendanceStatus({ data }: IAttendanceStatusProps) {
               </span>
               <span className="font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
                 {data?.late} minutes
+              </span>
+            </div>
+          )}
+          {data?.early && (
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#4285f4]" /> Early Exit:
+              </span>
+              <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                {data?.early} minutes
+              </span>
+            </div>
+          )}
+          {data?.overTime && (
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#4285f4]" /> Overtime:
+              </span>
+              <span className="font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                {data?.overTime} minutes
               </span>
             </div>
           )}

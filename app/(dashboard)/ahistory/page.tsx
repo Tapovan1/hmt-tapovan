@@ -20,24 +20,9 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
+import { departmentList } from "@/lib/departments";
 
 const ITEMS_PER_PAGE = 10;
-
-const departmentList = [
-  "Admin",
-  "Computer Operator",
-  "Clerk",
-  "Primary",
-  "SSC",
-  "HSC",
-  "Foundation",
-  "HSC (Ahmd)",
-  "GCI",
-  "Peon",
-  "Security",
-  "Guest",
-  "Accountant",
-];
 
 export default async function AdminHistoryPage({
   searchParams,

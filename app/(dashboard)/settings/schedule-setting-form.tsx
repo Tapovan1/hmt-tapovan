@@ -58,6 +58,7 @@ import {
 } from "@/lib/action/work-schedule";
 
 import { toast } from "sonner";
+import { departmentList } from "@/lib/departments";
 
 interface Schedule {
   id?: string;
@@ -91,21 +92,21 @@ const daysOfWeek = [
   { value: 0, label: "Sunday", short: "Sun" },
 ];
 
-const departmentOptions = [
-  "Accountant",
-  "Admin",
-  "Computer Operator",
-  "Clerk",
-  "Primary",
-  "SSC",
-  "HSC",
-  "Foundation",
-  "HSC (Ahmd)",
-  "GCI",
-  "Peon",
-  "Security",
-  "Guest",
-];
+// const departmentOptions = [
+//   "Accountant",
+//   "Admin",
+//   "Computer Operator",
+//   "Clerk",
+//   "Primary",
+//   "SSC",
+//   "HSC",
+//   "Foundation",
+//   "HSC (Ahmd)",
+//   "GCI",
+//   "Peon",
+//   "Security",
+//   "Guest",
+// ];
 
 const ScheduleSettingsForm = ({
   initialSchedules = [],
@@ -590,7 +591,7 @@ const ScheduleSettingsForm = ({
                       <SelectValue placeholder="Select Department" />
                     </SelectTrigger>
                     <SelectContent>
-                      {departmentOptions.map((dept) => (
+                      {departmentList.map((dept) => (
                         <SelectItem key={dept} value={dept}>
                           {dept}
                         </SelectItem>
@@ -931,7 +932,7 @@ const ScheduleSettingsForm = ({
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        {departmentOptions.map((dept) => (
+                        {departmentList.map((dept) => (
                           <SelectItem key={dept} value={dept}>
                             {dept}
                           </SelectItem>

@@ -1,0 +1,15 @@
+export const departmentList = [
+  "Admin",
+  "Computer Operator",
+  "Clerk",
+  "Primary",
+  "SSC",
+  "HSC",
+  "Foundation",
+  "HSC (Ahmd)",
+  "GCI",
+  "Peon",
+  "Security",
+  "Guest",
+  "Accountant",
+];
