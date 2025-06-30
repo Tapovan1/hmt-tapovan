@@ -401,16 +401,16 @@ export default function SalaryReportPage() {
                   NAME
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  DEPT
+                  DEPARTMENT
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   SALARY
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  M.DAYS
+                  MONTH DAYS
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  H.DIVAS
+                  HAJAR DIVAS
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   OFF
@@ -419,22 +419,19 @@ export default function SalaryReportPage() {
                   LATE
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  L.CHA
+                  LATE CHARGE
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   PAY
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  TAX
+                  PRO TAX
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium bg-red-50">
                   PENALTY
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   TOTAL
-                </TableHead>
-                <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  ACTION
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -502,14 +499,6 @@ export default function SalaryReportPage() {
                       {item.proTax}
                     </TableCell>
                     <TableCell className="h-8 px-2 text-center text-xs bg-red-50">
-                      <span className="text-red-600 font-medium">
-                        -{(item.penalty || 0).toFixed(2)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="h-8 px-2 text-center text-xs font-medium">
-                      {item.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="h-8 px-2 text-center">
                       <Dialog
                         open={
                           penaltyModalOpen && selectedEmployee?.id === item.id
@@ -517,15 +506,14 @@ export default function SalaryReportPage() {
                         onOpenChange={setPenaltyModalOpen}
                       >
                         <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <button
                             onClick={() => handleOpenPenaltyModal(item)}
-                            className="h-6 w-6 p-0 border-orange-200 hover:bg-orange-50"
+                            className="text-red-600 font-medium  hover:text-red-800 transition-all"
                           >
-                            <Edit className="h-3 w-3 text-orange-600" />
-                          </Button>
+                            -{(item.penalty || 0).toFixed(2)}
+                          </button>
                         </DialogTrigger>
+
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-base">
@@ -541,6 +529,7 @@ export default function SalaryReportPage() {
                               )}
                             </DialogTitle>
                           </DialogHeader>
+
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
                               <Label
@@ -562,6 +551,7 @@ export default function SalaryReportPage() {
                                 className="h-8"
                               />
                             </div>
+
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
@@ -594,6 +584,10 @@ export default function SalaryReportPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                    </TableCell>
+
+                    <TableCell className="h-8 px-2 text-center text-xs font-medium">
+                      {item.total.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))
