@@ -1,43 +1,56 @@
-"use client"
+"use client";
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Building2, X, Filter } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Building2, X, Filter } from "lucide-react";
 
 interface DepartmentFilterProps {
-  departments: string[]
-  paramName?: string
-  path?: string
+  departments: string[];
+  paramName?: string;
+  path?: string;
 }
 
-export function DepartmentFilter({ departments, paramName = "department", path = "/employee" }: DepartmentFilterProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const currentDepartment = searchParams.get(paramName)
+export function DepartmentFilter({
+  departments,
+  paramName = "department",
+  path = "/employee",
+}: DepartmentFilterProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentDepartment = searchParams.get(paramName);
 
   const handleDepartmentChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (value === "all") {
-      params.delete(paramName)
+      params.delete(paramName);
     } else {
-      params.set(paramName, value)
+      params.set(paramName, value);
     }
 
-    router.push(`${path}?${params.toString()}`)
-  }
+    router.push(`${path}?${params.toString()}`);
+  };
 
   const clearFilter = () => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete(paramName)
-    router.push(`${path}?${params.toString()}`)
-  }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(paramName);
+    router.push(`${path}?${params.toString()}`);
+  };
 
   return (
     <div className="flex items-center gap-2 w-full sm:w-auto">
       <div className="relative flex-1 sm:w-[240px]">
-        <Select value={currentDepartment || "all"} onValueChange={handleDepartmentChange}>
+        <Select
+          value={currentDepartment || "all"}
+          onValueChange={handleDepartmentChange}
+        >
           <SelectTrigger className="h-10 border-slate-200 bg-white hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
@@ -47,7 +60,10 @@ export function DepartmentFilter({ departments, paramName = "department", path =
                 <SelectValue placeholder="Filter by department" />
               </div>
               {currentDepartment && (
-                <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs bg-blue-100 text-blue-700 border-0">
+                <Badge
+                  variant="secondary"
+                  className="ml-2 h-5 px-2 text-xs bg-blue-100 text-blue-700 border-0"
+                >
                   Active
                 </Badge>
               )}
@@ -61,23 +77,28 @@ export function DepartmentFilter({ departments, paramName = "department", path =
               </div>
             </div>
 
-            <SelectItem value="all" className="font-medium hover:bg-slate-50 focus:bg-slate-50">
+            <SelectItem
+              value="all"
+              className="font-medium hover:bg-slate-50 focus:bg-slate-50"
+            >
               <div className="flex items-center justify-between w-full">
                 <span>All Departments</span>
-                {!currentDepartment && (
-                  <Badge variant="outline" className="ml-2 h-5 px-2 text-xs">
-                    {departments.length} total
-                  </Badge>
-                )}
               </div>
             </SelectItem>
 
             {departments.map((dept) => (
-              <SelectItem key={dept} value={dept} className="hover:bg-slate-50 focus:bg-slate-50">
+              <SelectItem
+                key={dept}
+                value={dept}
+                className="hover:bg-slate-50 focus:bg-slate-50"
+              >
                 <div className="flex items-center justify-between w-full">
                   <span>{dept}</span>
                   {currentDepartment === dept && (
-                    <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs bg-blue-100 text-blue-700 border-0">
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 h-5 px-2 text-xs bg-blue-100 text-blue-700 border-0"
+                    >
                       Selected
                     </Badge>
                   )}
@@ -102,5 +123,5 @@ export function DepartmentFilter({ departments, paramName = "department", path =
         </Button>
       )}
     </div>
-  )
+  );
 }

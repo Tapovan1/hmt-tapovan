@@ -25,6 +25,117 @@ export interface ReportData {
   }[];
 }
 
+//i need same logic getreportdata but withut pagination
+export async function getReportDataWithoutPagination(params: {
+  department?: string;
+  start?: Date;
+  end?: Date;
+}) {
+  const { department, start, end } = params;
+
+  const startDate = new Date(Number(start));
+  const endDate = new Date(Number(end));
+
+  // Set time to midnight (00:00:00)
+  startDate.setUTCHours(0, 0, 0, 0);
+  endDate.setUTCHours(0, 0, 0, 0);
+
+  // Add one day to both dates
+
+  // Add one day to both dates
+
+  const usersQuery = {
+    where: {
+      ...(department ? { department } : {}),
+      NOT: [{ role: "SUPERADMIN" }],
+    },
+  };
+
+  const [users, totalUsers] = await Promise.all([
+    prisma.user.findMany(usersQuery),
+    prisma.user.count({ where: usersQuery.where }),
+  ]);
+
+  // Get attendance data for each user
+  const reportData: ReportData[] = await Promise.all(
+    users.map(async (user) => {
+      // Get department schedule
+
+      const attendanceQuery = {
+        where: {
+          userId: user.id,
+          //exclude SUPERADMIN role
+
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          date: "asc" as const,
+        },
+      };
+
+      const attendance = await prisma.attendance.findMany(attendanceQuery);
+
+      const transformedAttendance = attendance.map((att) => {
+        // Calculate minutes late
+
+        return {
+          date: att.date,
+          status: att.status,
+          minutesLate: att.late ?? 0,
+          checkIn: att.checkIn,
+          checkOut: att.checkOut,
+          late: att.late,
+        };
+      });
+
+      // Calculate statistics directly from transformed attendance data
+      const stats = transformedAttendance.reduce(
+        (acc, curr) => {
+          if (curr.status === Status.PRESENT) {
+            acc.presentCount++;
+          } else if (curr.status === Status.ABSENT) {
+            acc.absentCount++;
+          } else if (curr.status === Status.LATE) {
+            acc.lateCount++;
+          } else if (curr.status === Status.ON_LEAVE) {
+            acc.leaveCount++;
+          }
+          return acc;
+        },
+        { presentCount: 0, absentCount: 0, lateCount: 0, leaveCount: 0 }
+      );
+
+      // Calculate total work hours
+      // const totalWorkHours = calculateMonthlyWorkHours(attendance);
+
+      const totalMinuteLate = transformedAttendance.reduce(
+        (acc, curr) => acc + (curr.late ?? 0),
+        0
+      );
+
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          department: user.department,
+        },
+        stats: {
+          ...stats,
+          totalMinuteLate,
+        },
+        dailyAttendance: transformedAttendance,
+      };
+    })
+  );
+
+  return {
+    data: reportData,
+  };
+}
+
 export async function getReportData(params: {
   department?: string;
   start?: Date;
@@ -32,6 +143,12 @@ export async function getReportData(params: {
   page?: number;
 }) {
   const { department, start, end, page = 1 } = params;
+  console.log("getReportData called with params:", {
+    department,
+    start,
+    end,
+    page,
+  });
 
   const itemsPerPage = 10;
 

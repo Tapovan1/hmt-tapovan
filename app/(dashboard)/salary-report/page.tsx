@@ -41,6 +41,7 @@ import {
   Edit,
   Save,
   X,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { saveEmployeePenalty } from "@/lib/action/penalty.action";
@@ -253,30 +254,31 @@ export default function SalaryReportPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-[#e6eef8] p-3 rounded-full">
-          <FileText className="h-6 w-6 text-[#4285f4]" />
+    <div className="max-w-full mx-auto p-4 space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center gap-2">
+        <div className="bg-blue-100 p-2 rounded-lg">
+          <FileText className="h-5 w-5 text-blue-600" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Salary Report
-        </h1>
+        <h1 className="text-xl font-bold text-gray-800">Salary Report</h1>
       </div>
 
-      <Card className="mb-2 border-gray-100 shadow-sm">
-        <CardContent className="p-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-[#4285f4]" />
+      {/* Compact Filter Section */}
+      <Card className="border-gray-200">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            {/* Department Filter */}
+            <div className="min-w-[180px]">
+              <Label className="text-xs font-medium text-gray-600 mb-1 flex items-center gap-1">
+                <Building2 className="h-3 w-3" />
                 Department
-              </label>
+              </Label>
               <Select
                 value={selectedDepartment}
                 onValueChange={setSelectedDepartment}
               >
-                <SelectTrigger className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]">
-                  <SelectValue placeholder="Select Department" />
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
                   {DEPARTMENTS.map((dept) => (
@@ -288,70 +290,90 @@ export default function SalaryReportPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                <CalendarRange className="h-4 w-4 text-[#4285f4]" />
+            {/* Start Date */}
+            <div className="min-w-[140px]">
+              <Label className="text-xs font-medium text-gray-600 mb-1 flex items-center gap-1">
+                <CalendarRange className="h-3 w-3" />
                 Start Date
-              </label>
+              </Label>
               <DatePicker
                 date={startDate}
                 setDate={setStartDate}
-                placeholder="Select start date"
-                className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]"
+                placeholder="Start date"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                <CalendarRange className="h-4 w-4 text-[#4285f4]" />
+            {/* End Date */}
+            <div className="min-w-[140px]">
+              <Label className="text-xs font-medium text-gray-600 mb-1">
                 End Date
-              </label>
+              </Label>
               <DatePicker
                 date={endDate}
                 setDate={setEndDate}
-                placeholder="Select end date"
-                className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]"
+                placeholder="End date"
               />
             </div>
 
-            <div className="flex items-end">
+            {/* Action Buttons */}
+            <div className="flex gap-2">
               <Button
                 onClick={handlePreviewSalaryData}
                 disabled={loading}
-                className="h-10 w-full bg-[#4285f4] hover:bg-[#3b78e7] text-white"
+                size="sm"
+                className="h-8 bg-blue-600 hover:bg-blue-700"
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  "Preview Salary"
+                  <Search className="h-3 w-3" />
                 )}
+                <span className="ml-1">Preview</span>
               </Button>
+
+              {salaryData.length > 0 && (
+                <Button
+                  onClick={handleExportSalary}
+                  disabled={exporting}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 bg-transparent"
+                >
+                  {exporting ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Download className="h-3 w-3" />
+                  )}
+                  <span className="ml-1">Export</span>
+                </Button>
+              )}
             </div>
           </div>
 
+          {/* Compact Info Bar */}
           {startDate && endDate && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-blue-800">
-                  <span className="font-medium">Month Range:</span>{" "}
-                  {formatMonthRange()}
+            <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-blue-800">
+                  <strong>Period:</strong> {formatMonthRange()}
                   {getCurrentMonth() && (
-                    <span className="ml-4 font-medium">
-                      Penalty Month: {getCurrentMonth()}
+                    <span className="ml-4">
+                      <strong>Penalty Month:</strong> {getCurrentMonth()}
                     </span>
                   )}
-                </p>
-                {salaryData.length > 0 && getTotalPenalties() > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="bg-red-100 text-red-800"
-                  >
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Total Penalties: ₹{getTotalPenalties().toFixed(2)}
-                  </Badge>
+                </span>
+                {salaryData.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-blue-800">
+                      <strong>Records:</strong> {salaryData.length}
+                    </span>
+                    {getTotalPenalties() > 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Total Penalties: ₹{getTotalPenalties().toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -359,79 +381,59 @@ export default function SalaryReportPage() {
         </CardContent>
       </Card>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex items-center justify-between bg-[#4285f4] text-white py-3 px-6">
-          <div className="font-medium flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            <span>Salary Summary</span>
+      {/* Compact Table */}
+      <Card className="border-gray-200">
+        <div className="bg-blue-600 text-white py-2 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <FileText className="h-4 w-4" />
+            Salary Summary
           </div>
-          {salaryData.length > 0 && (
-            <Button
-              onClick={handleExportSalary}
-              disabled={exporting}
-              variant="outline"
-              size="sm"
-              className="bg-white hover:bg-gray-100 text-[#4285f4] border-white"
-            >
-              {exporting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export to Excel
-                </>
-              )}
-            </Button>
-          )}
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+        <div className="overflow-auto max-h-[70vh]">
+          <Table className="text-sm">
+            <TableHeader className="sticky top-0 bg-gray-50">
+              <TableRow>
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   NO
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                <TableHead className="h-8 px-2 text-center text-xs font-medium min-w-[120px]">
                   NAME
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  DEPARTMENT
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  DEPT
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   SALARY
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  MONTH DAYS
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  M.DAYS
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  HAJAR DIVAS
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  H.DIVAS
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  OFF DAYS
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  OFF
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  LATE TIME
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  LATE
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  LATE TIME CHA.
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  L.CHA
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  SALARY
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  PAY
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
-                  PRO TAX
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
+                  TAX
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700 bg-red-50">
+                <TableHead className="h-8 px-2 text-center text-xs font-medium bg-red-50">
                   PENALTY
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   TOTAL
                 </TableHead>
-                <TableHead className="py-3 px-4 text-center font-medium text-gray-700">
+                <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   ACTION
                 </TableHead>
               </TableRow>
@@ -439,10 +441,10 @@ export default function SalaryReportPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={14} className="py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-[#4285f4] mb-3" />
-                      <span className="text-gray-500">
+                  <TableCell colSpan={14} className="py-8 text-center">
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-600 mb-2" />
+                      <span className="text-gray-500 text-sm">
                         Loading salary data...
                       </span>
                     </div>
@@ -450,13 +452,13 @@ export default function SalaryReportPage() {
                 </TableRow>
               ) : salaryData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={14} className="py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <FileText className="h-12 w-12 text-gray-300 mb-3" />
-                      <h3 className="text-lg font-medium text-gray-700 mb-1">
+                  <TableCell colSpan={14} className="py-8 text-center">
+                    <div className="flex flex-col items-center">
+                      <FileText className="h-8 w-8 text-gray-300 mb-2" />
+                      <h3 className="text-sm font-medium text-gray-700 mb-1">
                         No Salary Data
                       </h3>
-                      <p className="text-gray-500 max-w-md">
+                      <p className="text-gray-500 text-xs max-w-md">
                         Select a department and date range, then click "Preview
                         Salary" to view salary statistics.
                       </p>
@@ -465,54 +467,49 @@ export default function SalaryReportPage() {
                 </TableRow>
               ) : (
                 salaryData.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
-                  >
-                    <TableCell className="py-3 px-4 text-center">
+                  <TableRow key={item.id} className="hover:bg-gray-50">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.no}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center font-medium text-gray-800">
+                    <TableCell className="h-8 px-2 text-center text-xs font-medium">
                       {item.name}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.department}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.salary}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.daysInMonth}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.hajarDivas}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.off}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.lateTime}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.paySalary01}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.paySalary02}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center text-gray-700">
+                    <TableCell className="h-8 px-2 text-center text-xs">
                       {item.proTax}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center bg-red-50">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-red-600 font-medium">
-                          -{(item.penalty || 0).toFixed(2)}
-                        </span>
-                      </div>
+                    <TableCell className="h-8 px-2 text-center text-xs bg-red-50">
+                      <span className="text-red-600 font-medium">
+                        -{(item.penalty || 0).toFixed(2)}
+                      </span>
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center font-medium text-gray-800">
+                    <TableCell className="h-8 px-2 text-center text-xs font-medium">
                       {item.total.toFixed(2)}
                     </TableCell>
-                    <TableCell className="py-3 px-4 text-center">
+                    <TableCell className="h-8 px-2 text-center">
                       <Dialog
                         open={
                           penaltyModalOpen && selectedEmployee?.id === item.id
@@ -524,18 +521,21 @@ export default function SalaryReportPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleOpenPenaltyModal(item)}
-                            className="h-8 w-8 p-0 border-orange-200 hover:bg-orange-50"
+                            className="h-6 w-6 p-0 border-orange-200 hover:bg-orange-50"
                           >
                             <Edit className="h-3 w-3 text-orange-600" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <AlertTriangle className="h-5 w-5 text-orange-500" />
+                            <DialogTitle className="flex items-center gap-2 text-base">
+                              <AlertTriangle className="h-4 w-4 text-orange-500" />
                               Set Penalty for {selectedEmployee?.name}
                               {getCurrentMonth() && (
-                                <Badge variant="outline" className="ml-2">
+                                <Badge
+                                  variant="outline"
+                                  className="ml-2 text-xs"
+                                >
                                   {getCurrentMonth()}
                                 </Badge>
                               )}
@@ -543,7 +543,10 @@ export default function SalaryReportPage() {
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label htmlFor="penalty-amount">
+                              <Label
+                                htmlFor="penalty-amount"
+                                className="text-sm"
+                              >
                                 Penalty Amount (₹)
                               </Label>
                               <Input
@@ -556,31 +559,33 @@ export default function SalaryReportPage() {
                                 placeholder="0"
                                 min="0"
                                 step="0.01"
+                                className="h-8"
                               />
                             </div>
-
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
                                 onClick={() => setPenaltyModalOpen(false)}
                                 disabled={savingPenalty}
+                                size="sm"
                               >
-                                <X className="h-4 w-4 mr-2" />
+                                <X className="h-3 w-3 mr-1" />
                                 Cancel
                               </Button>
                               <Button
                                 onClick={handleSavePenalty}
                                 disabled={savingPenalty}
+                                size="sm"
                                 className="bg-orange-600 hover:bg-orange-700"
                               >
                                 {savingPenalty ? (
                                   <>
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
                                     Saving...
                                   </>
                                 ) : (
                                   <>
-                                    <Save className="h-4 w-4 mr-2" />
+                                    <Save className="h-3 w-3 mr-1" />
                                     Save Penalty
                                   </>
                                 )}
@@ -596,7 +601,7 @@ export default function SalaryReportPage() {
             </TableBody>
           </Table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
