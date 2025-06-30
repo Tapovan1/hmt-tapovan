@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateEmployee } from "@/lib/action/user.action";
+import { departmentList } from "@/lib/departments";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -163,22 +164,11 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Accountant">Accountant</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="Computer Operator">
-                      Computer Operator
-                    </SelectItem>
-                    <SelectItem value="Clerk">Clerk</SelectItem>
-                    <SelectItem value="Primary">Primary</SelectItem>
-                    <SelectItem value="SSC">SSC</SelectItem>
-                    <SelectItem value="HSC">HSC</SelectItem>
-                    <SelectItem value="Foundation">Foundation</SelectItem>
-                    <SelectItem value="HSC (Ahmd)">HSC (Ahmd)</SelectItem>
-                    <SelectItem value="GCI">GCI</SelectItem>
-                    <SelectItem value="Peon">Peon</SelectItem>
-                    <SelectItem value="Security">Security</SelectItem>
-                    <SelectItem value="Guest">Guest</SelectItem>
-                    <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
+                    {departmentList.map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
