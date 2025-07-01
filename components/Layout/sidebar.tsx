@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
+import { title } from "process";
 
 const SuperadminItems = [
   {
@@ -70,6 +70,11 @@ const SuperadminItems = [
     title: "Salary Report",
     icon: FileText,
     href: "/salary-report",
+  },
+  {
+    title: "Holidays",
+    icon: Clock,
+    href: "/holidays",
   },
 ];
 
@@ -123,10 +128,10 @@ const Teacher = [
     href: "/teacher-leave",
   },
   {
-    title:"Profile",
+    title: "Profile",
     icon: User,
     href: "/profile",
-  }
+  },
 ];
 
 const TeacherE = [

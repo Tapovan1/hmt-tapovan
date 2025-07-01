@@ -170,6 +170,29 @@ model TeacherLeave {
   @@index([endDate])
 }
 
+model Holiday {
+  id          String      @id @default(cuid())
+  name        String
+  date        DateTime
+  type        HolidayType @default(NATIONAL)
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+ 
+  @@unique([date, name])
+  @@map("holidays")
+}
+
+enum HolidayType {
+  NATIONAL
+  RELIGIOUS
+  SCHOOL
+  LOCAL
+}
+
+
 enum Status {
   PRESENT
   LATE
