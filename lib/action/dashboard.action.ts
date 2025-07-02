@@ -8,6 +8,10 @@ export const getDashboardStats = async (
   month?: number,
   year?: number
 ) => {
+  // console.log("userId", userId);
+  // console.log("month", month);
+  // console.log("year", year);
+
   const currentDate = new Date();
   const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // Month is 0-based in Date.UTC
   const selectedYear = year || currentDate.getUTCFullYear();
@@ -59,6 +63,7 @@ export const getDashboardStats = async (
       late: true,
     },
   });
+
   //count total days in month and return value exclude sunday
   const totalDaysInMonth = new Date(
     selectedYear,

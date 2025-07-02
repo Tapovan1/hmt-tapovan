@@ -18,4 +18,7 @@ export const departmentList = [
   "Prahlad",
   "9-10",
   "11-12",
+  "Com 1",
+  "Com 2",
+  "Com 3",
 ];
