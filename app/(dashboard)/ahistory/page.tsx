@@ -155,7 +155,7 @@ export default async function AdminHistoryPage({
                       )}
                     </TableCell>
                     <TableCell className="py-4 px-6">
-                      <StatusBadge status={record.status} />
+                      <StatusBadge status={record.status} late={record.late} />
                     </TableCell>
                     <TableCell className="py-4 px-6">
                       <Avatar className="h-10 w-10 border border-gray-200">
@@ -190,7 +190,7 @@ export default async function AdminHistoryPage({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, late }: { status: string; late?: number }) {
   switch (status) {
     case "PRESENT":
       return (
@@ -203,7 +203,7 @@ function StatusBadge({ status }: { status: string }) {
       return (
         <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-800">
           <Clock className="h-3.5 w-3.5 mr-1" />
-          <span className="text-sm font-medium">Late</span>
+          <span className="text-sm font-medium">Late - {late ? late : 0} </span>
         </div>
       );
     case "ABSENT":
