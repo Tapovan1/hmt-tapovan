@@ -113,6 +113,14 @@ export async function markAttendance(formData: FormData) {
     });
 
     const schedule = await getSchedulesByDepartment(user.department);
+    // console.log("schedule", schedule);
+
+    if (!schedule) {
+      return {
+        success: false,
+        error: "No schedule found for your department",
+      };
+    }
 
     let minutesLate = 0;
     let earlyExitMinutes = 0;
@@ -121,21 +129,19 @@ export async function markAttendance(formData: FormData) {
     const isSaturday = indiaTime.getDay() === 6;
 
     // Select correct schedule based on the day
-    const selectedSchedule =
-      isSaturday &&
-      schedule?.saturdayStartTime &&
-      schedule?.saturdayEndTime &&
-      typeof schedule?.saturdayGraceMinutes === "number"
-        ? {
-            startTime: schedule.saturdayStartTime,
-            endTime: schedule.saturdayEndTime,
-            graceMinutes: schedule.saturdayGraceMinutes,
-          }
-        : {
-            startTime: schedule?.startTime,
-            endTime: schedule?.endTime,
-            graceMinutes: schedule?.graceMinutes || 0,
-          };
+    const selectedSchedule = isSaturday
+      ? {
+          startTime: schedule.saturdayStartTime,
+          endTime: schedule.saturdayEndTime,
+          graceMinutes: schedule.saturdayGraceMinutes,
+        }
+      : {
+          startTime: schedule?.startTime,
+          endTime: schedule?.endTime,
+          graceMinutes: schedule?.graceMinutes || 0,
+        };
+
+    // console.log("selectedSchedule", selectedSchedule);
 
     // If no schedule found, return error
     if (!selectedSchedule) {
@@ -156,7 +162,7 @@ export async function markAttendance(formData: FormData) {
 
       expectedStartTime.setHours(
         startHour,
-        startMinute + selectedSchedule.graceMinutes,
+        startMinute + (selectedSchedule.graceMinutes ?? 0),
         0,
         0
       );
