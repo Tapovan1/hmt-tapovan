@@ -22,18 +22,39 @@ function convertScheduleToDate(
 
 export function determineStatus(
   now: Date,
-  schedule: { startTime: string; endTime: string; graceMinutes: number }
+  schedule: {
+    startTime: string;
+    endTime: string;
+    graceMinutes: number;
+    saturdayStartTime?: string;
+    saturdayEndTime?: string;
+    saturdayGraceMinutes?: number;
+  }
 ) {
-  const { startDateTime } = convertScheduleToDate(schedule, now);
+  const isSaturday = now.getDay() === 6;
+
+  // Select appropriate schedule based on the day
+  const selectedSchedule =
+    isSaturday &&
+    schedule.saturdayStartTime &&
+    schedule.saturdayEndTime &&
+    typeof schedule.saturdayGraceMinutes === "number"
+      ? {
+          startTime: schedule.saturdayStartTime,
+          endTime: schedule.saturdayEndTime,
+          graceMinutes: schedule.saturdayGraceMinutes,
+        }
+      : {
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          graceMinutes: schedule.graceMinutes,
+        };
+
+  const { startDateTime } = convertScheduleToDate(selectedSchedule, now);
 
   const startTime = new Date(startDateTime);
-
   const graceTime = new Date(startTime);
-  graceTime.setMinutes(graceTime.getMinutes() + schedule.graceMinutes);
+  graceTime.setMinutes(graceTime.getMinutes() + selectedSchedule.graceMinutes);
 
-  if (now <= graceTime) {
-    return "PRESENT";
-  } else {
-    return "LATE";
-  }
+  return now <= graceTime ? "PRESENT" : "LATE";
 }

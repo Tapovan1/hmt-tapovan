@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { isTeacherOnLeave } from "./teacherLeave.action";
 import { getUser } from "./getUser";
 import { getSchedulesByDepartment } from "./work-schedule";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { determineStatus } from "../attendance";
 import { calculateDistance, isWithinRadius } from "../utils/location-utils";
@@ -22,12 +22,13 @@ export const getAttendance = async (user: { id: string }) => {
   const indiaDateOnly = new Date(indiaTime);
   indiaDateOnly.setHours(0, 0, 0, 0);
 
-  console.log("indiaDateOnly", indiaDateOnly);
+  // console.log("indiaDateOnly", indiaDateOnly);
   const indianDateString = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
   });
 
   const formattedIndianDate = new Date(indianDateString);
+  // console.log("formattedIndianDate", formattedIndianDate);
 
   const attendance = await prisma.attendance.findFirst({
     where: {
@@ -114,22 +115,48 @@ export async function markAttendance(formData: FormData) {
     const schedule = await getSchedulesByDepartment(user.department);
 
     let minutesLate = 0;
+    let earlyExitMinutes = 0;
+    let overtimeMinutes = 0;
 
-    if (action === "checkIn" && schedule) {
-      const indiaTime = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-      );
+    const isSaturday = indiaTime.getDay() === 6;
+
+    // Select correct schedule based on the day
+    const selectedSchedule =
+      isSaturday &&
+      schedule?.saturdayStartTime &&
+      schedule?.saturdayEndTime &&
+      typeof schedule?.saturdayGraceMinutes === "number"
+        ? {
+            startTime: schedule.saturdayStartTime,
+            endTime: schedule.saturdayEndTime,
+            graceMinutes: schedule.saturdayGraceMinutes,
+          }
+        : {
+            startTime: schedule?.startTime,
+            endTime: schedule?.endTime,
+            graceMinutes: schedule?.graceMinutes || 0,
+          };
+
+    // If no schedule found, return error
+    if (!selectedSchedule) {
+      return {
+        success: false,
+        error: "No schedule found for your department",
+      };
+    }
+
+    if (action === "checkIn" && selectedSchedule) {
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
 
       const expectedStartTime = new Date(today);
-      const [startHour, startMinute] = schedule.startTime
-        .split(":")
-        .map(Number);
+      const [startHour, startMinute] = selectedSchedule.startTime
+        ? selectedSchedule.startTime.split(":").map(Number)
+        : [0, 0];
 
       expectedStartTime.setHours(
         startHour,
-        startMinute + schedule.graceMinutes,
+        startMinute + selectedSchedule.graceMinutes,
         0,
         0
       );
@@ -138,27 +165,24 @@ export async function markAttendance(formData: FormData) {
       minutesLate = diff > 0 ? Math.round(diff) : 0;
     }
 
-    let earlyExitMinutes = 0;
-    let overtimeMinutes = 0;
-
-    if (action === "checkOut" && schedule) {
-      const indiaTime = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-      );
+    if (action === "checkOut" && selectedSchedule) {
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
 
       const expectedEndTime = new Date(today);
-      const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
+      let endHour = 0,
+        endMinute = 0;
+      if (selectedSchedule.endTime) {
+        [endHour, endMinute] = selectedSchedule.endTime.split(":").map(Number);
+        expectedEndTime.setHours(endHour, endMinute, 0, 0);
 
-      expectedEndTime.setHours(endHour, endMinute, 0, 0);
+        const diff = (expectedEndTime.getTime() - indiaTime.getTime()) / 60000;
 
-      const diff = (expectedEndTime.getTime() - indiaTime.getTime()) / 60000;
-
-      if (diff > 0) {
-        earlyExitMinutes = Math.round(diff);
-      } else {
-        overtimeMinutes = Math.abs(Math.round(diff)); // calculate overtime
+        if (diff > 0) {
+          earlyExitMinutes = Math.round(diff);
+        } else {
+          overtimeMinutes = Math.abs(Math.round(diff));
+        }
       }
     }
 
@@ -177,7 +201,14 @@ export async function markAttendance(formData: FormData) {
           date: formattedIndianDate,
           checkIn: action === "checkIn" ? indiaTime : undefined,
           checkOut: action === "checkOut" ? indiaTime : undefined,
-          status: determineStatus(indiaTime, schedule),
+          status: determineStatus(indiaTime, {
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            graceMinutes: schedule.graceMinutes,
+            saturdayStartTime: schedule.saturdayStartTime ?? undefined,
+            saturdayEndTime: schedule.saturdayEndTime ?? undefined,
+            saturdayGraceMinutes: schedule.saturdayGraceMinutes ?? undefined,
+          }),
           ...(minutesLate > 0 && { late: minutesLate }),
           photo: photo || undefined,
           scheduleId: scheduleId || undefined,
