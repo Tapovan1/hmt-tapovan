@@ -104,7 +104,6 @@ export async function markAttendance(formData: FormData) {
       };
     }
 
-    // If not on leave, proceed with normal attendance marking
     let attendance = await prisma.attendance.findFirst({
       where: {
         userId: user.id,
@@ -152,13 +151,18 @@ export async function markAttendance(formData: FormData) {
     }
 
     if (action === "checkIn" && selectedSchedule) {
+      console.log("Checking in with schedule", selectedSchedule);
+
+      const indiaTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
 
       const expectedStartTime = new Date(today);
-      const [startHour, startMinute] = selectedSchedule.startTime
-        ? selectedSchedule.startTime.split(":").map(Number)
-        : [0, 0];
+      const [startHour, startMinute] = (selectedSchedule.startTime ?? "00:00")
+        .split(":")
+        .map(Number);
 
       expectedStartTime.setHours(
         startHour,
@@ -170,25 +174,28 @@ export async function markAttendance(formData: FormData) {
       const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000;
       minutesLate = diff > 0 ? Math.round(diff) : 0;
     }
+    // console.log("minutesLate", minutesLate);
 
     if (action === "checkOut" && selectedSchedule) {
+      const indiaTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
 
       const expectedEndTime = new Date(today);
-      let endHour = 0,
-        endMinute = 0;
-      if (selectedSchedule.endTime) {
-        [endHour, endMinute] = selectedSchedule.endTime.split(":").map(Number);
-        expectedEndTime.setHours(endHour, endMinute, 0, 0);
+      const [endHour, endMinute] = (selectedSchedule.endTime ?? "00:00")
+        .split(":")
+        .map(Number);
 
-        const diff = (expectedEndTime.getTime() - indiaTime.getTime()) / 60000;
+      expectedEndTime.setHours(endHour, endMinute, 0, 0);
 
-        if (diff > 0) {
-          earlyExitMinutes = Math.round(diff);
-        } else {
-          overtimeMinutes = Math.abs(Math.round(diff));
-        }
+      const diff = (expectedEndTime.getTime() - indiaTime.getTime()) / 60000;
+
+      if (diff > 0) {
+        earlyExitMinutes = Math.round(diff);
+      } else {
+        overtimeMinutes = Math.abs(Math.round(diff)); // calculate overtime
       }
     }
 
