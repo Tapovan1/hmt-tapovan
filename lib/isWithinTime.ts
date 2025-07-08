@@ -42,30 +42,30 @@
 import { WorkSchedule } from "@/lib/types/work-schedule";
 
 export function isWithinAllowedTime(schedule: WorkSchedule, now = new Date()) {
-  const day = now.getDay();
-  const isSaturday = day === 6;
+  // const day = now.getDay();
+  // const isSaturday = day === 6;
 
-  // If today is not a working day, return false
-  if (!schedule.workDays.includes(day)) {
-    console.log(`[Attendance] Not a working day. Current day: ${day}`);
-    return false;
-  }
+  // // If today is not a working day, return false
+  // if (!schedule.workDays.includes(day)) {
+  //   console.log(`[Attendance] Not a working day. Current day: ${day}`);
+  //   return false;
+  // }
 
-  // Use Saturday timing if today is Saturday
-  const activeStartTime =
-    isSaturday && schedule.saturdayStartTime
-      ? schedule.saturdayStartTime
-      : schedule.startTime;
+  // // Use Saturday timing if today is Saturday
+  // const activeStartTime =
+  //   isSaturday && schedule.saturdayStartTime
+  //     ? schedule.saturdayStartTime
+  //     : schedule.startTime;
 
-  // Convert current time to minutes
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  // // Convert current time to minutes
+  // const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  // Convert schedule start time to minutes
-  const [startHour, startMinute] = activeStartTime.split(":").map(Number);
-  const scheduleStartMinutes = startHour * 60 + startMinute;
+  // // Convert schedule start time to minutes
+  // const [startHour, startMinute] = activeStartTime.split(":").map(Number);
+  // const scheduleStartMinutes = startHour * 60 + startMinute;
 
-  // ✅ Only check if current time is after or equal to start time
-  const isAfterStart = currentMinutes >= scheduleStartMinutes;
+  // // ✅ Only check if current time is after or equal to start time
+  // // const isAfterStart = currentMinutes >= scheduleStartMinutes;
 
-  return isAfterStart;
+  return true;
 }
