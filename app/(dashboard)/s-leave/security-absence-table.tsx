@@ -14,14 +14,8 @@ import { ConfirmStatusButton } from "./confirm-status-button";
 import { ViewPhotoButton } from "./view-photo-button";
 import { formatIndianTime } from "@/lib/utils/date-format";
 
-export async function SecurityAbsenceTable({
-  month,
-  year,
-}: {
-  month: number;
-  year: number;
-}) {
-  const absences = await getStudentAbsences(month, year);
+export async function SecurityAbsenceTable({ date }: { date: Date }) {
+  const absences = await getStudentAbsences(date);
 
   if (absences.length === 0) {
     return (

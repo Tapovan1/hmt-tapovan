@@ -1,18 +1,17 @@
 import { Suspense } from "react";
 import { SecurityAbsenceTable } from "./security-absence-table";
-import DateSelector from "@/components/month-year";
+
 import { Users, Loader2 } from "lucide-react";
+import { DateSelector } from "../student-leave/date-selector";
 
 export default async function SecurityLeavePage({
   searchParams,
 }: {
-  searchParams: { month?: string; year?: string };
+  searchParams: { date: Date };
 }) {
-  const { month, year } = await searchParams;
+  const { date } = await searchParams;
+  const selectedDateString = date || new Date().toISOString().split("T")[0];
   // Get current date if no search params
-  const today = new Date();
-  const currentMonth = month ? Number.parseInt(month) : today.getMonth() + 1;
-  const currentYear = year ? Number.parseInt(year) : today.getFullYear();
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -26,7 +25,7 @@ export default async function SecurityLeavePage({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <DateSelector />
+          <DateSelector initialDate={selectedDateString} />
         </div>
       </div>
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -43,7 +42,7 @@ export default async function SecurityLeavePage({
             </div>
           }
         >
-          <SecurityAbsenceTable month={currentMonth} year={currentYear} />
+          <SecurityAbsenceTable date={selectedDateString} />
         </Suspense>
       </div>
     </div>
