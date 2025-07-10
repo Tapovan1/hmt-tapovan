@@ -15,13 +15,11 @@ import { StudentAbsenceDialog } from "./student-absence-dialog";
 import DeleteButton from "./delete-button";
 
 export async function StudentAbsenceTable({
-  month,
-  year,
+  selectedDate,
 }: {
-  month: number;
-  year: number;
+  selectedDate: Date;
 }) {
-  const absences = await getStudentAbsences(month, year);
+  const absences = await getStudentAbsences(selectedDate);
 
   if (absences.length === 0) {
     return (

@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import DateSelector from "@/components/month-year";
+
 import { StudentAbsenceTable } from "./student-absence-table";
 import { StudentAbsenceDialog } from "./student-absence-dialog";
 import { Users, Loader2 } from "lucide-react";
+import { DateSelector } from "./date-selector";
 
 export const metadata: Metadata = {
   title: "Student Absence Management",
@@ -13,13 +14,12 @@ export const metadata: Metadata = {
 export default async function StudentAbsencePage({
   searchParams,
 }: {
-  searchParams: { month?: string; year?: string };
+  searchParams: { date?: Date };
 }) {
-  const { month, year } = await searchParams;
-  const monthNumber = month
-    ? Number.parseInt(month)
-    : new Date().getMonth() + 1;
-  const yearNumber = year ? Number.parseInt(year) : new Date().getFullYear();
+  const { date } = await searchParams;
+
+  const selectedDateString = date || new Date().toISOString().split("T")[0];
+  // const selectedDate = new Date(selectedDateString);
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -36,7 +36,7 @@ export default async function StudentAbsencePage({
 
         {/* Date selector and add button in column on mobile */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <DateSelector />
+          <DateSelector initialDate={selectedDateString} />
           <StudentAbsenceDialog />
         </div>
       </div>
@@ -55,7 +55,7 @@ export default async function StudentAbsencePage({
             </div>
           }
         >
-          <StudentAbsenceTable month={monthNumber} year={yearNumber} />
+          <StudentAbsenceTable selectedDate={selectedDateString} />
         </Suspense>
       </div>
     </div>

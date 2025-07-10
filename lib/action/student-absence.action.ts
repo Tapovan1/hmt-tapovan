@@ -4,10 +4,18 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
+// const currentUtcTime = new Date();
+// const indiaOffset = 330;
+
+// const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
 const currentUtcTime = new Date();
 const indiaOffset = 330;
-
 const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+const indianDateString = new Date().toLocaleDateString("en-CA", {
+  timeZone: "Asia/Kolkata",
+});
+
+const formattedIndianDate = new Date(indianDateString);
 
 const studentAbsenceSchema = z.object({
   id: z.string().optional(),
@@ -23,18 +31,27 @@ const studentAbsenceSchema = z.object({
   photo: z.string().optional(),
 });
 
-export async function getStudentAbsences(month: number, year: number) {
+export async function getStudentAbsences(date: Date) {
   try {
     // Create date range for the given month and year
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    // const startDate = new Date(year, month - 1, 1);
+    // const endDate = new Date(year, month, 0);
+    console.log("GetStudentAbsences", date);
+
+    let targetDate: Date;
+
+    if (date) {
+      targetDate = new Date(date);
+    } else {
+      const indianDateString = new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+      targetDate = new Date(indianDateString);
+    }
 
     const absences = await prisma.studentLeave.findMany({
       where: {
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
+        date: targetDate,
       },
       orderBy: {
         date: "desc",
@@ -82,7 +99,7 @@ export async function createStudentAbsence(
 
     const absence = await prisma.studentLeave.create({
       data: {
-        date: indiaTime,
+        date: formattedIndianDate,
         rollNo: validatedData.rollNo,
         studentName: validatedData.studentName,
         class: validatedData.class,
