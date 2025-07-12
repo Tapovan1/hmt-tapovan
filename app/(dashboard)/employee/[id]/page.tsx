@@ -1,11 +1,11 @@
-import { Suspense } from "react"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { getEmployeeById } from "@/lib/action/admin.action"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getEmployeeById } from "@/lib/action/admin.action";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   User,
@@ -23,20 +23,24 @@ import {
   Building2,
   Shield,
   FileText,
-} from "lucide-react"
+} from "lucide-react";
 
-export default async function EmployeeProfilePage({ params }: { params: { id: string } }) {
-  const param = await params
+export default async function EmployeeProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const param = await params;
 
   if (!param.id) {
-    notFound()
+    notFound();
   }
 
-  const employee = await getEmployeeById(param.id)
+  const employee = await getEmployeeById(param.id);
   if (!employee) {
-    notFound()
+    notFound();
   }
-  const profile = employee?.profile
+  const profile = employee?.profile;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -48,15 +52,30 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
               <User className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Employee Profile</h1>
-              <p className="text-slate-600 mt-1">Comprehensive employee information</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                Employee Profile
+              </h1>
+              <p className="text-slate-600 mt-1">
+                Comprehensive employee information
+              </p>
             </div>
           </div>
-          <Button variant="outline" asChild className="border-slate-200 hover:bg-slate-50 w-fit">
+          <Button
+            variant="outline"
+            asChild
+            className="border-slate-200 hover:bg-slate-50 w-fit"
+          >
             <Link href="/employee">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Employees
             </Link>
+          </Button>
+          <Button
+            variant="outline"
+            asChild
+            className="border-slate-200 hover:bg-slate-50 w-fit"
+          >
+            <Link href={`/employee/${employee.id}/history`}>View History</Link>
           </Button>
         </div>
 
@@ -77,8 +96,13 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 truncate">{employee.name}</h2>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 w-fit">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 truncate">
+                        {employee.name}
+                      </h2>
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-700 hover:bg-blue-200 w-fit"
+                      >
                         <Building2 className="h-3 w-3 mr-1" />
                         {employee?.department}
                       </Badge>
@@ -88,12 +112,20 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                       <ContactItem
                         icon={Mail}
                         value={employee.email || "No email provided"}
-                        href={employee.email ? `mailto:${employee.email}` : undefined}
+                        href={
+                          employee.email
+                            ? `mailto:${employee.email}`
+                            : undefined
+                        }
                       />
                       <ContactItem
                         icon={Phone}
                         value={profile?.mobileNumber || "No phone provided"}
-                        href={profile?.mobileNumber ? `tel:${profile.mobileNumber}` : undefined}
+                        href={
+                          profile?.mobileNumber
+                            ? `tel:${profile.mobileNumber}`
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
@@ -108,22 +140,45 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                 title="Personal Information"
                 icon={User}
                 items={[
-                  { icon: MapPin, label: "Address", value: profile?.address ?? undefined },
-                  { icon: MapPin, label: "Native Place", value: profile?.nativePlace ?? undefined },
+                  {
+                    icon: MapPin,
+                    label: "Address",
+                    value: profile?.address ?? undefined,
+                  },
+                  {
+                    icon: MapPin,
+                    label: "Native Place",
+                    value: profile?.nativePlace ?? undefined,
+                  },
                   {
                     icon: Calendar,
                     label: "Date of Birth",
                     value: profile?.dateOfBirth
-                      ? new Date(profile.dateOfBirth).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
+                      ? new Date(profile.dateOfBirth).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )
                       : undefined,
                   },
-                  { icon: Award, label: "Degree", value: profile?.degree ?? undefined },
-                  { icon: Droplet, label: "Blood Group", value: profile?.bloodGroup ?? undefined },
-                  { icon: Heart, label: "Medical Conditions", value: profile?.seriousIllness ?? undefined },
+                  {
+                    icon: Award,
+                    label: "Degree",
+                    value: profile?.degree ?? undefined,
+                  },
+                  {
+                    icon: Droplet,
+                    label: "Blood Group",
+                    value: profile?.bloodGroup ?? undefined,
+                  },
+                  {
+                    icon: Heart,
+                    label: "Medical Conditions",
+                    value: profile?.seriousIllness ?? undefined,
+                  },
                 ]}
               />
 
@@ -132,9 +187,24 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                 title="ID & Bank Details"
                 icon={Shield}
                 items={[
-                  { icon: CreditCard, label: "Aadhar Number", value: profile?.aadharNumber ?? undefined, sensitive: true },
-                  { icon: CreditCard, label: "PAN Number", value: profile?.panNumber ?? undefined, sensitive: true },
-                  { icon: CreditCard, label: "Bank Account", value: profile?.bankAccountNumber ?? undefined, sensitive: true },
+                  {
+                    icon: CreditCard,
+                    label: "Aadhar Number",
+                    value: profile?.aadharNumber ?? undefined,
+                    sensitive: true,
+                  },
+                  {
+                    icon: CreditCard,
+                    label: "PAN Number",
+                    value: profile?.panNumber ?? undefined,
+                    sensitive: true,
+                  },
+                  {
+                    icon: CreditCard,
+                    label: "Bank Account",
+                    value: profile?.bankAccountNumber ?? undefined,
+                    sensitive: true,
+                  },
                 ]}
               />
 
@@ -143,13 +213,41 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                 title="Emergency Contacts"
                 icon={Users}
                 items={[
-                  { icon: Users, label: "Father's Name", value: profile?.fatherName ?? undefined },
-                  { icon: Phone, label: "Father's Mobile", value: profile?.fatherMobile ?? undefined },
-                  { icon: Users, label: "Spouse's Name", value: profile?.spouseName ?? undefined },
-                  { icon: Phone, label: "Spouse's Mobile", value: profile?.spouseMobile ?? undefined },
-                  { icon: Users, label: "Relative's Name", value: profile?.relativeName ?? undefined },
-                  { icon: Phone, label: "Relative's Mobile", value: profile?.relativeMobile ?? undefined },
-                  { icon: MapPin, label: "Relative's Address", value: profile?.relativeAddress ?? undefined },
+                  {
+                    icon: Users,
+                    label: "Father's Name",
+                    value: profile?.fatherName ?? undefined,
+                  },
+                  {
+                    icon: Phone,
+                    label: "Father's Mobile",
+                    value: profile?.fatherMobile ?? undefined,
+                  },
+                  {
+                    icon: Users,
+                    label: "Spouse's Name",
+                    value: profile?.spouseName ?? undefined,
+                  },
+                  {
+                    icon: Phone,
+                    label: "Spouse's Mobile",
+                    value: profile?.spouseMobile ?? undefined,
+                  },
+                  {
+                    icon: Users,
+                    label: "Relative's Name",
+                    value: profile?.relativeName ?? undefined,
+                  },
+                  {
+                    icon: Phone,
+                    label: "Relative's Mobile",
+                    value: profile?.relativeMobile ?? undefined,
+                  },
+                  {
+                    icon: MapPin,
+                    label: "Relative's Address",
+                    value: profile?.relativeAddress ?? undefined,
+                  },
                 ]}
               />
             </div>
@@ -170,11 +268,14 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                     <div className="bg-blue-100 p-2 rounded-lg">
                       <Briefcase className="h-4 w-4 text-blue-600" />
                     </div>
-                    <h3 className="font-semibold text-slate-900">Previous Work Experience</h3>
+                    <h3 className="font-semibold text-slate-900">
+                      Previous Work Experience
+                    </h3>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-4 ml-11">
                     <p className="text-slate-700 leading-relaxed">
-                      {profile?.workExperience || "No previous work experience information provided"}
+                      {profile?.workExperience ||
+                        "No previous work experience information provided"}
                     </p>
                   </div>
                 </div>
@@ -186,13 +287,17 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
                     <div className="bg-amber-100 p-2 rounded-lg">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                     </div>
-                    <h3 className="font-semibold text-slate-900">Legal Proceedings</h3>
+                    <h3 className="font-semibold text-slate-900">
+                      Legal Proceedings
+                    </h3>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-4 ml-11">
                     <div className="flex items-center gap-2">
                       <div
                         className={`h-2 w-2 rounded-full ${
-                          profile?.legalProceedings === "yes" ? "bg-red-500" : "bg-green-500"
+                          profile?.legalProceedings === "yes"
+                            ? "bg-red-500"
+                            : "bg-green-500"
                         }`}
                       ></div>
                       <p className="text-slate-700">
@@ -209,7 +314,7 @@ export default async function EmployeeProfilePage({ params }: { params: { id: st
         </Suspense>
       </div>
     </div>
-  )
+  );
 }
 
 function ContactItem({
@@ -217,28 +322,30 @@ function ContactItem({
   value,
   href,
 }: {
-  icon: any
-  value: string
-  href?: string
+  icon: any;
+  value: string;
+  href?: string;
 }) {
   const content = (
     <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
       <div className="bg-blue-100 p-2 rounded-lg">
         <Icon className="h-4 w-4 text-blue-600" />
       </div>
-      <span className="text-slate-700 text-sm font-medium truncate">{value}</span>
+      <span className="text-slate-700 text-sm font-medium truncate">
+        {value}
+      </span>
     </div>
-  )
+  );
 
   if (href) {
     return (
       <a href={href} className="block hover:scale-[1.02] transition-transform">
         {content}
       </a>
-    )
+    );
   }
 
-  return content
+  return content;
 }
 
 function InfoCard({
@@ -246,14 +353,14 @@ function InfoCard({
   icon: Icon,
   items,
 }: {
-  title: string
-  icon: any
+  title: string;
+  icon: any;
   items: Array<{
-    icon: any
-    label: string
-    value?: string
-    sensitive?: boolean
-  }>
+    icon: any;
+    label: string;
+    value?: string;
+    sensitive?: boolean;
+  }>;
 }) {
   return (
     <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm h-fit">
@@ -267,11 +374,17 @@ function InfoCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {items.map((item, index) => (
-          <ProfileItem key={index} icon={item.icon} label={item.label} value={item.value} sensitive={item.sensitive} />
+          <ProfileItem
+            key={index}
+            icon={item.icon}
+            label={item.label}
+            value={item.value}
+            sensitive={item.sensitive}
+          />
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ProfileItem({
@@ -280,12 +393,12 @@ function ProfileItem({
   value,
   sensitive = false,
 }: {
-  icon: any
-  label: string
-  value?: string
-  sensitive?: boolean
+  icon: any;
+  label: string;
+  value?: string;
+  sensitive?: boolean;
 }) {
-  const displayValue = value || "Not provided"
+  const displayValue = value || "Not provided";
 
   return (
     <div className="group">
@@ -293,7 +406,9 @@ function ProfileItem({
         <div className="bg-slate-100 group-hover:bg-blue-100 p-1.5 rounded-md transition-colors">
           <Icon className="h-3.5 w-3.5 text-slate-600 group-hover:text-blue-600 transition-colors" />
         </div>
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       <p
         className={`text-slate-700 pl-7 font-medium ${
@@ -303,7 +418,7 @@ function ProfileItem({
         {sensitive && value ? "••••••••••" : displayValue}
       </p>
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -328,7 +443,10 @@ function LoadingSkeleton() {
       {/* Cards Grid Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card
+            key={i}
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm"
+          >
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div className="bg-slate-200 p-2 rounded-lg w-9 h-9 animate-pulse"></div>
@@ -374,5 +492,5 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
