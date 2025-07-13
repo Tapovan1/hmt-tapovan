@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getReportData, type ReportData } from "@/lib/action/report.actions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/date-picker";
 import {
   Table,
@@ -30,48 +30,34 @@ import { exportToExcel } from "@/lib/action/export.actions";
 import { Pagination } from "@/components/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { departmentList } from "@/lib/departments";
-
-// const DEPARTMENTS = [
-
-//   { id: "Admin", name: "Admin" },
-//   { id: "Computer Operator", name: "Computer Operator" },
-//   { id: "Clerk", name: "Clerk" },
-//   { id: "Primary", name: "Primary" },
-//   { id: "SSC", name: "SSC" },
-//   { id: "HSC", name: "HSC" },
-//   { id: "Foundation", name: "Foundation" },
-//   { id: "HSC (Ahmd)", name: "HSC (Ahmd)" },
-//   { id: "GCI", name: "GCI" },
-//   { id: "Peon", name: "Peon" },
-//   { id: "Security", name: "Security" },
-//   { id: "Guest", name: "Guest" },
-//   { id: "Accountant", name: "Accountant" },
-// ];
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ReportPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+
   const [selectedDepartment, setSelectedDepartment] = useState<string>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [reportData, setReportData] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [totalPages, setTotalPages] = useState(1);
+
   const DEPARTMENTS = departmentList.map((dept) => ({
     id: dept,
     name: dept,
   }));
 
   const handleFetchData = async (page = 1) => {
-    if (!startDate || !endDate) {
-      return;
-    }
+    if (!startDate || !endDate) return;
+
     const adjustedStartDate = new Date(startDate);
     const adjustedEndDate = new Date(endDate);
-
     adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
     adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-
     adjustedStartDate.setHours(0, 0, 0, 0);
     adjustedEndDate.setHours(0, 0, 0, 0);
 
@@ -88,24 +74,22 @@ export default function ReportPage() {
       setCurrentPage(page);
     } catch (error) {
       console.error("Error fetching report data:", error);
-      alert("Failed to fetch report data. Please try again.");
+      alert("Failed to fetch report data.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleExport = async () => {
-    if (!startDate || !endDate) {
-      return;
-    }
+    if (!startDate || !endDate) return;
+
     const adjustedStartDate = new Date(startDate);
     const adjustedEndDate = new Date(endDate);
-
     adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
     adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-
     adjustedStartDate.setHours(0, 0, 0, 0);
     adjustedEndDate.setHours(0, 0, 0, 0);
+
     setExporting(true);
     try {
       const buffer = await exportToExcel({
@@ -114,7 +98,6 @@ export default function ReportPage() {
         end: adjustedEndDate,
       });
 
-      // Create blob and download
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
@@ -130,15 +113,23 @@ export default function ReportPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Error exporting data:", error);
-      alert("Failed to export data. Please try again.");
+      alert("Export failed");
     } finally {
       setExporting(false);
     }
   };
 
   const handlePageChange = (page: number) => {
-    handleFetchData(page);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    router.push(`?${params.toString()}`);
   };
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      handleFetchData(pageFromUrl);
+    }
+  }, [pageFromUrl]);
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -204,7 +195,10 @@ export default function ReportPage() {
 
             <div className="flex items-end md:col-span-1 lg:col-span-2">
               <Button
-                onClick={() => handleFetchData(1)}
+                onClick={() => {
+                  handleFetchData(1);
+                  router.push("?page=1");
+                }}
                 disabled={loading || !startDate || !endDate}
                 className="h-10 w-full md:w-auto bg-[#4285f4] hover:bg-[#3b78e7] text-white"
               >

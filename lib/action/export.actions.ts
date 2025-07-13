@@ -1,17 +1,19 @@
 "use server";
 
-import { getReportData } from "./report.actions";
-import * as XLSX from "xlsx";
 import { Status } from "@prisma/client";
+import { getReportDataWithoutPagination } from "./report.actions";
+import ExcelJS from "exceljs";
 
 export async function exportToExcel(params: {
   department?: string;
   start?: Date;
   end?: Date;
 }) {
-  const reportData = await getReportData(params);
+  const reportData = await getReportDataWithoutPagination(params);
 
-  // Get the month and year from start date
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Attendance Report");
+
   const startDate = params.start || new Date();
   const daysInMonth = new Date(
     startDate.getFullYear(),
@@ -19,7 +21,6 @@ export async function exportToExcel(params: {
     0
   ).getDate();
 
-  // Format month and year for header
   const monthNames = [
     "January",
     "February",
@@ -36,36 +37,60 @@ export async function exportToExcel(params: {
   ];
   const month = monthNames[startDate.getMonth()];
   const year = startDate.getFullYear();
-
-  // Create title row with department and date information
   const departmentName = params.department || "All Departments";
-  const titleRow = [
-    `${departmentName} - Attendance Report for ${month} ${year}`,
-  ];
 
-  // Create headers for all days in month
+  const title = `${departmentName} - Attendance Report for ${month} ${year}`;
+
+  // 📌 Build Headers
   const headers = ["NAME"];
-  for (let i = 1; i <= daysInMonth; i++) {
-    headers.push(i.toString());
-  }
+  for (let i = 1; i <= daysInMonth; i++) headers.push(i.toString());
   headers.push("TOTAL MINIT LATE", "L", "DAY");
 
-  // Prepare data for Excel with the new format
-  const excelData = [];
+  // 🧾 Title Row
+  worksheet.mergeCells(1, 1, 1, headers.length);
+  const titleCell = worksheet.getCell("A1");
+  titleCell.value = title;
+  titleCell.font = { bold: true, size: 14 };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
 
-  // Add title row and headers
-  excelData.push(titleRow);
-  excelData.push(headers);
+  // 🧾 Header Row
+  const headerRow = worksheet.addRow(headers);
+  headerRow.eachCell((cell, colNumber) => {
+    cell.font = { bold: true };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE6E6E6" },
+    };
+    cell.alignment = { horizontal: "center" };
+    cell.border = {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    };
 
-  // Process each user's data
+    // Mark Sundays in red header
+    if (colNumber > 1 && colNumber <= daysInMonth + 1) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(colNumber - 1);
+      if (currentDate.getDay() === 0) {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFF0000" },
+        };
+        cell.font = { color: { argb: "FFFFFFFF" }, bold: true };
+      }
+    }
+  });
+
+  // 📌 Data Rows
   reportData.data.forEach((item) => {
     const row: (string | number)[] = [item.user.name];
-
-    // Initialize counters
     let totalMinutesLate = 0;
     let leaveCount = 0;
 
-    // Fill data for each day
     for (let day = 1; day <= daysInMonth; day++) {
       const attendance = item.dailyAttendance?.find(
         (a) => new Date(a.date).getDate() === day
@@ -75,17 +100,20 @@ export async function exportToExcel(params: {
       currentDate.setDate(day);
       const isSunday = currentDate.getDay() === 0;
 
-      let cellValue = "-"; // Default value
+      let cellValue: string | number = "-";
 
       if (attendance) {
-        if (attendance.status === Status.ON_LEAVE) {
+        if (attendance.status === Status.PRESENT) {
+          cellValue = attendance.minutesLate > 0 ? attendance.minutesLate : "P";
+          totalMinutesLate += attendance.minutesLate || 0;
+        } else if (attendance.status === Status.ON_LEAVE) {
           cellValue = "L";
           leaveCount++;
         } else if (attendance.status === Status.ABSENT) {
           cellValue = "A";
         } else {
           const minutesLate = Math.round(attendance.minutesLate || 0);
-          cellValue = minutesLate > 0 ? minutesLate.toString() : "-";
+          cellValue = minutesLate > 0 ? minutesLate : "-";
           totalMinutesLate += minutesLate;
         }
       } else if (isSunday) {
@@ -95,116 +123,40 @@ export async function exportToExcel(params: {
       row.push(cellValue);
     }
 
-    // Add summary columns
     row.push(totalMinutesLate);
     row.push(leaveCount);
-    row.push(daysInMonth); // Total days in month
+    row.push(daysInMonth);
+    const dataRow = worksheet.addRow(row);
 
-    excelData.push(row);
+    dataRow.getCell(1).font = { bold: true };
+    dataRow.getCell(1).alignment = { horizontal: "center" };
+
+    for (let c = 2; c <= daysInMonth + 3; c++) {
+      const cell = dataRow.getCell(c);
+      const value = cell.value;
+
+      if (value === "H" || value === "A") {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFF0000" },
+        };
+        cell.font = { color: { argb: "FFFFFFFF" } };
+      }
+
+      cell.alignment = { horizontal: "center" };
+    }
   });
 
-  // Create workbook and worksheet
-  const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+  // 📏 Set column widths
+  const colWidths = [25];
+  for (let i = 1; i <= daysInMonth; i++) colWidths.push(5);
+  colWidths.push(12, 5, 5); // Summary columns
 
-  // Merge cells for the title row
-  worksheet["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
-  ];
+  worksheet.columns.forEach((col, idx) => {
+    col.width = colWidths[idx] || 10;
+  });
 
-  // Style the title row
-  const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
-  if (!worksheet[titleCell]) worksheet[titleCell] = {};
-  worksheet[titleCell].s = {
-    font: { bold: true, sz: 14 },
-    alignment: { horizontal: "center" },
-  };
-
-  // Apply styles to cells (offset by 1 due to title row)
-  for (let r = 2; r < excelData.length; r++) {
-    const row = excelData[r];
-
-    // Center the name column (first column)
-    const nameCell = XLSX.utils.encode_cell({ c: 0, r });
-    if (!worksheet[nameCell]) worksheet[nameCell] = { v: row[0] };
-    worksheet[nameCell].s = {
-      alignment: { horizontal: "center" },
-      font: { bold: true }, // Make names bold for better readability
-    };
-
-    // Apply styles for each day cell (columns 1 to daysInMonth)
-    for (let c = 1; c <= daysInMonth; c++) {
-      const cellValue = row[c];
-      const cellAddress = XLSX.utils.encode_cell({ c, r });
-
-      // Initialize cell if it doesn't exist
-      if (!worksheet[cellAddress]) worksheet[cellAddress] = { v: cellValue };
-
-      // Apply styles based on cell value
-      if (cellValue === "H" || cellValue === "A") {
-        worksheet[cellAddress].s = {
-          fill: { fgColor: { rgb: "FFFF0000" } }, // Red background
-          font: { color: { rgb: "FFFFFFFF" } }, // White text
-          alignment: { horizontal: "center" }, // Center the text
-        };
-      } else {
-        // Center all other day cells
-        worksheet[cellAddress].s = {
-          alignment: { horizontal: "center" },
-        };
-      }
-    }
-
-    // Center the summary columns
-    for (let c = daysInMonth + 1; c < headers.length; c++) {
-      const cellAddress = XLSX.utils.encode_cell({ c, r });
-      if (!worksheet[cellAddress]) worksheet[cellAddress] = { v: row[c - 1] };
-      worksheet[cellAddress].s = {
-        alignment: { horizontal: "center" },
-      };
-    }
-  }
-
-  // Highlight Sundays in red in the header row (offset by 1 due to title row)
-  for (let i = 1; i <= daysInMonth; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(i);
-    if (currentDate.getDay() === 0) {
-      // Sunday
-      const cellAddress = XLSX.utils.encode_cell({ c: i, r: 1 });
-      if (!worksheet[cellAddress]) worksheet[cellAddress] = {};
-      worksheet[cellAddress].s = {
-        fill: { fgColor: { rgb: "FFFF0000" } }, // Red background
-        font: { color: { rgb: "FFFFFFFF" } }, // White text
-      };
-    }
-  }
-
-  // Style the header row
-  for (let c = 0; c < headers.length; c++) {
-    const cellAddress = XLSX.utils.encode_cell({ c, r: 1 });
-    if (!worksheet[cellAddress]) worksheet[cellAddress] = {};
-    worksheet[cellAddress].s = {
-      font: { bold: true },
-      fill: { fgColor: { rgb: "FFE6E6E6" } }, // Light gray background
-      alignment: { horizontal: "center" },
-    };
-  }
-
-  // Set column widths
-  const colWidths = [20]; // Name column
-  for (let i = 1; i <= daysInMonth; i++) {
-    colWidths.push(5); // Day columns
-  }
-  colWidths.push(10, 5, 5); // Total minutes, L, Days columns
-
-  worksheet["!cols"] = colWidths.map((width) => ({ width }));
-
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Report");
-
-  // Generate Excel buffer
-  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
-
+  const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 }

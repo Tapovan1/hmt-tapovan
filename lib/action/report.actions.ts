@@ -33,16 +33,16 @@ export async function getReportDataWithoutPagination(params: {
 }) {
   const { department, start, end } = params;
 
-  const startDate = new Date(Number(start));
-  const endDate = new Date(Number(end));
+  if (!start || !end) {
+    throw new Error("Start and end dates are required");
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
 
   // Set time to midnight (00:00:00)
   startDate.setUTCHours(0, 0, 0, 0);
   endDate.setUTCHours(0, 0, 0, 0);
-
-  // Add one day to both dates
-
-  // Add one day to both dates
 
   const usersQuery = {
     where: {
@@ -51,85 +51,101 @@ export async function getReportDataWithoutPagination(params: {
     },
   };
 
-  const [users, totalUsers] = await Promise.all([
-    prisma.user.findMany(usersQuery),
-    prisma.user.count({ where: usersQuery.where }),
-  ]);
+  const users = await prisma.user.findMany({
+    ...usersQuery,
+    orderBy: { name: "asc" },
+  });
 
-  // Get attendance data for each user
-  const reportData: ReportData[] = await Promise.all(
-    users.map(async (user) => {
-      // Get department schedule
+  // Process users in smaller batches to avoid connection pool exhaustion
+  const batchSize = 10;
+  const reportData: ReportData[] = [];
 
-      const attendanceQuery = {
-        where: {
-          userId: user.id,
-          //exclude SUPERADMIN role
+  for (let i = 0; i < users.length; i += batchSize) {
+    const batch = users.slice(i, i + batchSize);
 
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-        orderBy: {
-          date: "asc" as const,
-        },
-      };
+    const batchResults = await Promise.all(
+      batch.map(async (user) => {
+        try {
+          const attendanceQuery = {
+            where: {
+              userId: user.id,
+              date: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+            orderBy: {
+              date: "asc" as const,
+            },
+          };
 
-      const attendance = await prisma.attendance.findMany(attendanceQuery);
+          const attendance = await prisma.attendance.findMany(attendanceQuery);
 
-      const transformedAttendance = attendance.map((att) => {
-        // Calculate minutes late
+          const transformedAttendance = attendance.map((att) => ({
+            date: att.date,
+            status: att.status,
+            minutesLate: att.late ?? 0,
+            checkIn: att.checkIn,
+            checkOut: att.checkOut,
+            late: att.late,
+          }));
 
-        return {
-          date: att.date,
-          status: att.status,
-          minutesLate: att.late ?? 0,
-          checkIn: att.checkIn,
-          checkOut: att.checkOut,
-          late: att.late,
-        };
-      });
+          const stats = transformedAttendance.reduce(
+            (acc, curr) => {
+              if (curr.status === Status.PRESENT) {
+                acc.presentCount++;
+              } else if (curr.status === Status.ABSENT) {
+                acc.absentCount++;
+              } else if (curr.status === Status.LATE) {
+                acc.lateCount++;
+              } else if (curr.status === Status.ON_LEAVE) {
+                acc.leaveCount++;
+              }
+              return acc;
+            },
+            { presentCount: 0, absentCount: 0, lateCount: 0, leaveCount: 0 }
+          );
 
-      // Calculate statistics directly from transformed attendance data
-      const stats = transformedAttendance.reduce(
-        (acc, curr) => {
-          if (curr.status === Status.PRESENT) {
-            acc.presentCount++;
-          } else if (curr.status === Status.ABSENT) {
-            acc.absentCount++;
-          } else if (curr.status === Status.LATE) {
-            acc.lateCount++;
-          } else if (curr.status === Status.ON_LEAVE) {
-            acc.leaveCount++;
-          }
-          return acc;
-        },
-        { presentCount: 0, absentCount: 0, lateCount: 0, leaveCount: 0 }
-      );
+          const totalMinuteLate = transformedAttendance.reduce(
+            (acc, curr) => acc + (curr.late ?? 0),
+            0
+          );
 
-      // Calculate total work hours
-      // const totalWorkHours = calculateMonthlyWorkHours(attendance);
+          return {
+            user: {
+              id: user.id,
+              name: user.name,
+              department: user.department,
+            },
+            stats: {
+              ...stats,
+              totalMinuteLate,
+            },
+            dailyAttendance: transformedAttendance,
+          };
+        } catch (error) {
+          console.error(`Error processing user ${user.id}:`, error);
+          return {
+            user: {
+              id: user.id,
+              name: user.name,
+              department: user.department,
+            },
+            stats: {
+              presentCount: 0,
+              absentCount: 0,
+              lateCount: 0,
+              leaveCount: 0,
+              totalMinuteLate: 0,
+            },
+            dailyAttendance: [],
+          };
+        }
+      })
+    );
 
-      const totalMinuteLate = transformedAttendance.reduce(
-        (acc, curr) => acc + (curr.late ?? 0),
-        0
-      );
-
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          department: user.department,
-        },
-        stats: {
-          ...stats,
-          totalMinuteLate,
-        },
-        dailyAttendance: transformedAttendance,
-      };
-    })
-  );
+    reportData.push(...batchResults);
+  }
 
   return {
     data: reportData,
