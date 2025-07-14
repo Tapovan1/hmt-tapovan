@@ -46,7 +46,7 @@ import {
   updateStudentAbsence,
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
-import { standards, type StandardKey } from "@/lib/utils/index";
+import { getStandards, type StandardKey } from "@/lib/utils/index.ts";
 import { env } from "process";
 
 const formSchema = z.object({
@@ -104,6 +104,9 @@ const CAMERA_QUALITY = {
 //   // Add more classes as needed
 // ]
 
+const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
+const standards = getStandards(school);
+
 export function StudentAbsenceDialog({
   children,
   absence,
@@ -128,9 +131,8 @@ export function StudentAbsenceDialog({
   // New states for student data
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
-  const [selectedStandard, setSelectedStandard] = useState<StandardKey | "">(
-    ""
-  );
+  const [selectedStandard, setSelectedStandard] = useState<string>("");
+
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [availableClasses, setAvailableClasses] = useState<string[]>([]);
 
@@ -150,8 +152,6 @@ export function StudentAbsenceDialog({
       studentId: absence?.studentId,
     },
   });
-
-  console.log("env", process.env.NEXT_PUBLIC_API_BASE_URL);
 
   // Fetch students based on standard and class
   const fetchStudents = useCallback(
@@ -182,15 +182,13 @@ export function StudentAbsenceDialog({
 
   // Handle standard change
   const handleStandardChange = useCallback(
-    (value: StandardKey) => {
+    (value: string) => {
       setSelectedStandard(value);
       form.setValue("standard", value);
 
-      // Update available classes based on selected standard
-      const classesForStandard = standards[value]?.classes || [];
+      const classesForStandard = standards[value as StandardKey]?.classes || [];
       setAvailableClasses(classesForStandard);
 
-      // Clear class and student selection when standard changes
       setSelectedClass("");
       form.setValue("class", "");
       form.setValue("studentName", "");
@@ -198,7 +196,7 @@ export function StudentAbsenceDialog({
       form.setValue("studentId", undefined);
       setStudents([]);
     },
-    [form]
+    [form, standards]
   );
 
   // Handle class change
@@ -237,17 +235,13 @@ export function StudentAbsenceDialog({
   // Initialize form with existing absence data
   useEffect(() => {
     if (absence && open) {
-      const absenceStandard = absence.standard as StandardKey;
-      setSelectedStandard(absenceStandard || "");
+      const stdKey = absence.standard as keyof typeof standards;
 
-      // Set available classes for the standard
-      if (absenceStandard && standards[absenceStandard]) {
-        setAvailableClasses(standards[absenceStandard].classes);
+      if (standards[stdKey]) {
+        setSelectedStandard(absence.standard);
+        setAvailableClasses(standards[stdKey].classes || []);
         setSelectedClass(absence.class || "");
-      }
 
-      // If editing existing absence, fetch students for the selected standard and class
-      if (absence.standard && absence.class) {
         fetchStudents(absence.standard, absence.class);
       }
     }
@@ -335,7 +329,7 @@ export function StudentAbsenceDialog({
             },
             body: JSON.stringify({
               base64: data.photo,
-              project: "hmt", // You can customize this per school
+              project: process.env.NEXT_PUBLIC_SCHOOL, // You can customize this per school
             }),
           }
         );
