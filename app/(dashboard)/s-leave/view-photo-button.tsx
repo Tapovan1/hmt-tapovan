@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getStudentAbsenceById } from "@/lib/action/student-absence.action";
 import { toast } from "sonner";
 
 export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
@@ -21,12 +20,14 @@ export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const handleViewPhoto = async () => {
     setLoading(true);
     try {
-      const absence = await getStudentAbsenceById(absenceId);
-      if (absence) {
-        setPhoto(absence.photo || null);
-        setStudentName(absence.studentName);
-        setOpen(true);
-      }
+      const photo = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}${absenceId}`
+      );
+      setPhoto(photo.url);
+      setOpen(true);
+      console.log("Photo URL:", photo.url);
+
+      setLoading(false);
     } catch (error) {
       console.error("Failed to fetch photo:", error);
       toast.error("Failed to load student photo");

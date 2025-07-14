@@ -1,5 +1,4 @@
 "use client";
-
 import type React from "react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -33,18 +32,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { Camera, FlipHorizontal, Plus, Settings, X } from "lucide-react";
+import {
+  Camera,
+  FlipHorizontal,
+  Plus,
+  Settings,
+  X,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   createStudentAbsence,
   updateStudentAbsence,
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
+import { standards, type StandardKey } from "@/lib/utils/index";
+import { env } from "process";
 
 const formSchema = z.object({
   id: z.string().optional(),
-
   rollNo: z.string().min(1, "Roll number is required"),
   studentName: z.string().min(1, "Student name is required"),
   class: z.string().min(1, "Class is required"),
@@ -53,9 +59,20 @@ const formSchema = z.object({
   reason: z.string().min(1, "Reason is required"),
   status: z.enum(["PENDING", "DONE"]).default("PENDING"),
   photo: z.string().optional(),
+  studentId: z.number().optional(),
 });
 
 type StudentAbsenceFormValues = z.infer<typeof formSchema>;
+
+// Student interface based on API response
+interface Student {
+  id: number;
+  name: string;
+  rollNo: string;
+  currentStandard: number;
+  currentClass: string;
+  subClass: string;
+}
 
 // Camera quality presets
 const CAMERA_QUALITY = {
@@ -64,6 +81,28 @@ const CAMERA_QUALITY = {
   high: { width: 1280, height: 720 },
   veryHigh: { width: 1920, height: 1080 },
 };
+
+// Predefined standards and classes - you can modify these based on your school's structure
+// const STANDARDS = [
+//   { value: "1", label: "Standard 1" },
+//   { value: "2", label: "Standard 2" },
+//   { value: "3", label: "Standard 3" },
+//   { value: "4", label: "Standard 4" },
+//   { value: "5", label: "Standard 5" },
+//   { value: "6", label: "Standard 6" },
+//   { value: "7", label: "Standard 7" },
+//   { value: "8", label: "Standard 8" },
+//   { value: "9", label: "Standard 9" },
+//   { value: "10", label: "Standard 10" },
+// ]
+
+// const CLASSES = [
+//   { value: "Nachiketa", label: "Nachiketa" },
+//   { value: "Dhruva", label: "Dhruva" },
+//   { value: "Prahlad", label: "Prahlad" },
+//   { value: "Markandeya", label: "Markandeya" },
+//   // Add more classes as needed
+// ]
 
 export function StudentAbsenceDialog({
   children,
@@ -86,7 +125,16 @@ export function StudentAbsenceDialog({
     useState<keyof typeof CAMERA_QUALITY>("high");
   const [showQualityOptions, setShowQualityOptions] = useState(false);
 
-  // Initialize the form first before using it in callbacks
+  // New states for student data
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [selectedStandard, setSelectedStandard] = useState<StandardKey | "">(
+    ""
+  );
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [availableClasses, setAvailableClasses] = useState<string[]>([]);
+
+  // Initialize the form
   const form = useForm<StudentAbsenceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -99,8 +147,111 @@ export function StudentAbsenceDialog({
       status: absence?.status || "PENDING",
       id: absence?.id,
       photo: absence?.photo || "",
+      studentId: absence?.studentId,
     },
   });
+
+  console.log("env", process.env.NEXT_PUBLIC_API_BASE_URL);
+
+  // Fetch students based on standard and class
+  const fetchStudents = useCallback(
+    async (standard: string, className: string) => {
+      if (!standard || !className) return;
+
+      setIsLoadingStudents(true);
+      try {
+        const response = await fetch(
+          `https://tapovanmarks.vercel.app/api/students?standard=${standard}&class=${className}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch students");
+        }
+
+        const data = await response.json();
+        setStudents(data || []);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        setStudents([]);
+      } finally {
+        setIsLoadingStudents(false);
+      }
+    },
+    []
+  );
+
+  // Handle standard change
+  const handleStandardChange = useCallback(
+    (value: StandardKey) => {
+      setSelectedStandard(value);
+      form.setValue("standard", value);
+
+      // Update available classes based on selected standard
+      const classesForStandard = standards[value]?.classes || [];
+      setAvailableClasses(classesForStandard);
+
+      // Clear class and student selection when standard changes
+      setSelectedClass("");
+      form.setValue("class", "");
+      form.setValue("studentName", "");
+      form.setValue("rollNo", "");
+      form.setValue("studentId", undefined);
+      setStudents([]);
+    },
+    [form]
+  );
+
+  // Handle class change
+  const handleClassChange = useCallback(
+    (value: string) => {
+      setSelectedClass(value);
+      form.setValue("class", value);
+
+      // Clear student selection when class changes
+      form.setValue("studentName", "");
+      form.setValue("rollNo", "");
+      form.setValue("studentId", undefined);
+      setStudents([]);
+
+      // Fetch students if both standard and class are selected
+      if (selectedStandard && value) {
+        fetchStudents(selectedStandard, value);
+      }
+    },
+    [form, selectedStandard, fetchStudents]
+  );
+
+  // Handle student selection
+  const handleStudentChange = useCallback(
+    (studentId: string) => {
+      const student = students.find((s) => s.id.toString() === studentId);
+      if (student) {
+        form.setValue("studentId", student.id);
+        form.setValue("studentName", student.name);
+        form.setValue("rollNo", student.rollNo);
+      }
+    },
+    [students, form]
+  );
+
+  // Initialize form with existing absence data
+  useEffect(() => {
+    if (absence && open) {
+      const absenceStandard = absence.standard as StandardKey;
+      setSelectedStandard(absenceStandard || "");
+
+      // Set available classes for the standard
+      if (absenceStandard && standards[absenceStandard]) {
+        setAvailableClasses(standards[absenceStandard].classes);
+        setSelectedClass(absence.class || "");
+      }
+
+      // If editing existing absence, fetch students for the selected standard and class
+      if (absence.standard && absence.class) {
+        fetchStudents(absence.standard, absence.class);
+      }
+    }
+  }, [absence, open, fetchStudents]);
 
   // Check if device has multiple cameras
   useEffect(() => {
@@ -115,7 +266,6 @@ export function StudentAbsenceDialog({
         console.error("Error checking cameras:", error);
       }
     }
-
     if (isCameraOpen) {
       checkCameras();
     }
@@ -153,13 +303,10 @@ export function StudentAbsenceDialog({
     if (webcamRef.current) {
       setIsCapturing(true);
       setTimeout(() => {
-        // Get the screenshot with the selected quality
         const imageSrc = webcamRef.current?.getScreenshot({
           width: CAMERA_QUALITY[cameraQuality].width,
           height: CAMERA_QUALITY[cameraQuality].height,
         });
-
-        // The image is already in base64 format which is suitable for PostgreSQL BYTEA storage
         setCapturedImage(imageSrc);
         if (imageSrc) {
           form.setValue("photo", imageSrc);
@@ -177,21 +324,43 @@ export function StudentAbsenceDialog({
 
   async function onSubmit(data: StudentAbsenceFormValues) {
     try {
-      // Always set status to PENDING for new entries
-      if (!data.id) {
-        data.status = "PENDING";
+      // 👇 1. Upload photo if present and it's base64
+      if (data.photo?.startsWith("data:image/")) {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              base64: data.photo,
+              project: "hmt", // You can customize this per school
+            }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to upload image");
+
+        const { filePath } = await response.json();
+        console.log("Image uploaded successfully:", filePath);
+
+        data.photo = filePath; // 👈 replace base64 with the served URL
       }
 
-      // The photo is already in base64 format which can be stored in PostgreSQL BYTEA column
-      // No additional processing needed for database storage
-
+      // 👇 2. Submit form to your DB
       if (data.id) {
         await updateStudentAbsence(data);
       } else {
         await createStudentAbsence(data);
       }
+
+      // 👇 3. Reset and close
       setOpen(false);
       form.reset();
+      setSelectedStandard("");
+      setSelectedClass("");
+      setStudents([]);
       router.refresh();
     } catch (error) {
       console.error("Failed to save student absence:", error);
@@ -225,6 +394,132 @@ export function StudentAbsenceDialog({
             className="space-y-4 p-4 sm:p-0"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Standard Selection */}
+              <FormField
+                control={form.control}
+                name="standard"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Standard</FormLabel>
+                    <Select
+                      onValueChange={handleStandardChange}
+                      value={selectedStandard}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select standard" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.keys(standards).map((standardKey) => (
+                          <SelectItem key={standardKey} value={standardKey}>
+                            Standard {standardKey}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Class Selection */}
+              <FormField
+                control={form.control}
+                name="class"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class</FormLabel>
+                    <Select
+                      onValueChange={handleClassChange}
+                      value={selectedClass}
+                      disabled={!selectedStandard}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              !selectedStandard
+                                ? "Select standard first"
+                                : "Select class"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableClasses.map((className) => (
+                          <SelectItem key={className} value={className}>
+                            {className}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Student Selection */}
+              <FormField
+                control={form.control}
+                name="studentName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student</FormLabel>
+                    <Select
+                      onValueChange={handleStudentChange}
+                      disabled={
+                        !selectedStandard || !selectedClass || isLoadingStudents
+                      }
+                      value={
+                        students
+                          .find((s) => s.name === field.value)
+                          ?.id.toString() || ""
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              isLoadingStudents
+                                ? "Loading students..."
+                                : !selectedStandard || !selectedClass
+                                ? "Select standard and class first"
+                                : "Select student"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingStudents ? (
+                          <SelectItem value="loading" disabled>
+                            <div className="flex items-center">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Loading students...
+                            </div>
+                          </SelectItem>
+                        ) : students.length > 0 ? (
+                          students.map((student) => (
+                            <SelectItem
+                              key={student.id}
+                              value={student.id.toString()}
+                            >
+                              {student.name} (Roll: {student.rollNo})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-students" disabled>
+                            No students found
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Roll Number (Auto-populated, read-only) */}
               <FormField
                 control={form.control}
                 name="rollNo"
@@ -232,51 +527,18 @@ export function StudentAbsenceDialog({
                   <FormItem>
                     <FormLabel>Roll Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter roll number" {...field} />
+                      <Input
+                        placeholder="Auto-filled when student is selected"
+                        {...field}
+                        readOnly
+                        className="bg-muted"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="studentName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Student Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter student name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="class"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter class" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="standard"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Standard</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter standard" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="parentName"
@@ -290,6 +552,7 @@ export function StudentAbsenceDialog({
                   </FormItem>
                 )}
               />
+
               {/* Only show status field when editing and it's already set to DONE */}
               {absence && absence.status === "DONE" && (
                 <FormField
@@ -318,6 +581,7 @@ export function StudentAbsenceDialog({
                 />
               )}
             </div>
+
             <FormField
               control={form.control}
               name="reason"
@@ -335,6 +599,7 @@ export function StudentAbsenceDialog({
                 </FormItem>
               )}
             />
+
             <div className="space-y-4">
               <FormField
                 control={form.control}
@@ -400,7 +665,7 @@ export function StudentAbsenceDialog({
                                   onClick={switchCamera}
                                   variant="outline"
                                   size="sm"
-                                  className="h-8"
+                                  className="h-8 bg-transparent"
                                   title={
                                     isFrontCamera
                                       ? "Switch to back camera"
@@ -458,7 +723,7 @@ export function StudentAbsenceDialog({
                                 <div className="relative w-full max-w-[320px] mx-auto">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={capturedImage || "/placeholder.svg"}
+                                    src={capturedImage || "placeholder.jpg"}
                                     alt="Captured student"
                                     className="border rounded-md w-full object-cover"
                                   />
@@ -502,6 +767,7 @@ export function StudentAbsenceDialog({
                 )}
               />
             </div>
+
             <DialogFooter className="pt-4 sm:pt-0 flex flex-col sm:flex-row gap-2">
               <Button
                 type="button"
@@ -514,6 +780,7 @@ export function StudentAbsenceDialog({
               <Button
                 type="submit"
                 className="w-full sm:w-auto order-1 sm:order-2"
+                disabled={isLoadingStudents}
               >
                 {absence ? "Update" : "Submit"}
               </Button>

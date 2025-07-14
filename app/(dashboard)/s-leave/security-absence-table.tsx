@@ -102,7 +102,7 @@ export async function SecurityAbsenceTable({ date }: { date: Date }) {
               </TableCell>
               <TableCell className="py-4 px-6">
                 <div className="flex justify-center gap-2">
-                  <ViewPhotoButton absenceId={absence.id} />
+                  <ViewPhotoButton absenceId={absence.photo} />
                   <ConfirmStatusButton
                     absenceId={absence.id}
                     currentStatus={absence.status}
