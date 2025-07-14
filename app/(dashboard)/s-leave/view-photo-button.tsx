@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { HONO} from "@/utils/env"
 
 export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const [open, setOpen] = useState(false);
@@ -21,11 +22,11 @@ export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
     setLoading(true);
     try {
       const photo = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}${absenceId}`
+        `${HONO}${absenceId}`
       );
       setPhoto(photo.url);
       setOpen(true);
-      console.log("Photo URL:", photo.url);
+    
 
       setLoading(false);
     } catch (error) {

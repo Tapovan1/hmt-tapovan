@@ -53,10 +53,10 @@ import {SCHOOL,HONO }  from "@/utils/env"
 
 
 // Debug Step 2 - Check standards
-console.log("env",SCHOOL);
+
 
 const standards = getStandards(SCHOOL);
-console.log("standards:", standards);
+
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -147,14 +147,13 @@ export function StudentAbsenceDialog({
             : "https://tapovanmarks.vercel.app";
 
         const url = `${baseUrl}/api/students?standard=${standard}&class=${className}`;
-        console.log("Fetching students for:", standard, className);
-        console.log("API URL:", url);
+      
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch students");
 
         const data = await response.json();
-        console.log("Students fetched:", data);
+       
         setStudents(data || []);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -168,7 +167,7 @@ export function StudentAbsenceDialog({
 
   const handleStandardChange = useCallback(
     (value: string) => {
-      console.log("Standard selected:", value);
+     
       setSelectedStandard(value);
       form.setValue("standard", value);
 
@@ -187,7 +186,7 @@ export function StudentAbsenceDialog({
 
   const handleClassChange = useCallback(
     (value: string) => {
-      console.log("Class selected:", value);
+     
       setSelectedClass(value);
       form.setValue("class", value);
 
@@ -205,7 +204,7 @@ export function StudentAbsenceDialog({
 
   const handleStudentChange = useCallback(
     (studentId: string) => {
-      console.log("Student selected:", studentId);
+     
       const student = students.find((s) => s.id.toString() === studentId);
       if (student) {
         form.setValue("studentId", student.id);
@@ -217,9 +216,7 @@ export function StudentAbsenceDialog({
   );
 
   useEffect(() => {
-    console.log("absence:", absence);
-    console.log("open:", open);
-    console.log("standards inside useEffect:", standards);
+  
 
     if (absence && open) {
       const stdKey = absence.standard as keyof typeof standards;
