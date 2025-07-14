@@ -105,6 +105,8 @@ const CAMERA_QUALITY = {
 // ]
 
 const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
+
+
 const standards = getStandards(school);
 
 export function StudentAbsenceDialog({
@@ -136,6 +138,8 @@ export function StudentAbsenceDialog({
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [availableClasses, setAvailableClasses] = useState<string[]>([]);
 
+
+
   // Initialize the form
   const form = useForm<StudentAbsenceFormValues>({
     resolver: zodResolver(formSchema),
@@ -155,30 +159,39 @@ export function StudentAbsenceDialog({
 
   // Fetch students based on standard and class
   const fetchStudents = useCallback(
-    async (standard: string, className: string) => {
-      if (!standard || !className) return;
+  async (standard: string, className: string) => {
+    if (!standard || !className) return;
 
-      setIsLoadingStudents(true);
-      try {
-        const response = await fetch(
-          `https://tapovanmarks.vercel.app/api/students?standard=${standard}&class=${className}`
-        );
+    setIsLoadingStudents(true);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch students");
-        }
+    try {
+      const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
 
-        const data = await response.json();
-        setStudents(data || []);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-        setStudents([]);
-      } finally {
-        setIsLoadingStudents(false);
+      const baseUrl =
+        school === "talod"
+          ? "https://talod-tapovan.vercel.app"
+          : "https://tapovanmarks.vercel.app"; // default to HMT
+
+      const response = await fetch(
+        `${baseUrl}/api/students?standard=${standard}&class=${className}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch students");
       }
-    },
-    []
-  );
+
+      const data = await response.json();
+      setStudents(data || []);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setStudents([]);
+    } finally {
+      setIsLoadingStudents(false);
+    }
+  },
+  []
+);
+
 
   // Handle standard change
   const handleStandardChange = useCallback(
