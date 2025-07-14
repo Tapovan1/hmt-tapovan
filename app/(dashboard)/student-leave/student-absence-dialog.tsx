@@ -53,6 +53,8 @@ import {SCHOOL }  from "@/utils/env"
 
 
 // Debug Step 2 - Check standards
+console.log("env",SCHOOL);
+
 const standards = getStandards(SCHOOL);
 console.log("standards:", standards);
 
