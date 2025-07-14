@@ -46,14 +46,14 @@ import {
   updateStudentAbsence,
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
-import { getStandards, type StandardKey } from "@/lib/utils/index.ts";
+import { getStandards, type StandardKey } from "@/lib/utils/index";
+import {SCHOOL }  from "@/utils/env"
 
 // Debug Step 1 - Check ENV
-console.log("ENV: NEXT_PUBLIC_SCHOOL =", process.env.NEXT_PUBLIC_SCHOOL);
-const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
+
 
 // Debug Step 2 - Check standards
-const standards = getStandards(school);
+const standards = getStandards(SCHOOL);
 console.log("standards:", standards);
 
 const formSchema = z.object({
@@ -137,10 +137,10 @@ export function StudentAbsenceDialog({
       setIsLoadingStudents(true);
 
       try {
-        const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
-
-        const baseUrl =
-          school === "talod"
+       
+       
+        const baseUrl = SCHOOL
+           === "talod"
             ? "https://talod-tapovan.vercel.app"
             : "https://tapovanmarks.vercel.app";
 
