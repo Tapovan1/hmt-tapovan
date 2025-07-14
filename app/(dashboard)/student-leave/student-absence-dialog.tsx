@@ -166,6 +166,8 @@ export function StudentAbsenceDialog({
 
     try {
       const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
+      console.log("school",school);
+      
 
       const baseUrl =
         school === "talod"
