@@ -47,7 +47,14 @@ import {
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
 import { getStandards, type StandardKey } from "@/lib/utils/index.ts";
-import { env } from "process";
+
+// Debug Step 1 - Check ENV
+console.log("ENV: NEXT_PUBLIC_SCHOOL =", process.env.NEXT_PUBLIC_SCHOOL);
+const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
+
+// Debug Step 2 - Check standards
+const standards = getStandards(school);
+console.log("standards:", standards);
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -64,7 +71,6 @@ const formSchema = z.object({
 
 type StudentAbsenceFormValues = z.infer<typeof formSchema>;
 
-// Student interface based on API response
 interface Student {
   id: number;
   name: string;
@@ -74,40 +80,12 @@ interface Student {
   subClass: string;
 }
 
-// Camera quality presets
 const CAMERA_QUALITY = {
   low: { width: 320, height: 240 },
   medium: { width: 640, height: 480 },
   high: { width: 1280, height: 720 },
   veryHigh: { width: 1920, height: 1080 },
 };
-
-// Predefined standards and classes - you can modify these based on your school's structure
-// const STANDARDS = [
-//   { value: "1", label: "Standard 1" },
-//   { value: "2", label: "Standard 2" },
-//   { value: "3", label: "Standard 3" },
-//   { value: "4", label: "Standard 4" },
-//   { value: "5", label: "Standard 5" },
-//   { value: "6", label: "Standard 6" },
-//   { value: "7", label: "Standard 7" },
-//   { value: "8", label: "Standard 8" },
-//   { value: "9", label: "Standard 9" },
-//   { value: "10", label: "Standard 10" },
-// ]
-
-// const CLASSES = [
-//   { value: "Nachiketa", label: "Nachiketa" },
-//   { value: "Dhruva", label: "Dhruva" },
-//   { value: "Prahlad", label: "Prahlad" },
-//   { value: "Markandeya", label: "Markandeya" },
-//   // Add more classes as needed
-// ]
-
-const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
-
-
-const standards = getStandards(school);
 
 export function StudentAbsenceDialog({
   children,
@@ -118,29 +96,24 @@ export function StudentAbsenceDialog({
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(
     absence?.photo || null
   );
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [cameraQuality, setCameraQuality] =
     useState<keyof typeof CAMERA_QUALITY>("high");
   const [showQualityOptions, setShowQualityOptions] = useState(false);
 
-  // New states for student data
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [selectedStandard, setSelectedStandard] = useState<string>("");
-
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [availableClasses, setAvailableClasses] = useState<string[]>([]);
 
-
-
-  // Initialize the form
   const form = useForm<StudentAbsenceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -157,51 +130,47 @@ export function StudentAbsenceDialog({
     },
   });
 
-  // Fetch students based on standard and class
   const fetchStudents = useCallback(
-  async (standard: string, className: string) => {
-    if (!standard || !className) return;
+    async (standard: string, className: string) => {
+      if (!standard || !className) return;
 
-    setIsLoadingStudents(true);
+      setIsLoadingStudents(true);
 
-    try {
-      const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
-      console.log("school",school);
-      
+      try {
+        const school = process.env.NEXT_PUBLIC_SCHOOL as "hmt" | "talod";
 
-      const baseUrl =
-        school === "talod"
-          ? "https://talod-tapovan.vercel.app"
-          : "https://tapovanmarks.vercel.app"; // default to HMT
+        const baseUrl =
+          school === "talod"
+            ? "https://talod-tapovan.vercel.app"
+            : "https://tapovanmarks.vercel.app";
 
-      const response = await fetch(
-        `${baseUrl}/api/students?standard=${standard}&class=${className}`
-      );
+        const url = `${baseUrl}/api/students?standard=${standard}&class=${className}`;
+        console.log("Fetching students for:", standard, className);
+        console.log("API URL:", url);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch students");
+
+        const data = await response.json();
+        console.log("Students fetched:", data);
+        setStudents(data || []);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        setStudents([]);
+      } finally {
+        setIsLoadingStudents(false);
       }
+    },
+    []
+  );
 
-      const data = await response.json();
-      setStudents(data || []);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      setStudents([]);
-    } finally {
-      setIsLoadingStudents(false);
-    }
-  },
-  []
-);
-
-
-  // Handle standard change
   const handleStandardChange = useCallback(
     (value: string) => {
+      console.log("Standard selected:", value);
       setSelectedStandard(value);
       form.setValue("standard", value);
 
-      const classesForStandard = standards[value as StandardKey]?.classes || [];
+      const classesForStandard = standards?.[value as StandardKey]?.classes || [];
       setAvailableClasses(classesForStandard);
 
       setSelectedClass("");
@@ -211,22 +180,20 @@ export function StudentAbsenceDialog({
       form.setValue("studentId", undefined);
       setStudents([]);
     },
-    [form, standards]
+    [form]
   );
 
-  // Handle class change
   const handleClassChange = useCallback(
     (value: string) => {
+      console.log("Class selected:", value);
       setSelectedClass(value);
       form.setValue("class", value);
 
-      // Clear student selection when class changes
       form.setValue("studentName", "");
       form.setValue("rollNo", "");
       form.setValue("studentId", undefined);
       setStudents([]);
 
-      // Fetch students if both standard and class are selected
       if (selectedStandard && value) {
         fetchStudents(selectedStandard, value);
       }
@@ -234,9 +201,9 @@ export function StudentAbsenceDialog({
     [form, selectedStandard, fetchStudents]
   );
 
-  // Handle student selection
   const handleStudentChange = useCallback(
     (studentId: string) => {
+      console.log("Student selected:", studentId);
       const student = students.find((s) => s.id.toString() === studentId);
       if (student) {
         form.setValue("studentId", student.id);
@@ -247,67 +214,61 @@ export function StudentAbsenceDialog({
     [students, form]
   );
 
-  // Initialize form with existing absence data
   useEffect(() => {
+    console.log("absence:", absence);
+    console.log("open:", open);
+    console.log("standards inside useEffect:", standards);
+
     if (absence && open) {
       const stdKey = absence.standard as keyof typeof standards;
 
-      if (standards[stdKey]) {
+      if (standards?.[stdKey]) {
         setSelectedStandard(absence.standard);
         setAvailableClasses(standards[stdKey].classes || []);
         setSelectedClass(absence.class || "");
 
         fetchStudents(absence.standard, absence.class);
+      } else {
+        console.warn("Invalid standard key or missing in standards:", stdKey);
       }
     }
   }, [absence, open, fetchStudents]);
 
-  // Check if device has multiple cameras
   useEffect(() => {
-    async function checkCameras() {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(
-          (device) => device.kind === "videoinput"
-        );
-        setHasMultipleCameras(videoDevices.length > 1);
-      } catch (error) {
-        console.error("Error checking cameras:", error);
-      }
-    }
     if (isCameraOpen) {
-      checkCameras();
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          const videoDevices = devices.filter((d) => d.kind === "videoinput");
+          setHasMultipleCameras(videoDevices.length > 1);
+        })
+        .catch((err) => console.error("Camera device error:", err));
     }
   }, [isCameraOpen]);
 
-  // Reset form when dialog closes
   useEffect(() => {
-    if (!open) {
-      if (!absence) {
-        form.reset({
-          rollNo: "",
-          studentName: "",
-          class: "",
-          standard: "",
-          parentName: "",
-          reason: "",
-          status: "PENDING",
-          photo: "",
-        });
-      }
-      setIsCameraOpen(false);
-      if (!absence?.photo) {
-        setCapturedImage(null);
-      }
+    if (!open && !absence) {
+      form.reset({
+        rollNo: "",
+        studentName: "",
+        class: "",
+        standard: "",
+        parentName: "",
+        reason: "",
+        status: "PENDING",
+        photo: "",
+      });
+      setCapturedImage(null);
+      setStudents([]);
+      setSelectedStandard("");
+      setSelectedClass("");
     }
   }, [open, form, absence]);
 
-  // Switch camera function
   const switchCamera = useCallback(() => {
     setIsFrontCamera(!isFrontCamera);
   }, [isFrontCamera]);
 
-  // Capture photo with optimized quality for PostgreSQL storage
   const capturePhoto = useCallback(() => {
     if (webcamRef.current) {
       setIsCapturing(true);
@@ -317,9 +278,7 @@ export function StudentAbsenceDialog({
           height: CAMERA_QUALITY[cameraQuality].height,
         });
         setCapturedImage(imageSrc);
-        if (imageSrc) {
-          form.setValue("photo", imageSrc);
-        }
+        if (imageSrc) form.setValue("photo", imageSrc);
         setIsCapturing(false);
         setIsCameraOpen(false);
       }, 500);
@@ -333,7 +292,6 @@ export function StudentAbsenceDialog({
 
   async function onSubmit(data: StudentAbsenceFormValues) {
     try {
-      // 👇 1. Upload photo if present and it's base64
       if (data.photo?.startsWith("data:image/")) {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`,
@@ -344,7 +302,7 @@ export function StudentAbsenceDialog({
             },
             body: JSON.stringify({
               base64: data.photo,
-              project: process.env.NEXT_PUBLIC_SCHOOL, // You can customize this per school
+              project: process.env.NEXT_PUBLIC_SCHOOL,
             }),
           }
         );
@@ -352,29 +310,23 @@ export function StudentAbsenceDialog({
         if (!response.ok) throw new Error("Failed to upload image");
 
         const { filePath } = await response.json();
-        console.log("Image uploaded successfully:", filePath);
-
-        data.photo = filePath; // 👈 replace base64 with the served URL
+        data.photo = filePath;
       }
 
-      // 👇 2. Submit form to your DB
       if (data.id) {
         await updateStudentAbsence(data);
       } else {
         await createStudentAbsence(data);
       }
 
-      // 👇 3. Reset and close
       setOpen(false);
       form.reset();
-      setSelectedStandard("");
-      setSelectedClass("");
-      setStudents([]);
       router.refresh();
-    } catch (error) {
-      console.error("Failed to save student absence:", error);
+    } catch (err) {
+      console.error("Failed to submit absence form:", err);
     }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
