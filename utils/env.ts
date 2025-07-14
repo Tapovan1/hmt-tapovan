@@ -10,4 +10,4 @@ if (!SCHOOL) {
 }
 
 
-export const HONO = 'http://103.247.81.40:3005'
+export const HONO = 'https://hono.tapovanvidhyamandirsankul.com'
