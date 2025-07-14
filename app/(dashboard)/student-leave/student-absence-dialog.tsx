@@ -47,7 +47,7 @@ import {
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
 import { getStandards, type StandardKey } from "@/lib/utils/index";
-import {SCHOOL }  from "@/utils/env"
+import {SCHOOL,HONO }  from "@/utils/env"
 
 // Debug Step 1 - Check ENV
 
@@ -296,7 +296,7 @@ export function StudentAbsenceDialog({
     try {
       if (data.photo?.startsWith("data:image/")) {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`,
+          `${HONO}/upload`,
           {
             method: "POST",
             headers: {
@@ -304,7 +304,7 @@ export function StudentAbsenceDialog({
             },
             body: JSON.stringify({
               base64: data.photo,
-              project: process.env.NEXT_PUBLIC_SCHOOL,
+              project: SCHOOL,
             }),
           }
         );

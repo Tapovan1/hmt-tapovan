@@ -92,7 +92,7 @@ export const allSchoolStandards = {
 export type SchoolKey = keyof typeof allSchoolStandards;
 
 export function getStandards(school: SchoolKey) {
-  console.log("index",school);
+  // console.log("index",school);
   
   return allSchoolStandards[school];
 }
