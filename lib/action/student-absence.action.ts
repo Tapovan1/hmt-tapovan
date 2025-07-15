@@ -42,12 +42,18 @@ export async function getStudentAbsences(date: Date) {
 
     if (date) {
       targetDate = new Date(date);
+     
+      
     } else {
       const indianDateString = new Date().toLocaleDateString("en-CA", {
         timeZone: "Asia/Kolkata",
       });
       targetDate = new Date(indianDateString);
+      
+      
     }
+ 
+    
 
     const absences = await prisma.studentLeave.findMany({
       where: {
@@ -70,6 +76,8 @@ export async function getStudentAbsences(date: Date) {
         photo: true,
       },
     });
+
+    
 
     return absences;
   } catch (error) {
@@ -96,8 +104,10 @@ export async function createStudentAbsence(
 ) {
   try {
     const validatedData = studentAbsenceSchema.parse(data);
+    console.log("validatedData",validatedData);
 
-    const absence = await prisma.studentLeave.create({
+
+   const absence = await prisma.studentLeave.create({
       data: {
         date: formattedIndianDate,
         rollNo: validatedData.rollNo,
@@ -110,6 +120,8 @@ export async function createStudentAbsence(
         photo: validatedData.photo,
       },
     });
+    console.log("date",formattedIndianDate);
+    
 
     revalidatePath("/student-absent");
     revalidatePath("/security");

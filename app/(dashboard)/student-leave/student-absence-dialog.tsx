@@ -68,6 +68,7 @@ const formSchema = z.object({
   reason: z.string().min(1, "Reason is required"),
   status: z.enum(["PENDING", "DONE"]).default("PENDING"),
   photo: z.string().optional(),
+  date:z.string().optional(),
   studentId: z.number().optional(),
 });
 
@@ -109,6 +110,7 @@ export function StudentAbsenceDialog({
   const [cameraQuality, setCameraQuality] =
     useState<keyof typeof CAMERA_QUALITY>("high");
   const [showQualityOptions, setShowQualityOptions] = useState(false);
+  const [Date, setDate] = useState<Date>();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -311,6 +313,8 @@ export function StudentAbsenceDialog({
         const { filePath } = await response.json();
         data.photo = filePath;
       }
+
+      
 
       if (data.id) {
         await updateStudentAbsence(data);
