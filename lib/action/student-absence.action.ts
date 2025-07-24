@@ -104,7 +104,7 @@ export async function createStudentAbsence(
 ) {
   try {
     const validatedData = studentAbsenceSchema.parse(data);
-    console.log("validatedData",validatedData);
+    
 
 
    const absence = await prisma.studentLeave.create({
