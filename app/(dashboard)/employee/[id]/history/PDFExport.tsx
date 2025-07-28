@@ -12,6 +12,7 @@ interface AttendanceRecord {
   checkOut: string | null;
   status: string;
   late: number;
+  early: number | null;
 }
 
 interface PDFExportProps {
@@ -79,11 +80,21 @@ export function PDFExport({
           ? "On Leave"
           : record.status.charAt(0) + record.status.slice(1).toLowerCase(),
         record.late > 0 ? `${record.late} min` : "N/A",
+        record.early !== null ? `${record.early} min` : "N/A",
       ]);
 
       // Add table
       autoTable(doc, {
-        head: [["Date", "Check In", "Check Out", "Status", "Late Minutes"]],
+        head: [
+          [
+            "Date",
+            "Check In",
+            "Check Out",
+            "Status",
+            "Late Minutes",
+            "Early Exit",
+          ],
+        ],
         body: tableData,
         startY: 80,
         theme: "grid",
@@ -106,6 +117,7 @@ export function PDFExport({
           2: { cellWidth: 30 }, // Check Out
           3: { cellWidth: 25 }, // Status
           4: { cellWidth: 25 }, // Late Minutes
+          5: { cellWidth: 25 }, // Early Exit
         },
         margin: { left: 20, right: 20 },
       });
@@ -126,6 +138,10 @@ export function PDFExport({
       const absentDays = records.filter((r) => r.status === "ABSENT").length;
       const leaveDays = records.filter((r) => r.status === "ON_LEAVE").length;
       const totalLateMinutes = records.reduce((sum, r) => sum + r.late, 0);
+      const totalEarlyExit = records.reduce(
+        (sum, r) => sum + (r.early ?? 0),
+        0
+      );
 
       const summaryY = finalY + 10;
       doc.text(`Total Days: ${totalDays}`, 20, summaryY);
@@ -134,6 +150,7 @@ export function PDFExport({
       doc.text(`Absent: ${absentDays}`, 80, summaryY);
       doc.text(`On Leave: ${leaveDays}`, 80, summaryY + 10);
       doc.text(`Total Late Minutes: ${totalLateMinutes}`, 80, summaryY + 20);
+      doc.text(`Total Early Exit: ${totalEarlyExit}`, 80, summaryY + 20);
 
       // Add footer
       const pageHeight = doc.internal.pageSize.height;

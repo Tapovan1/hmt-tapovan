@@ -35,6 +35,7 @@ export function HistoryTable({ records }: HistoryTableProps) {
             <th className=" py-4 px-6 font-medium text-gray-700">
               Late Minute
             </th>
+            <th className=" py-4 px-6 font-medium text-gray-700">Early</th>
           </tr>
         </thead>
         <tbody>
@@ -59,6 +60,15 @@ export function HistoryTable({ records }: HistoryTableProps) {
                 {record.late > 0 ? (
                   <span className="text-red-500 font-medium ">
                     {record.late} min
+                  </span>
+                ) : (
+                  <span className="text-gray-700">N/A</span>
+                )}
+              </td>
+              <td className=" text-center py-4 px-6">
+                {record.early > 0 ? (
+                  <span className="text-red-500 font-medium ">
+                    {record.early} min
                   </span>
                 ) : (
                   <span className="text-gray-700">N/A</span>

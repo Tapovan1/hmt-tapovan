@@ -44,7 +44,7 @@ export async function exportToExcel(params: {
   // 📌 Build Headers
   const headers = ["NAME"];
   for (let i = 1; i <= daysInMonth; i++) headers.push(i.toString());
-  headers.push("TOTAL MINIT LATE", "L", "DAY");
+  headers.push("TOTAL LATE", "TOTAL EARLY", "L", "DAY");
 
   // 🧾 Title Row
   worksheet.mergeCells(1, 1, 1, headers.length);
@@ -89,6 +89,7 @@ export async function exportToExcel(params: {
   reportData.data.forEach((item) => {
     const row: (string | number)[] = [item.user.name];
     let totalMinutesLate = 0;
+    let totalEarlyExit = 0;
     let leaveCount = 0;
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -115,6 +116,10 @@ export async function exportToExcel(params: {
           const minutesLate = Math.round(attendance.minutesLate || 0);
           cellValue = minutesLate > 0 ? minutesLate : "-";
           totalMinutesLate += minutesLate;
+          const totalEarlyExitValue = Math.round(attendance.early || 0);
+          totalEarlyExit += totalEarlyExitValue;
+          cellValue = totalEarlyExitValue > 0 ? totalEarlyExitValue : "-";
+          totalEarlyExit += totalEarlyExitValue;
         }
       } else if (isSunday) {
         cellValue = "H";
@@ -124,6 +129,7 @@ export async function exportToExcel(params: {
     }
 
     row.push(totalMinutesLate);
+    row.push(totalEarlyExit);
     row.push(leaveCount);
     row.push(daysInMonth);
     const dataRow = worksheet.addRow(row);

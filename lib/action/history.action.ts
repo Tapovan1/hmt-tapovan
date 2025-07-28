@@ -131,6 +131,7 @@ export const getAttendanceHistory = async (
         checkOut: true,
         status: true,
         late: true,
+        early: true,
       },
     });
   }

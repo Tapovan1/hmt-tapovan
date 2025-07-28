@@ -270,6 +270,9 @@ export default function ReportPage() {
                 <TableHead className="py-4 px-6 font-medium text-gray-700 text-center">
                   Total Minutes Late
                 </TableHead>
+                <TableHead className="py-4 px-6 font-medium text-gray-700 text-center">
+                  Total Early Exit
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -334,6 +337,11 @@ export default function ReportPage() {
                     <TableCell className="py-4 px-6 text-center">
                       <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
                         {userData.stats.totalMinuteLate}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium">
+                        {userData.stats.totalEarlyExit}
                       </span>
                     </TableCell>
                   </TableRow>

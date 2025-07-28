@@ -15,6 +15,7 @@ export interface ReportData {
     lateCount: number;
     leaveCount: number;
     totalMinuteLate: string;
+    totalEarlyExit: string;
   };
   dailyAttendance: {
     date: Date;
@@ -22,6 +23,7 @@ export interface ReportData {
     minutesLate: number;
     checkIn: Date | null;
     checkOut: Date | null;
+    early: number | null;
   }[];
 }
 
@@ -88,6 +90,7 @@ export async function getReportDataWithoutPagination(params: {
             checkIn: att.checkIn,
             checkOut: att.checkOut,
             late: att.late,
+            early: att.early,
           }));
 
           const stats = transformedAttendance.reduce(
@@ -111,6 +114,11 @@ export async function getReportDataWithoutPagination(params: {
             0
           );
 
+          const totalEarlyExit = transformedAttendance.reduce(
+            (acc, curr) => acc + (curr.early ?? 0),
+            0
+          );
+
           return {
             user: {
               id: user.id,
@@ -120,6 +128,7 @@ export async function getReportDataWithoutPagination(params: {
             stats: {
               ...stats,
               totalMinuteLate,
+              totalEarlyExit,
             },
             dailyAttendance: transformedAttendance,
           };
@@ -225,6 +234,7 @@ export async function getReportData(params: {
           checkIn: att.checkIn,
           checkOut: att.checkOut,
           late: att.late,
+          early: att.early,
         };
       });
 
@@ -253,6 +263,11 @@ export async function getReportData(params: {
         0
       );
 
+      const totalEarlyExit = transformedAttendance.reduce(
+        (acc, curr) => acc + (curr.early ?? 0),
+        0
+      );
+
       return {
         user: {
           id: user.id,
@@ -262,6 +277,7 @@ export async function getReportData(params: {
         stats: {
           ...stats,
           totalMinuteLate,
+          totalEarlyExit,
         },
         dailyAttendance: transformedAttendance,
       };
