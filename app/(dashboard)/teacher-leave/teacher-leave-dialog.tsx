@@ -1,9 +1,7 @@
 "use client";
-
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,16 +12,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import { Plus } from "lucide-react";
-
 import {
   createTeacherLeave,
   updateTeacherLeave,
 } from "@/lib/action/teacherLeave.action";
-import { DatePicker } from "@/components/date-picker";
 
 export function TeacherLeaveDialog({
   children,
@@ -34,28 +29,55 @@ export function TeacherLeaveDialog({
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+
+  // Convert dates to string format for input fields
+  const [startDate, setStartDate] = useState<string>(
+    leave?.start
+      ? (() => {
+          const date = new Date(leave.start);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()
+      : ""
+  );
+
+  const [endDate, setEndDate] = useState<string>(
+    leave?.end
+      ? (() => {
+          const date = new Date(leave.end);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()
+      : ""
+  );
+
   const [reason, setReason] = useState(leave?.reason || "");
 
   async function onSubmit() {
     if (!startDate || !endDate) {
       return;
     }
+
+    // Convert string dates to Date objects
     const adjustedStartDate = new Date(startDate);
     const adjustedEndDate = new Date(endDate);
 
     adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
     adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-
     adjustedStartDate.setHours(0, 0, 0, 0);
     adjustedEndDate.setHours(0, 0, 0, 0);
+
     const data = {
       id: leave?.id,
       start: adjustedStartDate,
       end: adjustedEndDate,
       reason,
     };
+
     try {
       if (data.id) {
         await updateTeacherLeave(data);
@@ -63,7 +85,6 @@ export function TeacherLeaveDialog({
         await createTeacherLeave(data);
       }
       setOpen(false);
-
       router.refresh();
     } catch (error) {
       console.error("Failed to save teacher leave:", error);
@@ -94,16 +115,28 @@ export function TeacherLeaveDialog({
 
         {/* Date Fields - Stack on mobile */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <DatePicker
-            date={startDate}
-            setDate={setStartDate}
-            placeholder="Start Date"
-          />
-          <DatePicker
-            date={endDate}
-            setDate={setEndDate}
-            placeholder="End Date"
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Start Date
+            </label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              End Date
+            </label>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         {/* Reason */}
@@ -115,7 +148,7 @@ export function TeacherLeaveDialog({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Enter reason for leave"
-            className="resize-none min-h-[100px]"
+            className="resize-none min-h-[100px] border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 

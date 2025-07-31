@@ -36,6 +36,11 @@ export async function getTeacherLeaves(month: number, year: number) {
   }
   const startDate = startOfMonth(new Date(year, month - 1));
   const endDate = endOfMonth(new Date(year, month - 1));
+  console.log("Fetching leaves for:", {
+    userId: user.id,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  });
 
   try {
     const leaves = await prisma.teacherLeave.findMany({
