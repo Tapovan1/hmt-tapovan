@@ -104,9 +104,13 @@ export async function exportToExcel(params: {
       let cellValue: string | number = "-";
 
       if (attendance) {
-        if (attendance.status === Status.PRESENT) {
+        if (attendance.status) {
           cellValue = attendance.minutesLate > 0 ? attendance.minutesLate : "P";
           totalMinutesLate += attendance.minutesLate || 0;
+          console.log(
+            `Attendance for ${item.user.name} on cell value:`,
+            cellValue
+          );
         } else if (attendance.status === Status.ON_LEAVE) {
           cellValue = "L";
           leaveCount++;

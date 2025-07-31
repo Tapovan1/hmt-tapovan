@@ -1,21 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import { Loader2, Save, User, Phone, CreditCard, Users, Briefcase } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import {
+  Loader2,
+  Save,
+  User,
+  Phone,
+  CreditCard,
+  Users,
+  Briefcase,
+} from "lucide-react";
+import { saveUserProfile } from "@/lib/action/profile.action";
 
-const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 const departments = [
   "Admin",
@@ -31,12 +53,14 @@ const departments = [
   "Security",
   "Guest",
   "Accountant",
-]
+];
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   department: z.string().min(1, { message: "Please select a department." }),
-  mobileNumber: z.string().min(10, { message: "Please enter a valid mobile number." }),
+  mobileNumber: z
+    .string()
+    .min(10, { message: "Please enter a valid mobile number." }),
   address: z.string().min(5, { message: "Please enter your address." }),
   nativePlace: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -55,13 +79,13 @@ const formSchema = z.object({
   relativeAddress: z.string().optional(),
   workExperience: z.string().optional(),
   legalProceedings: z.enum(["yes", "no"]).optional(),
-})
+});
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof formSchema>;
 
 interface ProfileFormProps {
-  user?: any
-  initialData?: any
+  user?: any;
+  initialData?: any;
 }
 
 // Custom label component for bilingual text
@@ -69,28 +93,33 @@ const BilingualLabel = ({
   english,
   gujarati,
   required = false,
-}: { english: string; gujarati: string; required?: boolean }) => (
+}: {
+  english: string;
+  gujarati: string;
+  required?: boolean;
+}) => (
   <div className="space-y-1">
     <div className="flex items-center gap-2">
       <span className="font-medium text-gray-900">{english}</span>
       {required && <span className="text-red-500 text-sm">*</span>}
     </div>
-    <div className="text-sm text-gray-600 font-medium" style={{ fontFamily: "Noto Sans Gujarati, sans-serif" }}>
+    <div
+      className="text-sm text-gray-600 font-medium"
+      style={{ fontFamily: "Noto Sans Gujarati, sans-serif" }}
+    >
       ( {gujarati} )
     </div>
   </div>
-)
+);
 
-export default function ImprovedProfileForm({ user, initialData }: ProfileFormProps) {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export default function ImprovedProfileForm({
+  user,
+  initialData,
+}: ProfileFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   console.log("user", user);
   console.log("initialData", initialData);
-
-  
-
-
-  
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -101,14 +130,14 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
       address: initialData?.address || "",
       nativePlace: initialData?.nativePlace || "",
       dateOfBirth: initialData?.dateOfBirth
-      ? (() => {
-          const date = new Date(initialData.dateOfBirth)
-          const year = date.getFullYear()
-          const month = String(date.getMonth() + 1).padStart(2, "0")
-          const day = String(date.getDate()).padStart(2, "0")
-          return `${year}-${month}-${day}`
-        })()
-      : "",
+        ? (() => {
+            const date = new Date(initialData.dateOfBirth);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          })()
+        : "",
       degree: initialData?.degree || "",
       bloodGroup: initialData?.bloodGroup || "",
       aadharNumber: initialData?.aadharNumber || "",
@@ -125,26 +154,33 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
       workExperience: initialData?.workExperience || "",
       legalProceedings: initialData?.legalProceedings || "no",
     },
-  })
+  });
 
   async function onSubmit(values: FormValues) {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success("Profile updated successfully")
-      router.refresh()
+      const profile = await saveUserProfile({
+        ...values,
+        userId: user?.id,
+        dateOfBirth: values.dateOfBirth
+          ? new Date(values.dateOfBirth)
+          : undefined,
+      });
+      if (profile.success === true) {
+        toast.success("Profile updated successfully");
+      }
+      router.refresh();
     } catch (error) {
-      console.error("Error saving profile:", error)
-      toast.error("Failed to update profile. Please try again.")
+      console.error("Error saving profile:", error);
+      toast.error("Failed to update profile. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   return (
     <div className="max-w-8xl mx-auto  space-y-8">
-     
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Information */}
@@ -153,7 +189,6 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
               <CardTitle className="flex items-center gap-2 text-xl">
                 <User className="h-5 w-5 text-blue-600" />
                 Basic Information
-              
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -164,7 +199,11 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Employee Name" gujarati="કર્મચારીનું નામ" required />
+                        <BilingualLabel
+                          english="Employee Name"
+                          gujarati="કર્મચારીનું નામ"
+                          required
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -185,9 +224,17 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Department" gujarati="વિભાગ" required />
+                        <BilingualLabel
+                          english="Department"
+                          gujarati="વિભાગ"
+                          required
+                        />
                       </FormLabel>
-                      <Select disabled={true} onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        disabled={true}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                             <SelectValue placeholder="Select department" />
@@ -212,7 +259,11 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Mobile Number" gujarati="મોબાઈલ નંબર" required />
+                        <BilingualLabel
+                          english="Mobile Number"
+                          gujarati="મોબાઈલ નંબર"
+                          required
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -232,7 +283,11 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>
-                        <BilingualLabel english="Address" gujarati="સરનામું" required />
+                        <BilingualLabel
+                          english="Address"
+                          gujarati="સરનામું"
+                          required
+                        />
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -252,7 +307,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Native Place" gujarati="મૂળ વતન" />
+                        <BilingualLabel
+                          english="Native Place"
+                          gujarati="મૂળ વતન"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -272,7 +330,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Date of Birth" gujarati="જન્મ તારીખ" />
+                        <BilingualLabel
+                          english="Date of Birth"
+                          gujarati="જન્મ તારીખ"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -312,9 +373,15 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Blood Group" gujarati="બ્લડ ગ્રુપ" />
+                        <BilingualLabel
+                          english="Blood Group"
+                          gujarati="બ્લડ ગ્રુપ"
+                        />
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                             <SelectValue placeholder="Select blood group" />
@@ -342,7 +409,6 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
               <CardTitle className="flex items-center gap-2 text-xl">
                 <CreditCard className="h-5 w-5 text-green-600" />
                 ID and Bank Details
-                
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -353,7 +419,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Aadhar Card Number" gujarati="આધારકાર્ડ નંબર" />
+                        <BilingualLabel
+                          english="Aadhar Card Number"
+                          gujarati="આધારકાર્ડ નંબર"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -373,7 +442,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="PAN Card Number" gujarati="પાનકાર્ડ નંબર" />
+                        <BilingualLabel
+                          english="PAN Card Number"
+                          gujarati="પાનકાર્ડ નંબર"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -393,7 +465,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="ICICI Bank Account Number" gujarati="ICICI બેન્ક ખાતા નંબર" />
+                        <BilingualLabel
+                          english="ICICI Bank Account Number"
+                          gujarati="ICICI બેન્ક ખાતા નંબર"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -413,7 +488,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>
-                        <BilingualLabel english="Any Serious Illness" gujarati="કોઈ ગંભીર બીમારી" />
+                        <BilingualLabel
+                          english="Any Serious Illness"
+                          gujarati="કોઈ ગંભીર બીમારી"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -436,7 +514,6 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Users className="h-5 w-5 text-purple-600" />
                 Family Details
-             
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -447,7 +524,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Father's Name" gujarati="પિતાનું નામ" />
+                        <BilingualLabel
+                          english="Father's Name"
+                          gujarati="પિતાનું નામ"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -467,7 +547,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Father's Mobile Number" gujarati="પિતાનો મોબાઈલ નંબર" />
+                        <BilingualLabel
+                          english="Father's Mobile Number"
+                          gujarati="પિતાનો મોબાઈલ નંબર"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -536,7 +619,6 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Phone className="h-5 w-5 text-red-600" />
                 Emergency Contact
-           
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -547,7 +629,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Close Relative's Name" gujarati="નજીકના સંબંધીનું નામ" />
+                        <BilingualLabel
+                          english="Close Relative's Name"
+                          gujarati="નજીકના સંબંધીનું નામ"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -567,7 +652,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Relative's Mobile Number" gujarati="સંબંધીનો મોબાઈલ નંબર" />
+                        <BilingualLabel
+                          english="Relative's Mobile Number"
+                          gujarati="સંબંધીનો મોબાઈલ નંબર"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -587,7 +675,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>
-                        <BilingualLabel english="Relative's Address" gujarati="સંબંધીનું સરનામું" />
+                        <BilingualLabel
+                          english="Relative's Address"
+                          gujarati="સંબંધીનું સરનામું"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -610,7 +701,6 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Briefcase className="h-5 w-5 text-orange-600" />
                 Additional Information
-               
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -621,7 +711,10 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <BilingualLabel english="Previous Work Experience" gujarati="અગાઉ કરેલ કામનો અનુભવ" />
+                        <BilingualLabel
+                          english="Previous Work Experience"
+                          gujarati="અગાઉ કરેલ કામનો અનુભવ"
+                        />
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -653,7 +746,11 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                           className="flex flex-row space-x-6"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yes" id="legal-yes" className="text-blue-600" />
+                            <RadioGroupItem
+                              value="yes"
+                              id="legal-yes"
+                              className="text-blue-600"
+                            />
                             <label
                               htmlFor="legal-yes"
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -662,7 +759,11 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
                             </label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="no" id="legal-no" className="text-blue-600" />
+                            <RadioGroupItem
+                              value="no"
+                              id="legal-no"
+                              className="text-blue-600"
+                            />
                             <label
                               htmlFor="legal-no"
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -702,5 +803,5 @@ export default function ImprovedProfileForm({ user, initialData }: ProfileFormPr
         </form>
       </Form>
     </div>
-  )
+  );
 }

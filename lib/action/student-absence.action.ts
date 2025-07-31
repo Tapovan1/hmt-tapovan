@@ -8,14 +8,14 @@ import { z } from "zod";
 // const indiaOffset = 330;
 
 // const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-const currentUtcTime = new Date();
-const indiaOffset = 330;
-const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
-const indianDateString = new Date().toLocaleDateString("en-CA", {
-  timeZone: "Asia/Kolkata",
-});
+// const currentUtcTime = new Date();
+// const indiaOffset = 330;
+// const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+// const indianDateString = new Date().toLocaleDateString("en-CA", {
+//   timeZone: "Asia/Kolkata",
+// });
 
-const formattedIndianDate = new Date(indianDateString);
+// const formattedIndianDate = new Date(indianDateString);
 
 const studentAbsenceSchema = z.object({
   id: z.string().optional(),
@@ -42,18 +42,12 @@ export async function getStudentAbsences(date: Date) {
 
     if (date) {
       targetDate = new Date(date);
-     
-      
     } else {
       const indianDateString = new Date().toLocaleDateString("en-CA", {
         timeZone: "Asia/Kolkata",
       });
       targetDate = new Date(indianDateString);
-      
-      
     }
- 
-    
 
     const absences = await prisma.studentLeave.findMany({
       where: {
@@ -76,8 +70,6 @@ export async function getStudentAbsences(date: Date) {
         photo: true,
       },
     });
-
-    
 
     return absences;
   } catch (error) {
@@ -102,26 +94,35 @@ export async function getStudentAbsenceById(id: string) {
 export async function createStudentAbsence(
   data: z.infer<typeof studentAbsenceSchema>
 ) {
+  const currentUtcTime = new Date();
+  const indiaOffset = 330;
+  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+  const indiaDateOnly = new Date(indiaTime);
+  indiaDateOnly.setHours(0, 0, 0, 0);
+
+  // console.log("indiaDateOnly", indiaDateOnly);
+  const indianDateString = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+
+  const formattedIndianDate = new Date(indianDateString);
   try {
     const validatedData = studentAbsenceSchema.parse(data);
-    
 
-
-   const absence = await prisma.studentLeave.create({
+    const absence = await prisma.studentLeave.create({
       data: {
         date: formattedIndianDate,
         rollNo: validatedData.rollNo,
         studentName: validatedData.studentName,
         class: validatedData.class,
-        standard: validatedData.standard,
+        standard: validatedData.standard ?? "",
         parentName: validatedData.parentName,
         purpose: validatedData.reason,
         status: validatedData.status,
         photo: validatedData.photo,
       },
     });
-    console.log("date",formattedIndianDate);
-    
+    console.log("date", formattedIndianDate);
 
     revalidatePath("/student-absent");
     revalidatePath("/security");
@@ -135,6 +136,18 @@ export async function createStudentAbsence(
 export async function updateStudentAbsence(
   data: z.infer<typeof studentAbsenceSchema>
 ) {
+  const currentUtcTime = new Date();
+  const indiaOffset = 330;
+  const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
+  const indiaDateOnly = new Date(indiaTime);
+  indiaDateOnly.setHours(0, 0, 0, 0);
+
+  // // console.log("indiaDateOnly", indiaDateOnly);
+  // const indianDateString = new Date().toLocaleDateString("en-CA", {
+  //   timeZone: "Asia/Kolkata",
+  // });
+
+  // const formattedIndianDate = new Date(indianDateString);
   try {
     const validatedData = studentAbsenceSchema.parse(data);
 
@@ -156,7 +169,7 @@ export async function updateStudentAbsence(
       rollNo: validatedData.rollNo,
       studentName: validatedData.studentName,
       class: validatedData.class,
-      standard: validatedData.standard,
+      standard: validatedData.standard ?? "",
       parentName: validatedData.parentName,
       purpose: validatedData.reason,
       status: validatedData.status,
