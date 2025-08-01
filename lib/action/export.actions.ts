@@ -107,10 +107,6 @@ export async function exportToExcel(params: {
         if (attendance.status) {
           cellValue = attendance.minutesLate > 0 ? attendance.minutesLate : "P";
           totalMinutesLate += attendance.minutesLate || 0;
-          console.log(
-            `Attendance for ${item.user.name} on cell value:`,
-            cellValue
-          );
         } else if (attendance.status === Status.ON_LEAVE) {
           cellValue = "L";
           leaveCount++;
@@ -120,14 +116,14 @@ export async function exportToExcel(params: {
           const minutesLate = Math.round(attendance.minutesLate || 0);
           cellValue = minutesLate > 0 ? minutesLate : "-";
           totalMinutesLate += minutesLate;
-          const totalEarlyExitValue = Math.round(attendance.early || 0);
-          totalEarlyExit += totalEarlyExitValue;
-          cellValue = totalEarlyExitValue > 0 ? totalEarlyExitValue : "-";
-          totalEarlyExit += totalEarlyExitValue;
         }
       } else if (isSunday) {
         cellValue = "H";
       }
+      const totalEarlyExitValue = Math.round(attendance?.early || 0);
+      totalEarlyExit += totalEarlyExitValue;
+      // cellValue = totalEarlyExitValue > 0 ? totalEarlyExitValue : "-";
+      // totalEarlyExit += totalEarlyExitValue;
 
       row.push(cellValue);
     }
