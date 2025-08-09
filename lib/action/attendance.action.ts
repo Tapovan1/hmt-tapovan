@@ -9,6 +9,7 @@ import { getSchedulesByDepartment } from "./work-schedule";
 import { revalidatePath } from "next/cache";
 import { determineStatus } from "../attendance";
 import { calculateDistance, isWithinRadius } from "../utils/location-utils";
+import { late } from "zod";
 
 export const getAttendance = async (user: { id: string }) => {
   if (!user) {
@@ -151,11 +152,13 @@ export async function markAttendance(formData: FormData) {
     }
 
     if (action === "checkIn" && selectedSchedule) {
-      console.log("Checking in with schedule", selectedSchedule);
-
       const indiaTime = new Date(
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
+
+      // Remove seconds & milliseconds from actual check-in
+      indiaTime.setSeconds(0, 0);
+
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
 
@@ -171,9 +174,16 @@ export async function markAttendance(formData: FormData) {
         0
       );
 
+      // Remove seconds & milliseconds from expected start time
+      expectedStartTime.setSeconds(0, 0);
+
       const diff = (indiaTime.getTime() - expectedStartTime.getTime()) / 60000;
-      minutesLate = diff > 0 ? Math.round(diff) : 0;
+      minutesLate = diff > 0 ? Math.floor(diff) : 0; // floor to avoid fractional late minutes
+      console.log("diff", diff);
     }
+
+    console.log("late", late);
+
     // console.log("minutesLate", minutesLate);
 
     if (action === "checkOut" && selectedSchedule) {
@@ -205,41 +215,50 @@ export async function markAttendance(formData: FormData) {
         error: "No schedule found for your department",
       };
     }
+    const status = determineStatus(indiaTime, {
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      graceMinutes: schedule.graceMinutes,
+      saturdayStartTime: schedule.saturdayStartTime ?? undefined,
+      saturdayEndTime: schedule.saturdayEndTime ?? undefined,
+      saturdayGraceMinutes: schedule.saturdayGraceMinutes ?? undefined,
+    });
+    console.log("status", status);
 
-    if (!attendance) {
-      // Create new attendance record
-      attendance = await prisma.attendance.create({
-        data: {
-          userId: user.id,
-          date: formattedIndianDate,
-          checkIn: action === "checkIn" ? indiaTime : undefined,
-          checkOut: action === "checkOut" ? indiaTime : undefined,
-          status: determineStatus(indiaTime, {
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            graceMinutes: schedule.graceMinutes,
-            saturdayStartTime: schedule.saturdayStartTime ?? undefined,
-            saturdayEndTime: schedule.saturdayEndTime ?? undefined,
-            saturdayGraceMinutes: schedule.saturdayGraceMinutes ?? undefined,
-          }),
-          ...(minutesLate > 0 && { late: minutesLate }),
-          photo: photo || undefined,
-          scheduleId: scheduleId || undefined,
-        },
-      });
-    } else {
-      // Update existing attendance record
-      attendance = await prisma.attendance.update({
-        where: { id: attendance.id },
-        data: {
-          checkIn: action === "checkIn" ? indiaTime : attendance.checkIn,
-          checkOut: action === "checkOut" ? indiaTime : attendance.checkOut,
-          ...(earlyExitMinutes > 0 && { early: earlyExitMinutes }),
-          ...(overtimeMinutes > 0 && { overTime: overtimeMinutes }),
-          photo: photo || attendance.photo,
-        },
-      });
-    }
+    // if (!attendance) {
+    //   // Create new attendance record
+    //   attendance = await prisma.attendance.create({
+    //     data: {
+    //       userId: user.id,
+    //       date: formattedIndianDate,
+    //       checkIn: action === "checkIn" ? indiaTime : undefined,
+    //       checkOut: action === "checkOut" ? indiaTime : undefined,
+    //       status: determineStatus(indiaTime, {
+    //         startTime: schedule.startTime,
+    //         endTime: schedule.endTime,
+    //         graceMinutes: schedule.graceMinutes,
+    //         saturdayStartTime: schedule.saturdayStartTime ?? undefined,
+    //         saturdayEndTime: schedule.saturdayEndTime ?? undefined,
+    //         saturdayGraceMinutes: schedule.saturdayGraceMinutes ?? undefined,
+    //       }),
+    //       ...(minutesLate > 0 && { late: minutesLate }),
+    //       photo: photo || undefined,
+    //       scheduleId: scheduleId || undefined,
+    //     },
+    //   });
+    // } else {
+    //   // Update existing attendance record
+    //   attendance = await prisma.attendance.update({
+    //     where: { id: attendance.id },
+    //     data: {
+    //       checkIn: action === "checkIn" ? indiaTime : attendance.checkIn,
+    //       checkOut: action === "checkOut" ? indiaTime : attendance.checkOut,
+    //       ...(earlyExitMinutes > 0 && { early: earlyExitMinutes }),
+    //       ...(overtimeMinutes > 0 && { overTime: overtimeMinutes }),
+    //       photo: photo || attendance.photo,
+    //     },
+    //   });
+    // }
     revalidatePath("/attendance");
     revalidatePath("/dashboard");
     revalidatePath("/history");
