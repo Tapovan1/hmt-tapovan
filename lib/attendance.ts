@@ -52,9 +52,16 @@ export function determineStatus(
 
   const { startDateTime } = convertScheduleToDate(selectedSchedule, now);
 
+  // Normalize to minutes (no seconds/milliseconds)
   const startTime = new Date(startDateTime);
+  startTime.setSeconds(0, 0);
+
   const graceTime = new Date(startTime);
   graceTime.setMinutes(graceTime.getMinutes() + selectedSchedule.graceMinutes);
+  graceTime.setSeconds(0, 0);
 
-  return now <= graceTime ? "PRESENT" : "LATE";
+  const normalizedNow = new Date(now);
+  normalizedNow.setSeconds(0, 0);
+
+  return normalizedNow <= graceTime ? "PRESENT" : "LATE";
 }
