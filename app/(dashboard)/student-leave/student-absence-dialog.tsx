@@ -47,16 +47,13 @@ import {
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
 import { getStandards, type StandardKey } from "@/lib/utils/index";
-import {SCHOOL,HONO }  from "@/utils/env"
+import { SCHOOL, HONO } from "@/utils/env";
 
 // Debug Step 1 - Check ENV
 
-
 // Debug Step 2 - Check standards
 
-
 const standards = getStandards(SCHOOL);
-
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -68,7 +65,7 @@ const formSchema = z.object({
   reason: z.string().min(1, "Reason is required"),
   status: z.enum(["PENDING", "DONE"]).default("PENDING"),
   photo: z.string().optional(),
-  date:z.string().optional(),
+  date: z.string().optional(),
   studentId: z.number().optional(),
 });
 
@@ -111,6 +108,7 @@ export function StudentAbsenceDialog({
     useState<keyof typeof CAMERA_QUALITY>("high");
   const [showQualityOptions, setShowQualityOptions] = useState(false);
   const [Date, setDate] = useState<Date>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -141,21 +139,18 @@ export function StudentAbsenceDialog({
       setIsLoadingStudents(true);
 
       try {
-       
-       
-        const baseUrl = SCHOOL
-           === "talod"
+        const baseUrl =
+          SCHOOL === "talod"
             ? "https://talod-tapovan.vercel.app"
             : "https://tapovanmarks.vercel.app";
 
         const url = `${baseUrl}/api/students?standard=${standard}&class=${className}`;
-      
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch students");
 
         const data = await response.json();
-       
+
         setStudents(data || []);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -169,11 +164,11 @@ export function StudentAbsenceDialog({
 
   const handleStandardChange = useCallback(
     (value: string) => {
-     
       setSelectedStandard(value);
       form.setValue("standard", value);
 
-      const classesForStandard = standards?.[value as StandardKey]?.classes || [];
+      const classesForStandard =
+        standards?.[value as StandardKey]?.classes || [];
       setAvailableClasses(classesForStandard);
 
       setSelectedClass("");
@@ -188,7 +183,6 @@ export function StudentAbsenceDialog({
 
   const handleClassChange = useCallback(
     (value: string) => {
-     
       setSelectedClass(value);
       form.setValue("class", value);
 
@@ -206,7 +200,6 @@ export function StudentAbsenceDialog({
 
   const handleStudentChange = useCallback(
     (studentId: string) => {
-     
       const student = students.find((s) => s.id.toString() === studentId);
       if (student) {
         form.setValue("studentId", student.id);
@@ -218,8 +211,6 @@ export function StudentAbsenceDialog({
   );
 
   useEffect(() => {
-  
-
     if (absence && open) {
       const stdKey = absence.standard as keyof typeof standards;
 
@@ -293,28 +284,23 @@ export function StudentAbsenceDialog({
 
   async function onSubmit(data: StudentAbsenceFormValues) {
     try {
+      setIsSubmitting(true); // start loading
+
       if (data.photo?.startsWith("data:image/")) {
-        const response = await fetch(
-          `${HONO}/upload`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              base64: data.photo,
-              project: SCHOOL,
-            }),
-          }
-        );
+        const response = await fetch(`${HONO}/upload`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            base64: data.photo,
+            project: SCHOOL,
+          }),
+        });
 
         if (!response.ok) throw new Error("Failed to upload image");
 
         const { filePath } = await response.json();
         data.photo = filePath;
       }
-
-      
 
       if (data.id) {
         await updateStudentAbsence(data);
@@ -327,9 +313,10 @@ export function StudentAbsenceDialog({
       router.refresh();
     } catch (err) {
       console.error("Failed to submit absence form:", err);
+    } finally {
+      setIsSubmitting(false); // stop loading
     }
   }
-
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -744,9 +731,18 @@ export function StudentAbsenceDialog({
               <Button
                 type="submit"
                 className="w-full sm:w-auto order-1 sm:order-2"
-                disabled={isLoadingStudents}
+                disabled={isLoadingStudents || isSubmitting}
               >
-                {absence ? "Update" : "Submit"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {absence ? "Updating..." : "Submitting..."}
+                  </>
+                ) : absence ? (
+                  "Update"
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </DialogFooter>
           </form>
