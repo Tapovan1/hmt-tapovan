@@ -1,5 +1,4 @@
-[phases.setup]
-nixPkgs = ["nodejs", "npm"]
+
 
 [phases.install]
 cmds = ["npm install --force"]
