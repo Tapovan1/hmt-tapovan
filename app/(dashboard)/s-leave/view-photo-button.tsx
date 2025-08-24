@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { HONO} from "@/utils/env"
 
 export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const [open, setOpen] = useState(false);
@@ -21,12 +20,8 @@ export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const handleViewPhoto = async () => {
     setLoading(true);
     try {
-      const photo = await fetch(
-        `${HONO}${absenceId}`
-      );
-      setPhoto(photo.url);
+      setPhoto(absenceId);
       setOpen(true);
-    
 
       setLoading(false);
     } catch (error) {

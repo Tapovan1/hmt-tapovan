@@ -11,35 +11,22 @@ export function HistoryTable({ records }: HistoryTableProps) {
   if (!records || records.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="bg-gradient-to-br from-orange-100 via-white to-green-100 p-8 rounded-xl border-2 border-dashed border-orange-300">
-          <CalendarX className="h-12 w-12 text-orange-500 mb-4 mx-auto" />
-          <h3 className="text-lg font-semibold text-slate-700">
-            No attendance records found
-          </h3>
-          <p className="text-slate-600 mt-2">
-            Try selecting a different month or year
-          </p>
-          <p className="text-sm text-orange-600 mt-2 font-medium">
-            🇮🇳 Happy Independence Day! 🇮🇳
-          </p>
-        </div>
+        <CalendarX className="h-12 w-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-medium text-gray-700">
+          No attendance records found
+        </h3>
+        <p className="text-gray-500 mt-2">
+          Try selecting a different month or year
+        </p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <div className="bg-gradient-to-r from-orange-500 via-white to-green-600 p-1 rounded-t-lg">
-        <div className="bg-white rounded-md p-3 text-center">
-          <h3 className="text-md font-bold text-slate-800">
-            🇮🇳 Attendance History - Celebrating Freedom & Responsibility 🇮🇳
-          </h3>
-        </div>
-      </div>
-
       <table className="w-full bg-white rounded-b-lg overflow-hidden shadow-lg">
         <thead>
-          <tr className="bg-gradient-to-r from-orange-50 via-white to-green-50 border-b-2 border-orange-200">
+          <tr className="border-b border-gray-100">
             <th className="py-4 px-6 font-semibold text-slate-700">Date</th>
             <th className="py-4 px-6 font-semibold text-slate-700">Check In</th>
             <th className="py-4 px-6 font-semibold text-slate-700">
@@ -56,9 +43,7 @@ export function HistoryTable({ records }: HistoryTableProps) {
           {records.map((record, index) => (
             <tr
               key={record.id}
-              className={`border-b border-orange-100 hover:bg-gradient-to-r hover:from-orange-25 hover:via-white hover:to-green-25 transition-all duration-200 ${
-                index % 2 === 0 ? "bg-slate-50/30" : "bg-white"
-              }`}
+              className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
             >
               <td className="text-center py-4 px-6 font-semibold text-slate-800">
                 {format(new Date(record.date), "MMM d, yyyy")}
@@ -104,32 +89,32 @@ function StatusBadge({ status }: { status: string }) {
 
   switch (status) {
     case "PRESENT":
-      badgeClass = "bg-green-100 text-green-800 border-green-300 shadow-sm";
+      badgeClass = "bg-green-100 text-green-800 border-green-200";
       icon = <CheckCircle className="h-3 w-3 mr-1" />;
       break;
     case "LATE":
-      badgeClass = "bg-orange-100 text-orange-800 border-orange-300 shadow-sm";
+      badgeClass = "bg-amber-100 text-amber-800 border-amber-200";
       icon = <Clock className="h-3 w-3 mr-1" />;
       break;
     case "ABSENT":
-      badgeClass = "bg-red-100 text-red-800 border-red-300 shadow-sm";
+      badgeClass = "bg-red-100 text-red-800 border-red-200";
       icon = <XCircle className="h-3 w-3 mr-1" />;
       break;
     case "ON_LEAVE":
-      badgeClass = "bg-orange-100 text-orange-800 border-orange-300 shadow-sm";
+      badgeClass = "bg-orange-100 text-orange-800 border-orange-200";
       icon = <CalendarX className="h-3 w-3 mr-1" />;
       break;
     default:
-      badgeClass = "bg-slate-100 text-slate-800 border-slate-300 shadow-sm";
+      badgeClass = "bg-gray-100 text-gray-800 border-gray-200";
   }
 
   return (
     <Badge
       variant="outline"
-      className={`flex items-center px-3 py-1 font-semibold ${badgeClass}`}
+      className={`flex items-center px-2 py-1 ${badgeClass}`}
     >
       {icon}
-      <span className="whitespace-nowrap text-xs">
+      <span className="whitespace-nowrap text-xs font-medium">
         {status === "ON_LEAVE"
           ? "On Leave"
           : status.charAt(0) + status.slice(1).toLowerCase()}

@@ -25,3 +25,9 @@ export const formatTimeTo12Hour = (time: string) => {
   const formattedMinute = minute.toString().padStart(2, "0");
   return `${formattedHour}:${formattedMinute} ${period}`;
 };
+
+export const getDate = () => {
+  const date = new Date();
+  //need format like date-month-year
+  return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+};

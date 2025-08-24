@@ -47,11 +47,9 @@ import {
 } from "@/lib/action/student-absence.action";
 import Webcam from "react-webcam";
 import { getStandards, type StandardKey } from "@/lib/utils/index";
-import { SCHOOL, HONO } from "@/utils/env";
-
-// Debug Step 1 - Check ENV
-
-// Debug Step 2 - Check standards
+import { SCHOOL } from "@/utils/env";
+import { useUploadThing } from "@/utils/uploadthing";
+import { getDate } from "@/lib/utils/date-format";
 
 const standards = getStandards(SCHOOL);
 
@@ -106,9 +104,10 @@ export function StudentAbsenceDialog({
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [cameraQuality, setCameraQuality] =
     useState<keyof typeof CAMERA_QUALITY>("high");
-  const [showQualityOptions, setShowQualityOptions] = useState(false);
-  const [Date, setDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showQualityOptions, setShowQualityOptions] = useState(false);
+  const { startUpload } = useUploadThing("imageUploader");
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -261,16 +260,20 @@ export function StudentAbsenceDialog({
     setIsFrontCamera(!isFrontCamera);
   }, [isFrontCamera]);
 
-  const capturePhoto = useCallback(() => {
+  const capturePhoto = useCallback(async () => {
     if (webcamRef.current) {
       setIsCapturing(true);
-      setTimeout(() => {
+      setTimeout(async () => {
         const imageSrc = webcamRef.current?.getScreenshot({
           width: CAMERA_QUALITY[cameraQuality].width,
           height: CAMERA_QUALITY[cameraQuality].height,
         });
-        setCapturedImage(imageSrc);
-        if (imageSrc) form.setValue("photo", imageSrc);
+
+        if (imageSrc) {
+          setCapturedImage(imageSrc);
+          form.setValue("photo", imageSrc);
+        }
+
         setIsCapturing(false);
         setIsCameraOpen(false);
       }, 500);
@@ -284,22 +287,30 @@ export function StudentAbsenceDialog({
 
   async function onSubmit(data: StudentAbsenceFormValues) {
     try {
-      setIsSubmitting(true); // start loading
+      setIsSubmitting(true);
+      console.log("data", data);
 
       if (data.photo?.startsWith("data:image/")) {
-        const response = await fetch(`${HONO}/upload`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            base64: data.photo,
-            project: SCHOOL,
-          }),
-        });
+        // Convert base64 -> File
+        const response = await fetch(data.photo);
+        const blob = await response.blob();
+        const file = new File(
+          [blob],
+          `${data.standard}-${data.studentName}-${getDate()}.jpg`,
+          {
+            type: "image/jpeg",
+          }
+        );
 
-        if (!response.ok) throw new Error("Failed to upload image");
+        // Upload using UploadThing (startUpload provided by hook at component scope)
+        const uploaded = await startUpload([file]);
 
-        const { filePath } = await response.json();
-        data.photo = filePath;
+        if (!uploaded || uploaded.length === 0) {
+          throw new Error("Upload failed");
+        }
+
+        // Replace base64 with real URL
+        data.photo = uploaded[0].url;
       }
 
       if (data.id) {
@@ -314,7 +325,7 @@ export function StudentAbsenceDialog({
     } catch (err) {
       console.error("Failed to submit absence form:", err);
     } finally {
-      setIsSubmitting(false); // stop loading
+      setIsSubmitting(false);
     }
   }
 
@@ -345,7 +356,6 @@ export function StudentAbsenceDialog({
             className="space-y-4 p-4 sm:p-0"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Standard Selection */}
               <FormField
                 control={form.control}
                 name="standard"
@@ -374,7 +384,6 @@ export function StudentAbsenceDialog({
                 )}
               />
 
-              {/* Class Selection */}
               <FormField
                 control={form.control}
                 name="class"
@@ -410,7 +419,6 @@ export function StudentAbsenceDialog({
                 )}
               />
 
-              {/* Student Selection */}
               <FormField
                 control={form.control}
                 name="studentName"
@@ -470,7 +478,6 @@ export function StudentAbsenceDialog({
                 )}
               />
 
-              {/* Roll Number (Auto-populated, read-only) */}
               <FormField
                 control={form.control}
                 name="rollNo"
@@ -504,7 +511,6 @@ export function StudentAbsenceDialog({
                 )}
               />
 
-              {/* Only show status field when editing and it's already set to DONE */}
               {absence && absence.status === "DONE" && (
                 <FormField
                   control={form.control}
@@ -672,10 +678,9 @@ export function StudentAbsenceDialog({
                             {capturedImage ? (
                               <div className="space-y-2">
                                 <div className="relative w-full max-w-[320px] mx-auto">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={capturedImage || "placeholder.jpg"}
-                                    alt="Captured student"
+                                    src={capturedImage || "/placeholder.svg"}
+                                    alt="Student photo"
                                     className="border rounded-md w-full object-cover"
                                   />
                                   <Button
@@ -705,11 +710,12 @@ export function StudentAbsenceDialog({
                                 className="w-full max-w-[320px] mx-auto"
                               >
                                 <Camera className="mr-2 h-4 w-4" />
-                                Open Camera
+                                Take Photo
                               </Button>
                             )}
                           </div>
                         )}
+
                         <input type="hidden" {...field} />
                       </div>
                     </FormControl>
