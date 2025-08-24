@@ -17,7 +17,7 @@ export default function GlobalError({
             <div className="bg-red-600 p-4 flex items-center">
               <AlertCircle className="h-6 w-6 text-white mr-2" />
               <h2 className="text-lg font-semibold text-white">
-                Critical Application Error
+                Critical Application Errors
               </h2>
             </div>
             <div className="p-6">
