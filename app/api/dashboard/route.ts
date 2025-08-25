@@ -1,13 +1,13 @@
-import { getUser } from "@/lib/action/getUser";
+// import { getUser } from "@/lib/action/getUser";
 import prisma from "@/lib/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  // Extract parameters from query string
-  const user = await getUser();
-  const userId = user?.id;
+  // // Extract parameters from query string
+  // const user = await getUser();
+  const userId = "41";
   console.log("User ID:", userId);
 
   const month = searchParams.get("month");
