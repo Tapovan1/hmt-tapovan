@@ -234,7 +234,7 @@ function RoleBadge({ role }: { role: string }) {
     case "TEACHERE":
       return (
         <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-normal">
-          Teacher
+          TeacherE
         </Badge>
       );
     case "SECURITY":
