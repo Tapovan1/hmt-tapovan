@@ -94,6 +94,8 @@ export async function getStudentAbsenceById(id: string) {
 export async function createStudentAbsence(
   data: z.infer<typeof studentAbsenceSchema>
 ) {
+  console.log("CreateStudentAbsence", data);
+
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
