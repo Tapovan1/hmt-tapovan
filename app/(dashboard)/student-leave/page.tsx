@@ -63,7 +63,7 @@
 // }
 
 import React from "react";
-import { UnderDevelopment } from "@/components/under-development";
+import UnderDevelopment from "@/components/under-development";
 
 const page = () => {
   return (
