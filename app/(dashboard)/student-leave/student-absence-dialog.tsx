@@ -48,8 +48,8 @@ import {
 import Webcam from "react-webcam";
 import { getStandards, type StandardKey } from "@/lib/utils/index";
 import { SCHOOL } from "@/utils/env";
-import { useUploadThing } from "@/utils/uploadthing";
 import { getDate } from "@/lib/utils/date-format";
+import Image from "next/image";
 
 const standards = getStandards(SCHOOL);
 
@@ -98,6 +98,7 @@ export function StudentAbsenceDialog({
   const [capturedImage, setCapturedImage] = useState<string | null>(
     absence?.photo || null
   );
+
   const [isCapturing, setIsCapturing] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
@@ -107,7 +108,6 @@ export function StudentAbsenceDialog({
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQualityOptions, setShowQualityOptions] = useState(false);
-  const { startUpload } = useUploadThing("imageUploader");
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -302,15 +302,16 @@ export function StudentAbsenceDialog({
           }
         );
 
-        // Upload using UploadThing (startUpload provided by hook at component scope)
-        const uploaded = await startUpload([file]);
-
-        if (!uploaded || uploaded.length === 0) {
-          throw new Error("Upload failed");
-        }
-
-        // Replace base64 with real URL
-        data.photo = uploaded[0].url;
+        const uploadRes = await fetch("http://103.247.81.40:3005/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            base64: data.photo,
+            project: process.env.NEXT_PUBLIC_SCHOOL,
+          }),
+        });
+        const saveFile = await uploadRes.json();
+        data.photo = saveFile.filePath;
       }
 
       if (data.id) {
@@ -678,9 +679,11 @@ export function StudentAbsenceDialog({
                             {capturedImage ? (
                               <div className="space-y-2">
                                 <div className="relative w-full max-w-[320px] mx-auto">
-                                  <img
+                                  <Image
                                     src={capturedImage || "/placeholder.svg"}
                                     alt="Student photo"
+                                    width={320}
+                                    height={320}
                                     className="border rounded-md w-full object-cover"
                                   />
                                   <Button

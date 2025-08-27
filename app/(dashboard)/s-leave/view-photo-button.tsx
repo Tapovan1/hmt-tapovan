@@ -20,7 +20,8 @@ export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const handleViewPhoto = async () => {
     setLoading(true);
     try {
-      setPhoto(absenceId);
+      const res = await fetch(`http://103.247.81.40:3005/${absenceId}`);
+      setPhoto(res.url);
       setOpen(true);
 
       setLoading(false);
