@@ -13,7 +13,7 @@ export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371000; // Earth's radius in meters (was 6371 km)
   const dLat = toRad(lat2 - lat1);
@@ -37,7 +37,7 @@ export function isWithinRadius(
   userLon: number,
   targetLat: number,
   targetLon: number,
-  radiusMeters: number
+  radiusMeters: number,
 ): boolean {
   const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
   // return true;
@@ -50,7 +50,7 @@ export function isWithinRadius(
 export function formatCoordinates(
   latitude: number | null,
   longitude: number | null,
-  decimals = 6
+  decimals = 6,
 ): string {
   if (latitude === null || longitude === null) {
     return "Unknown location";

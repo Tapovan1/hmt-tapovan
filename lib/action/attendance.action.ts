@@ -100,7 +100,7 @@ export async function markAttendance(formData: FormData) {
     if (isOnLeave) {
       return {
         success: false,
-        error: "You are on approved leave today and cannot mark attendance.",
+        message: "You are on approved leave today and cannot mark attendance.",
         isOnLeave: true,
       };
     }
@@ -118,7 +118,7 @@ export async function markAttendance(formData: FormData) {
     if (!schedule) {
       return {
         success: false,
-        error: "No schedule found for your department",
+        message: "No schedule found for your department",
       };
     }
 
@@ -147,13 +147,13 @@ export async function markAttendance(formData: FormData) {
     if (!selectedSchedule) {
       return {
         success: false,
-        error: "No schedule found for your department",
+        message: "No schedule found for your department",
       };
     }
 
     if (action === "checkIn" && selectedSchedule) {
       const indiaTime = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
       );
 
       // Remove seconds & milliseconds from actual check-in
@@ -171,7 +171,7 @@ export async function markAttendance(formData: FormData) {
         startHour,
         startMinute + (selectedSchedule.graceMinutes ?? 0),
         0,
-        0
+        0,
       );
 
       // Remove seconds & milliseconds from expected start time
@@ -188,7 +188,7 @@ export async function markAttendance(formData: FormData) {
 
     if (action === "checkOut" && selectedSchedule) {
       const indiaTime = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
       );
       const today = new Date(indiaTime);
       today.setHours(0, 0, 0, 0);
@@ -212,7 +212,7 @@ export async function markAttendance(formData: FormData) {
     if (!schedule) {
       return {
         success: false,
-        error: "No schedule found for your department",
+        message: "No schedule found for your department",
       };
     }
     const status = determineStatus(indiaTime, {
@@ -277,7 +277,7 @@ export async function markAttendance(formData: FormData) {
 export async function validateLocation(
   accuracy: number,
   latitude: number,
-  longitude: number
+  longitude: number,
 ) {
   try {
     const user = await getUser();
@@ -323,7 +323,7 @@ export async function validateLocation(
       longitude,
       schedule.latitude,
       schedule.longitude,
-      allowedRadius
+      allowedRadius,
     );
 
     // Calculate distance for the message
@@ -331,7 +331,7 @@ export async function validateLocation(
       latitude,
       longitude,
       schedule.latitude,
-      schedule.longitude
+      schedule.longitude,
     );
 
     return {
@@ -339,9 +339,9 @@ export async function validateLocation(
       message: isWithinRange
         ? "Location validated successfully"
         : `You are not within the allowed location range (${distance.toFixed(
-            0
+            0,
           )}m away, max ${allowedRadius.toFixed(
-            0
+            0,
           )}m) accuracy (${accuracy.toFixed(0)}m)`,
       distance: distance,
       isWithinRange: isWithinRange,

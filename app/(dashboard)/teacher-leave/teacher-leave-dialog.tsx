@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
@@ -40,7 +41,7 @@ export function TeacherLeaveDialog({
           const day = String(date.getDate()).padStart(2, "0");
           return `${year}-${month}-${day}`;
         })()
-      : ""
+      : "",
   );
 
   const [endDate, setEndDate] = useState<string>(
@@ -52,7 +53,7 @@ export function TeacherLeaveDialog({
           const day = String(date.getDate()).padStart(2, "0");
           return `${year}-${month}-${day}`;
         })()
-      : ""
+      : "",
   );
 
   const [reason, setReason] = useState(leave?.reason || "");
@@ -79,11 +80,27 @@ export function TeacherLeaveDialog({
     };
 
     try {
-      if (data.id) {
-        await updateTeacherLeave(data);
-      } else {
-        await createTeacherLeave(data);
-      }
+      const promise = async () => {
+        if (data.id) {
+          const res = await updateTeacherLeave(data);
+          if (!res.success) throw new Error(res.message || "Update failed");
+          return { type: "update" };
+        } else {
+          const res = await createTeacherLeave(data);
+          if (!res.success) throw new Error(res.message || "Creation failed");
+          return { type: "create" };
+        }
+      };
+
+      toast.promise(promise(), {
+        loading: "Creating leave request...",
+        success: (result) =>
+          result.type === "update"
+            ? "Leave updated successfully"
+            : "Leave request submitted",
+        error: (err) => err.message || "Something went wrong",
+      });
+
       setOpen(false);
       router.refresh();
     } catch (error) {
@@ -149,6 +166,7 @@ export function TeacherLeaveDialog({
             onChange={(e) => setReason(e.target.value)}
             placeholder="Enter reason for leave"
             className="resize-none min-h-[100px] border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            required
           />
         </div>
 
