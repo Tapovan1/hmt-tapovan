@@ -90,7 +90,7 @@ export default function AttendanceForm({
       longitude: number;
       accuracy: number;
       isReliable: boolean;
-    } | null
+    } | null,
   ) => {
     if (!newLocation) return;
     setLocation(newLocation);
@@ -110,7 +110,7 @@ export default function AttendanceForm({
       const validation = await validateLocation(
         loc.accuracy,
         loc.latitude,
-        loc.longitude
+        loc.longitude,
       );
       if (validation.isWithinRange) {
         setIsLocationValid(true);
@@ -139,11 +139,11 @@ export default function AttendanceForm({
 
   const handleSubmit = async (action: "checkIn" | "checkOut") => {
     if (!capturedImage) {
-      toast("Please capture a photo before submitting.");
+      toast.error("Please capture a photo before submitting.");
       return;
     }
     if (!location) {
-      toast("Please wait for your location to be detected.");
+      toast.error("Please wait for your location to be detected.");
       return;
     }
 
@@ -164,33 +164,32 @@ export default function AttendanceForm({
     }
 
     try {
-      const result = await markAttendance(formData);
-      if (result.success) {
-        toast(
-          `${action === "checkIn" ? "Checked In" : "Checked Out"} successfully!`
-        );
-        setCapturedImage(null);
+      const promise = async () => {
+        const res = await markAttendance(formData);
+        if (!res.success) throw new Error(res.message || "Attendance failed");
+        return res; // keep full result for late check handling
+      };
 
-        // Show late attendance modal if attendance is late
-        if (lateCheck.isLate) {
-          setLateAttendanceData({
-            type: action,
-            lateMinutes: lateCheck.lateMinutes,
-          });
-          setShowLateModal(true);
-        }
+      toast.promise(promise(), {
+        loading: "Marking attendance...",
+        success: () =>
+          `${action === "checkIn" ? "Checked In" : "Checked Out"} successfully!`,
+        error: (err) =>
+          err.message || "An error occurred while marking attendance",
+      });
 
-        router.refresh();
-      } else {
-        if (result.isOnLeave) {
-          setIsOnLeave(true);
-          setLeaveMessage(result.error);
-        } else {
-          toast(
-            "An error occurred while marking attendance. Please try again."
-          );
-        }
-      }
+      setCapturedImage(null);
+
+      // // Show late attendance modal if attendance is late
+      // if (lateCheck.isLate) {
+      //   setLateAttendanceData({
+      //     type: action,
+      //     lateMinutes: lateCheck.lateMinutes,
+      //   });
+      //   setShowLateModal(true);
+      // }
+
+      router.refresh();
     } catch (error) {
       toast("An error occurred while marking attendance. Please try again.");
       console.error("Error marking attendance:", error);
@@ -268,8 +267,8 @@ export default function AttendanceForm({
                   {!isLocationValid
                     ? "Please wait for location validation"
                     : !isAllowedTime
-                    ? "Outside of allowed check-in hours"
-                    : "Click to capture your attendance photo"}
+                      ? "Outside of allowed check-in hours"
+                      : "Click to capture your attendance photo"}
                 </div>
               </div>
             )}

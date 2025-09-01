@@ -121,7 +121,7 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
     if (existingLeaves.length > 0) {
       return {
         success: false,
-        error: "Leave request overlaps with existing approved leaves.",
+        message: "Leave request overlaps with existing leaves.",
       };
     }
     const days = generateDateRange(startDate, endDate);
@@ -143,10 +143,10 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
     });
 
     revalidatePath("/teacher-leaves");
-    return { success: true, data: leave };
+    return { success: true, message: "Leave Request Submitted...." };
   } catch (error) {
     console.error("Failed to create teacher leave:", error);
-    return { success: false, error };
+    return { success: false, error, message: error };
   }
 }
 
@@ -173,10 +173,14 @@ export async function updateTeacherLeave(data: UpdateTeacherLeaveData) {
     });
 
     revalidatePath("/teacher-leaves");
-    return { success: true, data: leave };
+    return {
+      success: true,
+      data: leave,
+      message: "Leave Request Updated Sucessfully...",
+    };
   } catch (error) {
     console.error("Failed to update teacher leave:", error);
-    return { success: false, error };
+    return { success: false, error, message: "failed" };
   }
 }
 
