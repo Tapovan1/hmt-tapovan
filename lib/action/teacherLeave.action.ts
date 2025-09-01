@@ -105,7 +105,7 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
     const existingLeaves = await prisma.teacherLeave.findMany({
       where: {
         userId: user.id,
-        status: "APPROVED",
+
         OR: [
           {
             startDate: {
@@ -338,7 +338,7 @@ export async function isTeacherOnLeave(userId: string, date: Date) {
 export async function getTeacherLeaveDays(
   userId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   try {
     const leaves = await prisma.teacherLeave.findMany({
@@ -359,10 +359,10 @@ export async function getTeacherLeaveDays(
 
     leaves.forEach((leave) => {
       const leaveStart = new Date(
-        Math.max(leave.startDate.getTime(), startDate.getTime())
+        Math.max(leave.startDate.getTime(), startDate.getTime()),
       );
       const leaveEnd = new Date(
-        Math.min(leave.endDate.getTime(), endDate.getTime())
+        Math.min(leave.endDate.getTime(), endDate.getTime()),
       );
 
       const currentDate = new Date(leaveStart);
