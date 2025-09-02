@@ -28,12 +28,6 @@ export default async function Layout({ children }: LayoutProps) {
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Attendance System
             </h1>
-            <Badge
-              variant="outline"
-              className="text-xs font-medium text-purple-600 border-purple-200"
-            >
-              BETA
-            </Badge>
           </div>
           <div className="justify-end flex-1 flex items-center">
             {user && <Header user={user} />}
