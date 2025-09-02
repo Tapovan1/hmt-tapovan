@@ -59,7 +59,8 @@ export function TeacherLeaveDialog({
   const [reason, setReason] = useState(leave?.reason || "");
 
   async function onSubmit() {
-    if (!startDate || !endDate) {
+    if (!startDate || !endDate || !reason) {
+      toast.error("Please fill in all fields");
       return;
     }
 
