@@ -52,7 +52,7 @@ export async function GET() {
         message:
           "All teachers already marked or no teachers found in auto-absent departments",
       });
-    }
+    } 
   } catch (err) {
     console.error(err);
     return NextResponse.json(

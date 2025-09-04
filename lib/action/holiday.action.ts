@@ -26,6 +26,28 @@ export interface UpdateHolidayData extends CreateHolidayData {
   id: string;
 }
 
+//get holiday by today date
+ export async function getTodayHoliday(){
+
+   const indianDateString = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Kolkata",
+    });
+
+    const formattedIndianDate = new Date(indianDateString);
+  console.log("check date",formattedIndianDate);
+  
+
+
+  const holiday = await prisma.holiday.findFirst({
+    where:{
+      date:formattedIndianDate,
+    }
+  });
+
+  if(holiday) return true;
+   
+ }
+
 // Get all holidays with optional filtering
 export async function getHolidays(
   year?: number,
@@ -87,38 +109,22 @@ export async function getHolidays(
 export async function createHoliday(
   data: CreateHolidayData
 ): Promise<{ success: boolean; error?: string; message?: string }> {
+  const date = new Date(Number(data.date));
+  date.setUTCHours(0, 0, 0, 0);
+
+  
+
   try {
     const existingHoliday = await prisma.holiday.findFirst({
-      where: {
-        AND: [
-          {
-            date: {
-              gte: new Date(
-                data.date.getFullYear(),
-                data.date.getMonth(),
-                data.date.getDate()
-              ),
-              lt: new Date(
-                data.date.getFullYear(),
-                data.date.getMonth(),
-                data.date.getDate() + 1
-              ),
-            },
-          },
-          {
-            name: {
-              equals: data.name,
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
+      where : {
+        date:date
+      }
     });
 
     if (existingHoliday) {
       return {
         success: false,
-        error: "A holiday with the same name already exists on this date",
+        error: "A holiday already exists on this date",
       };
     }
 
@@ -126,7 +132,7 @@ export async function createHoliday(
     await prisma.holiday.create({
       data: {
         name: data.name.trim(),
-        date: data.date,
+        date: date,
         type: data.type,
         description: data.description?.trim() || null,
       },
@@ -150,6 +156,8 @@ export async function createHoliday(
 export async function updateHoliday(
   data: UpdateHolidayData
 ): Promise<{ success: boolean; error?: string; message?: string }> {
+  const date = new Date(Number(data.date));
+  date.setUTCHours(0, 0, 0, 0);
   try {
     const existingHoliday = await prisma.holiday.findUnique({
       where: { id: data.id },
@@ -161,37 +169,14 @@ export async function updateHoliday(
 
     // Check for duplicate holidays on the same date (excluding current holiday)
     const duplicateHoliday = await prisma.holiday.findFirst({
-      where: {
-        AND: [
-          { id: { not: data.id } },
-          {
-            date: {
-              gte: new Date(
-                data.date.getFullYear(),
-                data.date.getMonth(),
-                data.date.getDate()
-              ),
-              lt: new Date(
-                data.date.getFullYear(),
-                data.date.getMonth(),
-                data.date.getDate() + 1
-              ),
-            },
-          },
-          {
-            name: {
-              equals: data.name,
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
-    });
-
+      where:{
+        date:date,
+      }
+    })
     if (duplicateHoliday) {
       return {
         success: false,
-        error: "A holiday with the same name already exists on this date",
+        error: "A holiday already exists on this date",
       };
     }
 
@@ -200,7 +185,7 @@ export async function updateHoliday(
       where: { id: data.id },
       data: {
         name: data.name.trim(),
-        date: data.date,
+        date: date,
         type: data.type,
         description: data.description?.trim() || null,
 

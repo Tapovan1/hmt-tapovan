@@ -6,6 +6,7 @@ import { getUser } from "@/lib/action/getUser";
 import { getSchedulesByDepartment } from "@/lib/action/work-schedule";
 import AttendanceStatus from "./attendance-status";
 import AttendanceForm from "./attendance-form";
+import { getTodayHoliday } from "@/lib/action/holiday.action";
 
 export const experimental_ppr = true;
 
@@ -23,6 +24,7 @@ export default async function AttendancePage() {
   const attendance = await getAttendance({
     id: typeof session?.userId === "string" ? session.userId : "",
   });
+  const holiday = await getTodayHoliday();
 
   if (!user) {
     return null;
@@ -31,6 +33,30 @@ export default async function AttendancePage() {
   const isOnLeave = attendance?.status === "ON_LEAVE";
   const hasMarkedAttendance =
     (attendance?.checkOut && !isOnLeave) || attendance?.status === "ABSENT";
+
+  if(holiday){
+    
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+      <div className="max-w-md w-full p-8 flex flex-col items-center justify-center space-y-6 text-center bg-white rounded-xl shadow-sm border border-blue-200">
+        <div className="bg-blue-50 p-4 rounded-full">
+          <CalendarDays className="w-12 h-12 text-blue-500" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Holiday Today
+          </h1>
+          <p className="text-gray-600">
+            
+               "It’s a holiday today. You do not need to mark your attendance."
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+  
 
   if (isOnLeave) {
     return (
