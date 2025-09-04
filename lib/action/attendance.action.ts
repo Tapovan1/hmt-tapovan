@@ -9,14 +9,13 @@ import { getSchedulesByDepartment } from "./work-schedule";
 import { revalidatePath } from "next/cache";
 import { determineStatus } from "../attendance";
 import { calculateDistance, isWithinRadius } from "../utils/location-utils";
-import { late } from "zod";
 
 export const getAttendance = async (user: { id: string }) => {
+
   if (!user) {
     return null;
   }
 
-  // Get today's date with time set to 00:00:00 asia/kolkata time zone
   const currentUtcTime = new Date();
   const indiaOffset = 330;
   const indiaTime = new Date(currentUtcTime.getTime() + indiaOffset * 60000);
@@ -131,15 +130,15 @@ export async function markAttendance(formData: FormData) {
     // Select correct schedule based on the day
     const selectedSchedule = isSaturday
       ? {
-          startTime: schedule.saturdayStartTime,
-          endTime: schedule.saturdayEndTime,
-          graceMinutes: schedule.saturdayGraceMinutes,
-        }
+        startTime: schedule.saturdayStartTime,
+        endTime: schedule.saturdayEndTime,
+        graceMinutes: schedule.saturdayGraceMinutes,
+      }
       : {
-          startTime: schedule?.startTime,
-          endTime: schedule?.endTime,
-          graceMinutes: schedule?.graceMinutes || 0,
-        };
+        startTime: schedule?.startTime,
+        endTime: schedule?.endTime,
+        graceMinutes: schedule?.graceMinutes || 0,
+      };
 
     // console.log("selectedSchedule", selectedSchedule);
 
@@ -182,7 +181,7 @@ export async function markAttendance(formData: FormData) {
       console.log("diff", diff);
     }
 
-    console.log("late", late);
+   
 
     // console.log("minutesLate", minutesLate);
 
@@ -339,10 +338,10 @@ export async function validateLocation(
       message: isWithinRange
         ? "Location validated successfully"
         : `You are not within the allowed location range (${distance.toFixed(
-            0,
-          )}m away, max ${allowedRadius.toFixed(
-            0,
-          )}m) accuracy (${accuracy.toFixed(0)}m)`,
+          0,
+        )}m away, max ${allowedRadius.toFixed(
+          0,
+        )}m) accuracy (${accuracy.toFixed(0)}m)`,
       distance: distance,
       isWithinRange: isWithinRange,
       allowedRadius: allowedRadius,

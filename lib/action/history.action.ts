@@ -77,6 +77,8 @@ export const getTodayAdminAttendance = async (
   };
 };
 
+
+
 export const getAttendanceHistory = async (
   user: {
     role: string;
@@ -89,41 +91,29 @@ export const getAttendanceHistory = async (
   year: number | undefined
 ) => {
   const currentDate = new Date();
-  const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // Month is 0-based in Date.UTC
+  const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // 0-based
   const selectedYear = year || currentDate.getUTCFullYear();
 
-  const monthStart = new Date(Date.UTC(selectedYear, selectedMonth, 1)); // Correct start of the month
+  const monthStart = new Date(Date.UTC(selectedYear, selectedMonth, 1));
   const monthEnd = new Date(
     Date.UTC(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999)
-  ); // Correct end of the month
-  let attendanceRecords;
+  );
 
+  // 1. Fetch attendance only for the selected month
+  let attendanceRecords;
   if (user?.role === "ADMIN") {
     attendanceRecords = await prisma.attendance.findMany({
-      include: {
-        user: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        date: "desc",
-      },
+      where: { date: { gte: monthStart, lte: monthEnd } },
+      include: { user: { select: { name: true } } },
+      orderBy: { date: "desc" },
     });
   } else {
     attendanceRecords = await prisma.attendance.findMany({
       where: {
         userId: user?.id,
-        date: {
-          gte: monthStart,
-          lte: monthEnd,
-        },
+        date: { gte: monthStart, lte: monthEnd },
       },
-
-      orderBy: {
-        date: "desc",
-      },
+      orderBy: { date: "asc" },
       select: {
         id: true,
         date: true,
@@ -136,5 +126,59 @@ export const getAttendanceHistory = async (
     });
   }
 
-  return attendanceRecords;
+  // 2. Fetch holidays for this month
+  const holidays = await prisma.holiday.findMany({
+    where: { date: { gte: monthStart, lte: monthEnd } },
+    select: { date: true, name: true },
+  });
+
+  // 3. Generate Sundays only (don’t generate all days)
+  const sundays: { date: Date }[] = [];
+  let d = new Date(monthStart);
+  while (d <= monthEnd) {
+    if (d.getUTCDay() === 0) {
+      sundays.push({ date: new Date(d) });
+    }
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+
+  // 4. Merge data
+  const finalRecords: {
+    date: Date;
+    type: "WORKING" | "SUNDAY" | "HOLIDAY";
+    holidayName?: string;
+    attendance?: any;
+  }[] = [];
+
+  // add Sundays
+  sundays.forEach((s) =>
+    finalRecords.push({ date: s.date, type: "SUNDAY" })
+  );
+
+  // add holidays
+  holidays.forEach((h) =>
+    finalRecords.push({
+      date: h.date,
+      type: "HOLIDAY",
+      holidayName: h.name,
+    })
+  );
+
+  // add attendance
+  attendanceRecords.forEach((a: any) =>
+    finalRecords.push({
+      date: a.date,
+      type: "WORKING",
+      attendance: a,
+    })
+  );
+
+  // 5. Sort by date (ascending to match your UI)
+  finalRecords.sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  return finalRecords;
 };
+
+

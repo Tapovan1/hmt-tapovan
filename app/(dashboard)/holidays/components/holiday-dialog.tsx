@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/date-picker";
 import {
   createHoliday,
@@ -50,6 +49,7 @@ export function HolidayDialog({ children, holiday }: HolidayDialogProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
   const resetForm = () => {
     if (!holiday) {
       setName("");
@@ -72,11 +72,15 @@ export function HolidayDialog({ children, holiday }: HolidayDialogProps) {
       return;
     }
 
+    const adjustedStartDate = new Date(date);
+      adjustedStartDate.setDate(adjustedStartDate.getDate() + 1);
+      adjustedStartDate.setHours(0, 0, 0, 0);
+
     setIsSubmitting(true);
 
     const holidayData = {
       name: name.trim(),
-      date,
+      date: adjustedStartDate,
       type: type as "NATIONAL" | "RELIGIOUS" | "SCHOOL" | "LOCAL",
       description: description.trim() || undefined,
     };
@@ -95,8 +99,9 @@ export function HolidayDialog({ children, holiday }: HolidayDialogProps) {
             ? "Holiday updated successfully"
             : "Holiday created successfully"
         );
-        setOpen(false);
         resetForm();
+        setOpen(false);
+        
         router.refresh();
       } else {
         toast.error(result.error || "Failed to save holiday");

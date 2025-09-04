@@ -83,6 +83,17 @@ export const markTeachersAbsent = async (
     return { success: false, message: "Cannot mark absent on Sunday" };
   }
 
+  //check also if alredy have
+  const isHoliday = await prisma.holiday.findFirst({
+    where : {
+      date: targetDate
+    }
+  });
+
+  if (isHoliday) {
+    return { success: false, message: "Cannot mark absent on a holiday" };
+  }
+
   try {
     const absentRecords = await prisma.attendance.createMany({
       data: teacherIds.map((userId) => ({

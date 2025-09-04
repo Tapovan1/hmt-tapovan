@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CalendarX, CheckCircle, Clock, XCircle } from "lucide-react";
+import { CalendarX, CheckCircle, Clock, XCircle, Calendar } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { formatIndianTime } from "@/lib/utils/date-format";
 
@@ -29,54 +29,93 @@ export function HistoryTable({ records }: HistoryTableProps) {
           <tr className="border-b border-gray-100">
             <th className="py-4 px-6 font-semibold text-slate-700">Date</th>
             <th className="py-4 px-6 font-semibold text-slate-700">Check In</th>
-            <th className="py-4 px-6 font-semibold text-slate-700">
-              Check Out
-            </th>
+            <th className="py-4 px-6 font-semibold text-slate-700">Check Out</th>
             <th className="py-4 px-6 font-semibold text-slate-700">Status</th>
-            <th className="py-4 px-6 font-semibold text-slate-700">
-              Late Minute
-            </th>
+            <th className="py-4 px-6 font-semibold text-slate-700">Late Minute</th>
             <th className="py-4 px-6 font-semibold text-slate-700">Early</th>
           </tr>
         </thead>
         <tbody>
-          {records.map((record, index) => (
-            <tr
-              key={record.id}
-              className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
-            >
-              <td className="text-center py-4 px-6 font-semibold text-slate-800">
-                {format(new Date(record.date), "MMM d, yyyy")}
-              </td>
-              <td className="text-center py-4 px-6 text-slate-700 font-medium">
-                {formatIndianTime(record.checkIn)}
-              </td>
-              <td className="text-center py-4 px-6 text-slate-700 font-medium">
-                {formatIndianTime(record.checkOut)}
-              </td>
-              <td className="flex items-center justify-center py-4 px-6">
-                <StatusBadge status={record.status} />
-              </td>
-              <td className="text-center py-4 px-6">
-                {record.late > 0 ? (
-                  <span className="text-red-600 font-semibold bg-red-50 px-2 py-1 rounded-full">
-                    {record.late} min
-                  </span>
-                ) : (
-                  <span className="text-slate-600 font-medium">N/A</span>
-                )}
-              </td>
-              <td className="text-center py-4 px-6">
-                {record.early > 0 ? (
-                  <span className="text-red-600 font-semibold bg-red-50 px-2 py-1 rounded-full">
-                    {record.early} min
-                  </span>
-                ) : (
-                  <span className="text-slate-600 font-medium">N/A</span>
-                )}
-              </td>
-            </tr>
-          ))}
+          {records.map((record, index) => {
+            const attendance = record.attendance || null;
+
+            // highlight rows
+            let rowClass =
+              "border-b border-gray-100 hover:bg-gray-50/50 transition-colors";
+            if (record.type === "SUNDAY") {
+              rowClass = "bg-blue-50 border-b border-gray-100";
+            } else if (record.type === "HOLIDAY") {
+              rowClass = "bg-purple-50 border-b border-gray-100";
+            }
+
+            return (
+              <tr key={index} className={rowClass}>
+                {/* Date */}
+                <td className="text-center py-4 px-6 font-semibold text-slate-800">
+                  {format(new Date(record.date), "MMM d, yyyy")}
+                </td>
+
+                {/* Check In */}
+                <td className="text-center py-4 px-6 text-slate-700 font-medium">
+                  {attendance?.checkIn
+                    ? formatIndianTime(attendance.checkIn)
+                    : "-"}
+                </td>
+
+                {/* Check Out */}
+                <td className="text-center py-4 px-6 text-slate-700 font-medium">
+                  {attendance?.checkOut
+                    ? formatIndianTime(attendance.checkOut)
+                    : "-"}
+                </td>
+
+                {/* Status */}
+                <td className="flex items-center justify-center py-4 px-6">
+                  {record.type === "SUNDAY" ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center px-2 py-1 bg-blue-100 text-blue-800 border-blue-200"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Sunday
+                    </Badge>
+                  ) : record.type === "HOLIDAY" ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 border-purple-200"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {record.holidayName || "Holiday"}
+                    </Badge>
+                  ) : (
+                    <StatusBadge status={attendance?.status || "ABSENT"} />
+                  )}
+                </td>
+
+                {/* Late */}
+                <td className="text-center py-4 px-6">
+                  {attendance?.late > 0 ? (
+                    <span className="text-red-600 font-semibold bg-red-50 px-2 py-1 rounded-full">
+                      {attendance.late} min
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 font-medium">N/A</span>
+                  )}
+                </td>
+
+                {/* Early */}
+                <td className="text-center py-4 px-6">
+                  {attendance?.early > 0 ? (
+                    <span className="text-red-600 font-semibold bg-red-50 px-2 py-1 rounded-full">
+                      {attendance.early} min
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 font-medium">N/A</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
