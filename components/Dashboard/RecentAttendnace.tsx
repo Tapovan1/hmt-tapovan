@@ -10,6 +10,7 @@ export default function RecentAttendance({
   recentAttendance: {
     date: string;
     checkIn?: string;
+    checkOut?: string;
     status: "PRESENT" | "LATE" | "ABSENT" | "ON_LEAVE";
   }[];
 }) {
@@ -36,7 +37,17 @@ export default function RecentAttendance({
                   {record.checkIn
                     ? formatIndianTime(record.checkIn)
                     : "Not marked"}
+                    {""}
+                   |
+                    {""} 
+                    <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                   {
+record.checkOut
+                    ? formatIndianTime(record.checkOut)
+                    : "Not marked"
+                   }
                 </div>
+                
               </div>
               <StatusBadge status={record.status} />
             </div>

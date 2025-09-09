@@ -107,7 +107,14 @@ export const getDashboardStats = async (
     orderBy: {
       date: "desc",
     },
-    take: 5,
+    take: 2,
+    select:{
+      date: true,
+      status: true,
+      checkIn: true,
+      checkOut: true,
+      
+    }
   });
 
   return {
@@ -169,6 +176,10 @@ export async function getAdminDashboardStats() {
     (a: { status: string }) => a.status === "ABSENT"
   ).length;
 
+  const onLeaveToday = todayAttendance.filter(
+    (a: { status: string }) => a.status === "ON_LEAVE"
+  ).length;
+
   const recentActivities = await prisma.attendance.findMany({
     where: {
       date: formattedIndianDate,
@@ -192,6 +203,7 @@ export async function getAdminDashboardStats() {
       present: presentToday,
       late: lateToday,
       absent: absentToday,
+      onLeave: onLeaveToday,
     },
     recentActivities,
   };
