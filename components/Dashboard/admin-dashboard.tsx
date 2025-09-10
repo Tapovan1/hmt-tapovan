@@ -87,7 +87,10 @@ export async function AdminDashboard() {
             <div className="text-3xl font-bold text-gray-800">
               {data.todayStats.present +
                 data.todayStats.absent +
-                data.todayStats.late}
+                data.todayStats.late +
+                data.todayStats.onLeave
+              
+              }
             </div>
             <div className="flex items-center mt-1">
               <Badge className="bg-green-100 text-green-800 hover:bg-green-100 mr-2">
@@ -175,13 +178,12 @@ export async function AdminDashboard() {
                     className="flex items-start space-x-4 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
                   >
                     <div
-                      className={`p-2 rounded-full flex-shrink-0 ${
-                        activity.status === "PRESENT"
+                      className={`p-2 rounded-full flex-shrink-0 ${activity.status === "PRESENT"
                           ? "bg-green-50"
                           : activity.status === "LATE"
-                          ? "bg-amber-50"
-                          : "bg-red-50"
-                      }`}
+                            ? "bg-amber-50"
+                            : "bg-red-50"
+                        }`}
                     >
                       {activity.status === "PRESENT" ? (
                         <CalendarCheck className="h-5 w-5 text-green-600" />
@@ -203,13 +205,12 @@ export async function AdminDashboard() {
                       <p className="text-sm text-gray-600 mt-1">
                         Marked attendance
                         <Badge
-                          className={`ml-2 ${
-                            activity.status === "PRESENT"
+                          className={`ml-2 ${activity.status === "PRESENT"
                               ? "bg-green-100 text-green-800 hover:bg-green-100"
                               : activity.status === "LATE"
-                              ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                              : "bg-red-100 text-red-800 hover:bg-red-100"
-                          }`}
+                                ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                : "bg-red-100 text-red-800 hover:bg-red-100"
+                            }`}
                         >
                           {activity.status}
                         </Badge>

@@ -211,7 +211,30 @@ export async function updateLeaveStatus(formData: FormData) {
 
     // If the leave is approved, create attendance records
     if (status === "APPROVED") {
-      await createAttendanceRecordsForLeave(leave);
+      //check if attendance records already exist for the leave period
+      const attendanceExists = await prisma.attendance.findMany({
+        where: {
+          userId: leave.userId,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      });
+
+      if (attendanceExists.length === 0) {
+        await createAttendanceRecordsForLeave(leave);
+      }else{
+        // Update existing attendance records to "ON_LEAVE"
+        for (const record of attendanceExists) {
+          if (record.status !== "ON_LEAVE") {
+            await prisma.attendance.update({
+              where: { id: record.id },
+              data: { status: "ON_LEAVE" },
+            });
+          }
+        }
+      }
     }
 
     // If the leave is rejected, delete existing ON_LEAVE attendance records
