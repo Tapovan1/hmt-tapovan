@@ -20,7 +20,7 @@ export function ViewPhotoButton({ absenceId }: { absenceId: string }) {
   const handleViewPhoto = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://103.247.81.40:3005${absenceId}`);
+      const res = await fetch(`https://hono.tapovanvidhyamandirsankul.com${absenceId}`);
     
      
       console.log("view photo",res);

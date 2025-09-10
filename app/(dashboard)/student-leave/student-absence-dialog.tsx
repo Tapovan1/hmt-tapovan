@@ -302,7 +302,7 @@ export function StudentAbsenceDialog({
           }
         );
 
-        const uploadRes = await fetch("http://103.247.81.40:3005/upload", {
+        const uploadRes = await fetch("https://hono.tapovanvidhyamandirsankul.com/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
