@@ -57,7 +57,16 @@ export async function getReportDataWithoutPagination(params: {
     ...usersQuery,
     orderBy: { name: "asc" },
   });
+ //checkif givern date rangee holiday exists in holiday table
+ const holidays = await prisma.holiday.findMany({
+   where : {
+     date:{
+       gte:startDate,
+       lte:endDate
+     },
 
+   }
+ })
   // Process users in smaller batches to avoid connection pool exhaustion
   const batchSize = 10;
   const reportData: ReportData[] = [];
@@ -131,6 +140,7 @@ export async function getReportDataWithoutPagination(params: {
               totalEarlyExit,
             },
             dailyAttendance: transformedAttendance,
+            holidays
           };
         } catch (error) {
           console.error(`Error processing user ${user.id}:`, error);
