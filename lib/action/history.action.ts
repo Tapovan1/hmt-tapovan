@@ -77,8 +77,6 @@ export const getTodayAdminAttendance = async (
   };
 };
 
-
-
 export const getAttendanceHistory = async (
   user: {
     role: string;
@@ -151,9 +149,7 @@ export const getAttendanceHistory = async (
   }[] = [];
 
   // add Sundays
-  sundays.forEach((s) =>
-    finalRecords.push({ date: s.date, type: "SUNDAY" })
-  );
+  sundays.forEach((s) => finalRecords.push({ date: s.date, type: "SUNDAY" }));
 
   // add holidays
   holidays.forEach((h) =>
@@ -180,5 +176,3 @@ export const getAttendanceHistory = async (
 
   return finalRecords;
 };
-
-

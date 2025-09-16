@@ -121,7 +121,7 @@ async function DashboardContent({
   year?: number;
 }) {
   try {
-    // Get both dashboard stats and full attendance history
+   
     const [rawStats, attendanceHistory] = await Promise.all([
       getDashboardStats(employeeId, month, year),
       getAttendanceHistory({ id: employeeId }, month, year),
