@@ -10,13 +10,20 @@ interface AttendanceRecord {
   date: string;
   checkIn: string | null;
   checkOut: string | null;
-  status: string;
+  status: string | null;
   late: number;
   early: number | null;
 }
 
+interface HistoryRecord {
+  date: Date;
+  type: "WORKING" | "SUNDAY" | "HOLIDAY";
+  holidayName?: string;
+  attendance?: AttendanceRecord;
+}
+
 interface PDFExportProps {
-  records: AttendanceRecord[];
+  records: HistoryRecord[];
   employeeName: string;
   month?: number;
   year?: number;
@@ -34,23 +41,19 @@ export function PDFExport({
     setIsExporting(true);
 
     try {
-      // Dynamic import to reduce bundle size
       const jsPDF = (await import("jspdf")).default;
       const autoTable = (await import("jspdf-autotable")).default;
 
-      const doc = new jsPDF();
+      const doc = new jsPDF("p", "mm", "a4");
 
-      // Add company header
-      doc.setFontSize(20);
-      doc.setTextColor(66, 133, 244); // Blue color
-      doc.text("Attendance Report", 20, 25);
+      doc.setFontSize(18);
+      doc.setTextColor(44, 62, 80);
+      doc.text("Attendance Report", 105, 20, { align: "center" });
 
-      // Add employee info
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Employee: ${employeeName}`, 20, 40);
+      doc.setFontSize(11);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Employee: ${employeeName}`, 20, 35);
 
-      // Add date range
       const dateRange =
         month && year
           ? `${new Date(year, month - 1).toLocaleDateString("en-US", {
@@ -58,32 +61,48 @@ export function PDFExport({
               year: "numeric",
             })}`
           : "All Records";
-      doc.text(`Period: ${dateRange}`, 20, 50);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 60);
+      doc.text(`Period: ${dateRange}`, 20, 42);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 49);
 
-      // Add line separator
       doc.setDrawColor(200, 200, 200);
-      doc.line(20, 70, 190, 70);
+      doc.line(20, 55, 190, 55);
 
-      // Prepare table data
-      const tableData = records.map((record) => [
-        new Date(record.date).toLocaleDateString("en-US", {
+      const tableData = records.map((rec) => {
+        const dateStr = new Date(rec.date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
-        }),
-        record.checkIn ? formatIndianTime(record.checkIn) : "N/A",
+        });
 
-        record.checkOut ? formatIndianTime(record.checkOut) : "N/A",
+        if (rec.type === "SUNDAY") {
+          return [dateStr, "-", "-", "Sunday", "-", "-"];
+        }
 
-        record.status === "ON_LEAVE"
-          ? "On Leave"
-          : record.status.charAt(0) + record.status.slice(1).toLowerCase(),
-        record.late > 0 ? `${record.late} min` : "N/A",
-        record.early !== null ? `${record.early} min` : "N/A",
-      ]);
+        if (rec.type === "HOLIDAY") {
+          return [dateStr, "-", "-", `Holiday (${rec.holidayName})`, "-", "-"];
+        }
 
-      // Add table
+        if (rec.type === "WORKING" && rec.attendance) {
+          const a = rec.attendance;
+          const statusLabel = a.status
+            ? a.status === "ON_LEAVE"
+              ? "On Leave"
+              : a.status.charAt(0) + a.status.slice(1).toLowerCase()
+            : "N/A";
+
+          return [
+            dateStr,
+            a.checkIn ? formatIndianTime(a.checkIn) : "N/A",
+            a.checkOut ? formatIndianTime(a.checkOut) : "N/A",
+            statusLabel,
+            a.late > 0 ? `${a.late} min` : "N/A",
+            a.early !== null ? `${a.early} min` : "N/A",
+          ];
+        }
+
+        return [dateStr, "-", "-", "N/A", "-", "-"];
+      });
+
       autoTable(doc, {
         head: [
           [
@@ -96,74 +115,102 @@ export function PDFExport({
           ],
         ],
         body: tableData,
-        startY: 80,
+        startY: 60,
         theme: "grid",
-        headStyles: {
-          fillColor: [66, 133, 244],
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          fontSize: 10,
-        },
-        bodyStyles: {
+        tableWidth: "auto",
+        styles: {
           fontSize: 9,
           cellPadding: 3,
+          valign: "middle",
+          overflow: "linebreak",
+        },
+        headStyles: {
+          fillColor: [52, 152, 219],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          halign: "center",
+        },
+        bodyStyles: {
+          halign: "center",
         },
         alternateRowStyles: {
-          fillColor: [248, 249, 250],
+          fillColor: [245, 247, 250],
         },
-        columnStyles: {
-          0: { cellWidth: 35 }, // Date
-          1: { cellWidth: 30 }, // Check In
-          2: { cellWidth: 30 }, // Check Out
-          3: { cellWidth: 25 }, // Status
-          4: { cellWidth: 25 }, // Late Minutes
-          5: { cellWidth: 25 }, // Early Exit
+        margin: { left: 10, right: 10 },
+        didDrawPage: (data) => {
+          const pageHeight = doc.internal.pageSize.height;
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(
+            "Generated by Attendance Management System",
+            10,
+            pageHeight - 10
+          );
+          doc.text(
+            `Page ${doc.internal.getNumberOfPages()}`,
+            doc.internal.pageSize.width - 10,
+            pageHeight - 10,
+            { align: "right" }
+          );
         },
-        margin: { left: 20, right: 20 },
       });
 
-      // Add summary statistics
-      const finalY = (doc as any).lastAutoTable.finalY + 20;
-
-      doc.setFontSize(12);
-      doc.setTextColor(66, 133, 244);
+      const finalY = (doc as any).lastAutoTable.finalY + 15;
+      doc.setFontSize(13);
+      doc.setTextColor(44, 62, 80);
       doc.text("Summary Statistics", 20, finalY);
 
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
 
       const totalDays = records.length;
-      const presentDays = records.filter((r) => r.status === "PRESENT").length;
-      const lateDays = records.filter((r) => r.status === "LATE").length;
-      const absentDays = records.filter((r) => r.status === "ABSENT").length;
-      const leaveDays = records.filter((r) => r.status === "ON_LEAVE").length;
-      const totalLateMinutes = records.reduce((sum, r) => sum + r.late, 0);
+      const presentDays = records.filter(
+        (r) => r.type === "WORKING" && r.attendance?.status === "PRESENT"
+      ).length;
+      const lateDays = records.filter(
+        (r) => r.type === "WORKING" && r.attendance?.status === "LATE"
+      ).length;
+      const absentDays = records.filter(
+        (r) => r.type === "WORKING" && r.attendance?.status === "ABSENT"
+      ).length;
+      const leaveDays = records.filter(
+        (r) => r.type === "WORKING" && r.attendance?.status === "ON_LEAVE"
+      ).length;
+      const sundayCount = records.filter((r) => r.type === "SUNDAY").length;
+      const holidayCount = records.filter((r) => r.type === "HOLIDAY").length;
+
+      const totalLateMinutes = records.reduce(
+        (sum, r) => sum + (r.attendance?.late || 0),
+        0
+      );
       const totalEarlyExit = records.reduce(
-        (sum, r) => sum + (r.early ?? 0),
+        (sum, r) => sum + (r.attendance?.early || 0),
         0
       );
 
-      const summaryY = finalY + 10;
-      doc.text(`Total Days: ${totalDays}`, 20, summaryY);
-      doc.text(`Present: ${presentDays}`, 20, summaryY + 10);
-      doc.text(`Late: ${lateDays}`, 20, summaryY + 20);
-      doc.text(`Absent: ${absentDays}`, 80, summaryY);
-      doc.text(`On Leave: ${leaveDays}`, 80, summaryY + 10);
-      doc.text(`Total Late Minutes: ${totalLateMinutes}`, 80, summaryY + 20);
-      doc.text(`Total Early Exit: ${totalEarlyExit}`, 80, summaryY + 20);
+      autoTable(doc, {
+        startY: finalY + 5,
+        theme: "plain",
+        body: [
+          [
+            { content: `Total Days: ${totalDays}`, styles: { cellWidth: 60 } },
+            { content: `Present: ${presentDays}`, styles: { cellWidth: 60 } },
+            { content: `Absent: ${absentDays}`, styles: { cellWidth: 60 } },
+          ],
+          [
+            { content: `Late Days: ${lateDays}` },
+            { content: `On Leave: ${leaveDays}` },
+            { content: `Sundays: ${sundayCount}` },
+          ],
+          [
+            { content: `Holidays: ${holidayCount}` },
+            { content: `Late Minutes: ${totalLateMinutes}` },
+            { content: `Early Exits: ${totalEarlyExit}` },
+          ],
+        ],
+        styles: { fontSize: 10, textColor: [80, 80, 80] },
+      });
 
-      // Add footer
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text(
-        "Generated by Attendance Management System",
-        20,
-        pageHeight - 20
-      );
-      doc.text(`Page 1 of 1`, 170, pageHeight - 20);
-
-      // Save the PDF
       const fileName = `${employeeName.replace(
         /\s+/g,
         "_"
