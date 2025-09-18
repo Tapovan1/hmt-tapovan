@@ -34,6 +34,7 @@ const formSchema = z.object({
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
   department: z.string().min(1, { message: "Please select a domain." }),
+  status: z.string().min(1, { message: "Please select a status." }),
 
   role: z.string().min(1, { message: "Please select a role." }),
 });
@@ -57,6 +58,7 @@ const EmploteeDialog = () => {
       password: "",
       department: "",
       salary: "",
+      status: "ACTIVE",
       role: "",
     },
   });
@@ -69,6 +71,7 @@ const EmploteeDialog = () => {
         email: data.email,
         password: data.password,
         salary: data.salary,
+        status: data.status.toUpperCase() as "ACTIVE" | "INACTIVE",
         department: data.department,
         role: data.role.toUpperCase() as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
       });
@@ -196,6 +199,30 @@ const EmploteeDialog = () => {
               />
               {errors.role && (
                 <p className="text-sm text-red-500">{errors.role.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => setValue("status", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                      <SelectItem value="INACTIVE">INACTIVE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.status && (
+                <p className="text-sm text-red-500">{errors.status.message}</p>
               )}
             </div>
 

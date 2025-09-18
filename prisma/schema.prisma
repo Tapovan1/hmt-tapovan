@@ -75,7 +75,7 @@ model User {
   role                String
   department          String
   salary              Int        @default(0)
-  
+  status              String     @default("ACTIVE")
   totalLeavesTaken    Int        @default(0)
   totalLeavesApproved Int        @default(0)
   totalLeavesRejected Int        @default(0)
