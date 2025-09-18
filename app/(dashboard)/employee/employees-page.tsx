@@ -42,6 +42,7 @@ interface Employee {
   name: string;
   email: string;
   role: string;
+  status: string;
   department: string;
   salary: number;
 }
@@ -131,6 +132,9 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
                   Email
                 </TableHead>
                 <TableHead className="font-medium text-center text-gray-700 py-3">
+                  Status
+                </TableHead>
+                <TableHead className="font-medium text-center text-gray-700 py-3">
                   Actions
                 </TableHead>
               </TableRow>
@@ -193,6 +197,17 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
                     </TableCell>
                     <TableCell className="py-2.5 text-center text-gray-600">
                       {employee.email}
+                    </TableCell>
+                    <TableCell className="py-2.5 text-center">
+                      {employee.status === "ACTIVE" ? (
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-normal">
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-100 text-red-800 hover:bg-red-100 font-normal">
+                          Inactive
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="py-2.5 text-right">
                       <div className="flex justify-center gap-1">

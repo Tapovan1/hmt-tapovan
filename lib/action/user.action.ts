@@ -145,11 +145,12 @@ interface IUpdateFormData {
   role: string;
   salary: number;
   password?: string;
+  status: string;
   department: string;
 }
 
 export const updateEmployee = async (formData: IUpdateFormData) => {
-  const { id, name, email, role, password, salary, department } = formData;
+  const { id, name, email, role, password, salary, department , status} = formData;
 
   try {
     // Prepare update data
@@ -159,6 +160,7 @@ export const updateEmployee = async (formData: IUpdateFormData) => {
       role,
       salary: Number(salary),
       department,
+      status,
     };
 
     // Only hash and update password if provided

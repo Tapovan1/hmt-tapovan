@@ -32,6 +32,7 @@ const formSchema = z.object({
   password: z.string().optional(),
   department: z.string().min(1, { message: "Please select a domain." }),
   salary: z.number().optional(),
+  status: z.string().min(1, { message: "Please select a status." }),
   role: z.string().min(1, { message: "Please select a role." }),
 });
 
@@ -42,6 +43,7 @@ interface EditEmployeeDialogProps {
     email: string;
     department: string;
     role: string;
+    status: string;
     salary?: number;
   };
 }
@@ -65,6 +67,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
       password: "",
       department: employee.department,
       salary: employee.salary,
+      status: employee.status,
       role: employee.role,
     },
   });
@@ -77,6 +80,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         password: "",
         department: employee.department,
         salary: employee.salary,
+        status: employee.status,
         role: employee.role,
       });
     }
@@ -92,6 +96,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         password: data.password || undefined,
         department: data.department,
         salary: data.salary ?? 0,
+        status: data.status as "ACTIVE" | "INACTIVE",
         role: data.role as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
       });
 
@@ -218,6 +223,32 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
             />
             {errors.role && (
               <p className="text-sm text-red-500">{errors.role.message}</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="status">Status</Label>
+            <Controller
+              name="status"
+              control={control}
+              defaultValue={employee.status}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  defaultValue={employee.status}
+                  onValueChange={(value) => setValue("status", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                    <SelectItem value="INACTIVE">INACTIVE</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.status && (
+              <p className="text-sm text-red-500">{errors.status.message}</p>
             )}
           </div>
 
