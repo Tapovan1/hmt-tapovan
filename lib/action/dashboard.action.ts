@@ -156,7 +156,9 @@ export async function getAdminDashboardStats() {
         role: {
           in: ["ADMIN", "SUPERADMIN"],
         },
+        
       },
+      status: "ACTIVE",
     },
   });
 

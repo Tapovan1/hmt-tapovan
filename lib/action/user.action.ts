@@ -23,12 +23,23 @@ export async function login(formData: FormData) {
     where: {
       email: validatedFields.data.email,
     },
+    select:{
+      id: true,
+      password: true,
+      status: true,
+    }
   });
 
   if (!user) {
     return {
       success: false,
       message: errorMessage,
+    };
+  }
+  if(user.status !== 'ACTIVE'){
+    return {
+      success: false,
+      message: "Your account is not active. Please contact admin.",
     };
   }
 

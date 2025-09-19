@@ -50,6 +50,7 @@ export async function getReportDataWithoutPagination(params: {
     where: {
       ...(department ? { department } : {}),
       NOT: [{ role: "SUPERADMIN" }],
+      status: "ACTIVE",
     },
   };
 
@@ -202,6 +203,7 @@ export async function getReportData(params: {
     where: {
       ...(department ? { department } : {}),
       NOT: [{ role: "SUPERADMIN" }],
+      status: "ACTIVE",
     },
     skip: (page - 1) * itemsPerPage,
     take: itemsPerPage,
@@ -304,6 +306,7 @@ export const SgetEmployees = async () => {
     const getEmployeeData = await prisma?.user.findMany({
       where: {
         NOT: [{ role: "SUPERADMIN" }],
+        status: "ACTIVE",
       },
     });
     if (!getEmployeeData) {
@@ -324,6 +327,7 @@ export async function getDepartments() {
         role: {
           in: ["SUPERADMIN"],
         },
+        status: "ACTIVE",
       },
     },
     select: {

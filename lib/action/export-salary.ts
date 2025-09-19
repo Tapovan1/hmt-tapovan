@@ -99,7 +99,11 @@ async function getSalaryDataInternal(params: {
     async (tx) => {
       // Get users with department filter
       const users = await tx.user.findMany({
-        where: params.department ? { department: params.department } : {},
+        where: {
+          ...(params.department ? { department: params.department } : {}),
+          NOT: [{ role: "SUPERADMIN" }],
+          status: "ACTIVE",
+        },
         select: {
           id: true,
           name: true,
