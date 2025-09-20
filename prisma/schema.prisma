@@ -170,6 +170,7 @@ model TeacherLeave {
   @@index([endDate])
 }
 
+
 model Holiday {
   id          String      @id @default(cuid())
   name        String
@@ -183,6 +184,16 @@ model Holiday {
  
   @@unique([date, name])
   @@map("holidays")
+}
+
+model pushNotificationToken {
+   id         String   @id @default(cuid())
+  token      String   @unique
+  user_name  String
+  device_type String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
 }
 
 enum HolidayType {

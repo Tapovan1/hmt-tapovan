@@ -142,6 +142,32 @@ export async function createTeacherLeave(data: TeacherLeaveData) {
       },
     });
 
+    const token = await prisma.pushNotificationToken.findFirst({
+      where:{
+        user_name:"default_user"
+      }
+    });
+    const expoPushToken = token?.token;
+
+    //expo push notiifcation api call send notifiation
+    const message = {
+    to: expoPushToken, // ExponentPushToken[...] from device
+    sound: "default",
+    title: "New Leave Request",
+    body: `${user.name} - ${user.department} submitted a new leave request`,
+ 
+  };
+
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Accept-encoding": "gzip, deflate",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    });
+
     revalidatePath("/teacher-leaves");
     return { success: true, message: "Leave Request Submitted...." };
   } catch (error) {
