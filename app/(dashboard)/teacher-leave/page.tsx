@@ -41,18 +41,21 @@ export default function TeacherLeavesPage({
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          {/* Left section */}
+          <div className="flex items-center gap-3">
             <div className="bg-blue-100 p-3 rounded-xl">
               <CalendarDays className="h-7 w-7 text-blue-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Leave Requests</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Leave Requests
+            </h1>
           </div>
 
-          {/* Right side controls - properly aligned */}
-          <div className="flex items-center gap-3">
+          {/* Right side controls */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <TeacherLeaveDialog>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Request Leave
               </Button>
