@@ -7,7 +7,7 @@ export interface ReportData {
   user: {
     id: string;
     name: string;
-    department: string;
+    catagory: string;
   };
   stats: {
     presentCount: number;
@@ -29,11 +29,11 @@ export interface ReportData {
 
 //i need same logic getreportdata but withut pagination
 export async function getReportDataWithoutPagination(params: {
-  department?: string;
+  catagory?: string;
   start?: Date;
   end?: Date;
 }) {
-  const { department, start, end } = params;
+  const { catagory, start, end } = params;
 
   if (!start || !end) {
     throw new Error("Start and end dates are required");
@@ -48,7 +48,7 @@ export async function getReportDataWithoutPagination(params: {
 
   const usersQuery = {
     where: {
-      ...(department ? { department } : {}),
+      ...(catagory ? { catagory } : {}),
       NOT: [{ role: "SUPERADMIN" }],
       status: "ACTIVE",
     },
@@ -133,7 +133,7 @@ export async function getReportDataWithoutPagination(params: {
             user: {
               id: user.id,
               name: user.name,
-              department: user.department,
+              catagory: user.catagory,
             },
             stats: {
               ...stats,
@@ -149,7 +149,7 @@ export async function getReportDataWithoutPagination(params: {
             user: {
               id: user.id,
               name: user.name,
-              department: user.department,
+              catagory: user.catagory,
             },
             stats: {
               presentCount: 0,
@@ -173,14 +173,14 @@ export async function getReportDataWithoutPagination(params: {
 }
 
 export async function getReportData(params: {
-  department?: string;
+  catagory?: string;
   start?: Date;
   end?: Date;
   page?: number;
 }) {
-  const { department, start, end, page = 1 } = params;
+  const { catagory  , start, end, page = 1 } = params;
   console.log("getReportData called with params:", {
-    department,
+    catagory,
     start,
     end,
     page,
@@ -201,7 +201,7 @@ export async function getReportData(params: {
 
   const usersQuery = {
     where: {
-      ...(department ? { department } : {}),
+      ...(catagory ? { catagory } : {}),
       NOT: [{ role: "SUPERADMIN" }],
       status: "ACTIVE",
     },
@@ -284,7 +284,7 @@ export async function getReportData(params: {
         user: {
           id: user.id,
           name: user.name,
-          department: user.department,
+          catagory: user.catagory,
         },
         stats: {
           ...stats,

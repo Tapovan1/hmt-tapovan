@@ -29,7 +29,7 @@ import {
 import { exportToExcel } from "@/lib/action/export.actions";
 import { Pagination } from "@/components/pagination";
 import { Card, CardContent } from "@/components/ui/card";
-import { departmentList } from "@/lib/departments";
+import { catagoryList, departmentList } from "@/lib/departments";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ReportPage() {
@@ -37,7 +37,7 @@ export default function ReportPage() {
   const searchParams = useSearchParams();
   const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
 
-  const [selectedDepartment, setSelectedDepartment] = useState<string>();
+  const [selectedCatagory, setSelectedCatagory] = useState<string>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [reportData, setReportData] = useState<ReportData[]>([]);
@@ -46,9 +46,9 @@ export default function ReportPage() {
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [totalPages, setTotalPages] = useState(1);
 
-  const DEPARTMENTS = departmentList.map((dept) => ({
-    id: dept,
-    name: dept,
+  const catagory = catagoryList.map((cat) => ({
+    id: cat,
+    name: cat,
   }));
 
   const handleFetchData = async (page = 1) => {
@@ -64,7 +64,7 @@ export default function ReportPage() {
     setLoading(true);
     try {
       const { data, totalPages } = await getReportData({
-        department: selectedDepartment,
+        catagory: selectedCatagory,
         start: adjustedStartDate,
         end: adjustedEndDate,
         page,
@@ -93,7 +93,7 @@ export default function ReportPage() {
     setExporting(true);
     try {
       const buffer = await exportToExcel({
-        department: selectedDepartment,
+        catagory: selectedCatagory,
         start: adjustedStartDate,
         end: adjustedEndDate,
       });
@@ -148,19 +148,19 @@ export default function ReportPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                 <Building2 className="h-4 w-4 text-[#4285f4]" />
-                Department
+                Catagory
               </label>
               <Select
-                value={selectedDepartment}
-                onValueChange={setSelectedDepartment}
+                value={selectedCatagory}
+                onValueChange={setSelectedCatagory}
               >
                 <SelectTrigger className="h-10 border-gray-200 focus:ring-[#4285f4] focus:border-[#4285f4]">
-                  <SelectValue placeholder="Select Department" />
+                  <SelectValue placeholder="Select Catagory" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
+                  {catagory.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -253,7 +253,7 @@ export default function ReportPage() {
                   Teacher Name
                 </TableHead>
                 <TableHead className="py-4 px-6 font-medium text-gray-700">
-                  Department
+                  Catagory
                 </TableHead>
                 <TableHead className="py-4 px-6 font-medium text-gray-700 text-center">
                   Present Days
@@ -312,7 +312,7 @@ export default function ReportPage() {
                       {userData.user.name}
                     </TableCell>
                     <TableCell className="py-4 px-6 text-gray-700">
-                      {userData.user.department}
+                      {userData.user.catagory}
                     </TableCell>
                     <TableCell className="py-4 px-6 text-center">
                       <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 font-medium">

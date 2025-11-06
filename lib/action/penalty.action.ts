@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 interface PenaltyParams {
   userId: string;
   employeeName: string;
-  department: string;
+  catagory: string;
   amount: number;
 
   month: string; // Format: "2025-01"
@@ -13,7 +13,7 @@ interface PenaltyParams {
 
 interface GetPenaltiesParams {
   userId?: string;
-  department?: string;
+  catagory?: string;
   month: string; // Format: "2025-01"
 }
 
@@ -44,13 +44,13 @@ export async function saveEmployeePenalty(params: PenaltyParams) {
         amount: params.amount,
 
         employeeName: params.employeeName,
-        department: params.department,
+        catagory: params.catagory,
         updatedAt: new Date(),
       },
       create: {
         userId: params.userId,
         employeeName: params.employeeName,
-        department: params.department,
+        catagory: params.catagory,
         amount: params.amount,
 
         month: params.month,
@@ -72,7 +72,7 @@ export async function getEmployeePenalties(params: GetPenaltiesParams) {
     const penalties = await prisma.employeePenalty.findMany({
       where: {
         ...(params.userId && { userId: params.userId }),
-        ...(params.department && { department: params.department }),
+        ...(params.catagory && { catagory: params.catagory }),
         month: params.month,
       },
       include: {
@@ -80,7 +80,7 @@ export async function getEmployeePenalties(params: GetPenaltiesParams) {
           select: {
             id: true,
             name: true,
-            department: true,
+            catagory: true,
           },
         },
       },
@@ -119,7 +119,7 @@ export async function getPenaltiesForUsers(userIds: string[], month: string) {
           select: {
             id: true,
             name: true,
-            department: true,
+            catagory: true,
           },
         },
       },

@@ -32,3 +32,19 @@ export const departmentList = [
   "TVM-9",
   "TVM-10",
 ];
+
+export const catagoryList = [
+  "Primary",
+ 
+  "Science",
+  "Computer",
+  "Clerk",
+  "Accountant",
+  "9/10",
+  "GCI",
+  "SSC",
+  "HSC",
+  "Support Staff",
+  "Guest",
+  "Other"
+];

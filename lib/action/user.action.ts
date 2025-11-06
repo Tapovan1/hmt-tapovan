@@ -113,10 +113,11 @@ interface IFormData {
   password: string;
   salary: number;
   department: string;
+  catagory:string;
 }
 
 export const addEmployee = async (formData: IFormData) => {
-  const { name, email, role, password, salary, department } = formData;
+  const { name, email, role, password, salary, department,catagory } = formData;
 
   const hashedPassword = await saltAndHashPassword(password);
 
@@ -129,6 +130,7 @@ export const addEmployee = async (formData: IFormData) => {
         salary: Number(salary),
         password: hashedPassword,
         department,
+        catagory,
       },
     });
 
@@ -158,10 +160,11 @@ interface IUpdateFormData {
   password?: string;
   status: string;
   department: string;
+  catagory:string;
 }
 
 export const updateEmployee = async (formData: IUpdateFormData) => {
-  const { id, name, email, role, password, salary, department , status} = formData;
+  const { id, name, email, role, password, salary, department , status, catagory } = formData;
 
   try {
     // Prepare update data
@@ -171,6 +174,7 @@ export const updateEmployee = async (formData: IUpdateFormData) => {
       role,
       salary: Number(salary),
       department,
+      catagory,
       status,
     };
 

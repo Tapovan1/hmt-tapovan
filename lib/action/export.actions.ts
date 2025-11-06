@@ -5,7 +5,7 @@ import { getReportDataWithoutPagination } from "./report.actions";
 import ExcelJS from "exceljs";
 
 export async function exportToExcel(params: {
-  department?: string;
+  catagory?: string;
   start?: Date;
   end?: Date;
 }) {
@@ -37,9 +37,9 @@ export async function exportToExcel(params: {
   ];
   const month = monthNames[startDate.getMonth()];
   const year = startDate.getFullYear();
-  const departmentName = params.department || "All Departments";
+  const catagoryName = params.catagory || "All Catagories";
 
-  const title = `${departmentName} - Attendance Report for ${month} ${year}`;
+  const title = `${catagoryName} - Attendance Report for ${month} ${year}`;
 
   // 📌 Build Headers
   const headers = ["NAME"];

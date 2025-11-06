@@ -49,7 +49,7 @@ model EmployeePenalty {
   id           String   @id @default(cuid())
   userId       String
   employeeName String
-  department   String
+  catagory   String
   amount       Float    @default(0)
   reason       String?
   month        String?  // Format: "2025-01" for January 2025
@@ -63,7 +63,7 @@ model EmployeePenalty {
   @@unique([userId, month])
   @@index([userId])
   @@index([month])
-  @@index([department])
+  @@index([catagory])
 }
 
 // Update the User model to include the relation
@@ -74,6 +74,7 @@ model User {
   password            String
   role                String
   department          String
+  catagory            String @default("")
   salary              Int        @default(0)
   status              String     @default("ACTIVE")
   totalLeavesTaken    Int        @default(0)
