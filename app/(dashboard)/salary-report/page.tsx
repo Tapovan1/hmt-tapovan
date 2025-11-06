@@ -47,7 +47,7 @@ import { toast } from "sonner";
 import { saveEmployeePenalty } from "@/lib/action/penalty.action";
 import { exportSalaryToExcel, getSalaryData } from "@/lib/action/export-salary";
 import { getMonthFromDate } from "@/lib/utils/month";
-import { departmentList } from "@/lib/departments";
+import { catagoryList, departmentList } from "@/lib/departments";
 
 // const DEPARTMENTS = [
 //   { id: "Admin", name: "Admin" },
@@ -66,7 +66,7 @@ import { departmentList } from "@/lib/departments";
 // ];
 
 export default function SalaryReportPage() {
-  const [selectedDepartment, setSelectedDepartment] = useState<string>();
+  const [selectedCatagory, setSelectedCatagory] = useState<string>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
@@ -80,9 +80,9 @@ export default function SalaryReportPage() {
 
   const [savingPenalty, setSavingPenalty] = useState(false);
 
-  const DEPARTMENTS = departmentList.map((dept) => ({
-    id: dept,
-    name: dept,
+  const CATEGORIES = catagoryList.map((cat) => ({
+    id: cat,
+    name: cat,
   }));
 
   const handleOpenPenaltyModal = (employee: any) => {
@@ -120,7 +120,7 @@ export default function SalaryReportPage() {
       await saveEmployeePenalty({
         userId: selectedEmployee.id,
         employeeName: selectedEmployee.name,
-        department: selectedEmployee.department,
+        catagory: selectedEmployee.catagory,
         amount: penaltyAmount,
 
         month: month,
@@ -167,7 +167,7 @@ export default function SalaryReportPage() {
     setExporting(true);
     try {
       const buffer = await exportSalaryToExcel({
-        department: selectedDepartment,
+        department: selectedCatagory,
         start: adjustedStartDate,
         end: adjustedEndDate,
       });
@@ -214,7 +214,7 @@ export default function SalaryReportPage() {
       console.log("Fetching salary data for month:", month);
 
       const data = await getSalaryData({
-        department: selectedDepartment,
+        catagory: selectedCatagory,
         start: adjustedStartDate,
         end: adjustedEndDate,
       });
@@ -277,19 +277,19 @@ export default function SalaryReportPage() {
             <div className="min-w-[180px]">
               <Label className="text-xs font-medium text-gray-600 mb-1 flex items-center gap-1">
                 <Building2 className="h-3 w-3" />
-                Department
+                Catagory
               </Label>
               <Select
-                value={selectedDepartment}
-                onValueChange={setSelectedDepartment}
+                value={selectedCatagory}
+                onValueChange={setSelectedCatagory}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="All Departments" />
+                  <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -407,7 +407,7 @@ export default function SalaryReportPage() {
                   NAME
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
-                  DEPARTMENT
+                  CATAGORY
                 </TableHead>
                 <TableHead className="h-8 px-2 text-center text-xs font-medium">
                   SALARY
@@ -478,7 +478,7 @@ export default function SalaryReportPage() {
                       {item.name}
                     </TableCell>
                     <TableCell className="h-8 px-2 text-center text-xs">
-                      {item.department}
+                      {item.catagory}
                     </TableCell>
                     <TableCell className="h-8 px-2 text-center text-xs">
                       {item.salary}

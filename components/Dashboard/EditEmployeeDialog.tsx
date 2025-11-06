@@ -24,13 +24,14 @@ import { toast } from "sonner";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateEmployee } from "@/lib/action/user.action";
-import { departmentList } from "@/lib/departments";
+import { catagoryList, departmentList } from "@/lib/departments";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().optional(),
   department: z.string().min(1, { message: "Please select a domain." }),
+  catagory:z.string().min(1, { message: "Please select a catagory." }),
   salary: z.number().optional(),
   status: z.string().min(1, { message: "Please select a status." }),
   role: z.string().min(1, { message: "Please select a role." }),
@@ -42,6 +43,7 @@ interface EditEmployeeDialogProps {
     name: string;
     email: string;
     department: string;
+    catagory: string;
     role: string;
     status: string;
     salary?: number;
@@ -66,6 +68,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
       email: employee.email,
       password: "",
       department: employee.department,
+      catagory: employee.catagory,
       salary: employee.salary,
       status: employee.status,
       role: employee.role,
@@ -79,6 +82,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         email: employee.email,
         password: "",
         department: employee.department,
+        catagory: employee.catagory,
         salary: employee.salary,
         status: employee.status,
         role: employee.role,
@@ -95,6 +99,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         email: data.email,
         password: data.password || undefined,
         department: data.department,
+        catagory: data.catagory,
         salary: data.salary ?? 0,
         status: data.status as "ACTIVE" | "INACTIVE",
         role: data.role as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
@@ -154,7 +159,7 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="domain">Domain</Label>
+            <Label htmlFor="department">Department</Label>
             <Controller
               name="department"
               control={control}
@@ -172,6 +177,37 @@ const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
                     {departmentList.map((dept) => (
                       <SelectItem key={dept} value={dept}>
                         {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.department && (
+              <p className="text-sm text-red-500">
+                {errors.department.message}
+              </p>
+            )}
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="catagory">Catagory</Label>
+            <Controller
+              name="catagory"
+              control={control}
+              defaultValue={employee.catagory}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  defaultValue={employee.catagory}
+                  onValueChange={(value) => setValue("catagory", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select catagory" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {catagoryList.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
                       </SelectItem>
                     ))}
                   </SelectContent>

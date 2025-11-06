@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addEmployee } from "@/lib/action/user.action";
-import { departmentList } from "./../../lib/departments";
+import { departmentList,catagoryList } from "./../../lib/departments";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -33,6 +33,7 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
+  catagory:z.string().min(1,{ message : "Please select a catagory"}),
   department: z.string().min(1, { message: "Please select a domain." }),
   status: z.string().min(1, { message: "Please select a status." }),
 
@@ -57,6 +58,7 @@ const EmploteeDialog = () => {
       email: "",
       password: "",
       department: "",
+      catagory:"",
       salary: "",
       status: "ACTIVE",
       role: "",
@@ -73,6 +75,7 @@ const EmploteeDialog = () => {
         salary: data.salary,
         status: data.status.toUpperCase() as "ACTIVE" | "INACTIVE",
         department: data.department,
+        catagory:data.catagory,
         role: data.role.toUpperCase() as "SUPERADMIN" | "ADMIN" | "EMPLOYEE",
       });
       if (result.success) {
@@ -158,6 +161,35 @@ const EmploteeDialog = () => {
               {errors.department && (
                 <p className="text-sm text-red-500">
                   {errors.department.message}
+                </p>
+              )}
+            </div>
+              <div className="grid gap-2">
+              <Label htmlFor="catagory">Catagory</Label>
+              <Controller
+                name="catagory"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => setValue("catagory", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select catagory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {catagoryList.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.catagory && (
+                <p className="text-sm text-red-500">
+                  {errors.catagory.message}
                 </p>
               )}
             </div>

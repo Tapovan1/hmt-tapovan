@@ -39,7 +39,7 @@ function countSundaysInRange(startDate: Date, endDate: Date): number {
 
 // Optimized function with better connection management
 export async function getSalaryData(params: {
-  department?: string;
+  catagory?: string;
   start?: Date;
   end?: Date;
 }) {
@@ -77,7 +77,7 @@ export async function getSalaryData(params: {
 }
 
 async function getSalaryDataInternal(params: {
-  department?: string;
+  catagory?: string;
   start?: Date;
   end?: Date;
 }) {
@@ -100,14 +100,14 @@ async function getSalaryDataInternal(params: {
       // Get users with department filter
       const users = await tx.user.findMany({
         where: {
-          ...(params.department ? { department: params.department } : {}),
+          ...(params.catagory ? { catagory: params.catagory } : {}),
           NOT: [{ role: "SUPERADMIN" }],
           status: "ACTIVE",
         },
         select: {
           id: true,
           name: true,
-          department: true,
+          catagory: true,
           salary: true,
         },
       });
@@ -250,7 +250,7 @@ async function getSalaryDataInternal(params: {
       no: index + 1,
       id: user.id,
       name: user.name,
-      department: user.department,
+      catagory: user.catagory,
       salary: baseSalary,
       lateTime: lateMinutes,
       off: offDays,
@@ -295,9 +295,9 @@ export async function exportSalaryToExcel(params) {
   ];
   const month = monthNames[startDate.getMonth()];
   const year = startDate.getFullYear();
-  const departmentName = params.department || "All Departments";
+  const catagoryName = params.catagory || "All Categories";
 
-  const title = `${departmentName} - Salary Report for ${month} ${year}`;
+  const title = `${catagoryName} - Salary Report for ${month} ${year}`;
 
   // 🧾 Headers
   const headers = [
