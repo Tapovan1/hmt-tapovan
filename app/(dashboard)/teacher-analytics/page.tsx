@@ -75,6 +75,7 @@ const riskBadgeClasses: Record<string, string> = {
 const RiskBadge = ({ level }: { level: TeacherInsight["riskLevel"] }) => (
   <Badge className={`${riskBadgeClasses[level]} border-none`}>{level}</Badge>
 );
+//test
 
 export default function TeacherAnalyticsPage() {
   const now = new Date();
