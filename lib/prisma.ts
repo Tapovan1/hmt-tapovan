@@ -1,18 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prismaClientSingleton = () => {
-  return new PrismaClient();
-};
-
-// Alternative approach extending globalThis directly
-interface CustomGlobalThis {
-  prisma?: ReturnType<typeof prismaClientSingleton>;
-}
-
-const prisma =
-  (globalThis as unknown as CustomGlobalThis).prisma ?? prismaClientSingleton();
+const adapter = new PrismaPg({ 
+  connectionString: process.env.DATABASE_URL 
+});
+const prisma = new PrismaClient({ adapter });
 
 export default prisma;
-
-if (process.env.NODE_ENV !== "production")
-  (globalThis as unknown as CustomGlobalThis).prisma = prisma;

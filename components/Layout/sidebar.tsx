@@ -12,6 +12,7 @@ import {
   FileText,
   UserX,
   User,
+  TrendingUp,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -55,6 +56,11 @@ const SuperadminItems = [
     title: "Report",
     icon: FileText,
     href: "/report",
+  },
+  {
+    title: "Teacher Insights",
+    icon: TrendingUp,
+    href: "/teacher-analytics",
   },
   {
     title: "Student Leave",
@@ -103,6 +109,11 @@ const adminRole = [
     title: "Report",
     icon: FileText,
     href: "/report",
+  },
+  {
+    title: "Teacher Insights",
+    icon: TrendingUp,
+    href: "/teacher-analytics",
   },
 ];
 

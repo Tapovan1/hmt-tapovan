@@ -13,12 +13,14 @@ import LeaveRequestAction from "./LeaveRequestAction";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { TeacherInsightsNudge } from "./teacher-insights-nudge";
 
 export async function AdminDashboard() {
   const data = await getAdminDashboardStats();
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      <TeacherInsightsNudge />
       {/* Header */}
       <div className="">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">

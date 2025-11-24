@@ -1,8 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 
-import { Status } from "@prisma/client";
-
+import { Status } from "../generated/prisma/enums";
 export interface ReportData {
   user: {
     id: string;

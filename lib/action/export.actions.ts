@@ -1,6 +1,6 @@
 "use server";
 
-import { Status } from "@prisma/client";
+import { Status } from "../generated/prisma/enums";
 import { getReportDataWithoutPagination } from "./report.actions";
 import ExcelJS from "exceljs";
 
