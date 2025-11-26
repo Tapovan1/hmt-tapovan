@@ -27,6 +27,22 @@ interface ProfileData {
   legalProceedings?: string
 }
 
+export async function checkProfileExists(userId?: string): Promise<boolean> {
+  if (!userId) return false
+
+  try {
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    })
+
+    return !!profile
+  } catch (error) {
+    console.error("Error checking user profile:", error)
+    return false
+  }
+}
+
 export async function getUserProfile(userId?: string): Promise<ProfileData | null> {
   if (!userId) return null
 

@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { getDashboardStats } from "@/lib/action/dashboard.action";
+import { checkProfileExists } from "@/lib/action/profile.action";
 import DashboardStats from "@/components/Dashboard/DashboardStats";
 import RecentAttendance from "@/components/Dashboard/RecentAttendnace";
 import QuickActions from "@/components/Dashboard/quickAction";
 import DashboardSkeleton from "@/components/Dashboard/DashboardSkeleton";
 import DateSelector from "@/components/month-year";
+import ProfileReminderWrapper from "@/components/Dashboard/ProfileReminderWrapper";
 
 interface Employee {
   id: string;
@@ -22,8 +24,14 @@ export default async function EmployeeDashboard({
   const parsedMonth = monthParam;
   const parsedYear = yearParam;
 
+  // Check if user has submitted profile
+  const hasProfile = await checkProfileExists(user.id);
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Profile Reminder Dialog */}
+      <ProfileReminderWrapper hasProfile={hasProfile} userName={user.name} />
+
       {/* Header with Date Selector */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
