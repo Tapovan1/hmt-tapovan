@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, Search } from "lucide-react";
+import { Users, Search, AlertCircle } from "lucide-react";
 import EmploteeDialog from "@/components/Dashboard/EmployeeDialog";
 import Delete from "./Delete";
 import EditEmployeeDialog from "@/components/Dashboard/EditEmployeeDialog";
@@ -44,7 +44,9 @@ interface Employee {
   role: string;
   status: string;
   department: string;
+  catagory: string;
   salary: number;
+  hasProfile: boolean;
 }
 
 interface EmployeesPageProps {
@@ -85,6 +87,21 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
           <div className="flex-shrink-0">
             <EmploteeDialog />
           </div>
+        </div>
+      </div>
+
+      {/* Info Banner */}
+      <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
+        <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm text-blue-800">
+            <span className="font-medium">Profile Status Indicator:</span> Employees with a{" "}
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              red dot
+            </span>{" "}
+            before their name have not submitted their profile yet.
+          </p>
         </div>
       </div>
 
@@ -169,16 +186,24 @@ export default function EmployeesPage({ employees }: EmployeesPageProps) {
                     className="hover:bg-gray-50/50 border-b border-gray-100"
                   >
                     <TableCell className="py-2.5 flex items-center justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                        className="text-[#4285f4] hover:text-[#3b78e7] hover:bg-[#e6eef8]"
-                      >
-                        <Link href={`/employee/${employee.id}`}>
-                          {employee.name.toUpperCase()}
-                        </Link>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {!employee.hasProfile && (
+                          <div 
+                            className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" 
+                            title="Profile not submitted"
+                          />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="text-[#4285f4] hover:text-[#3b78e7] hover:bg-[#e6eef8]"
+                        >
+                          <Link href={`/employee/${employee.id}`}>
+                            {employee.name.toUpperCase()}
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="py-2.5">
                       <div className="flex items-center justify-center gap-3">
