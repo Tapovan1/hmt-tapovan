@@ -36,12 +36,16 @@ export async function login(formData: FormData) {
       message: errorMessage,
     };
   }
-  if(user.status !== 'ACTIVE'){
+  
+  //if user is inactive so return with message 
+  if(user.status === "INACTIVE"){
     return {
       success: false,
       message: "Your account is not active. Please contact admin.",
     };
   }
+  
+  
 
   const isValidPassword = await comparePassword(
     validatedFields.data.password,

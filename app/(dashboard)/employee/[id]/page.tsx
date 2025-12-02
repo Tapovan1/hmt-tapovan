@@ -191,19 +191,19 @@ export default async function EmployeeProfilePage({
                     icon: CreditCard,
                     label: "Aadhar Number",
                     value: profile?.aadharNumber ?? undefined,
-                    sensitive: true,
+                  
                   },
                   {
                     icon: CreditCard,
                     label: "PAN Number",
                     value: profile?.panNumber ?? undefined,
-                    sensitive: true,
+                   
                   },
                   {
                     icon: CreditCard,
                     label: "Bank Account",
                     value: profile?.bankAccountNumber ?? undefined,
-                    sensitive: true,
+                    
                   },
                 ]}
               />
