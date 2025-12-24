@@ -1,3 +1,12 @@
-[phases.install]
-cmds = ["npm ci --force"]
+[variables]
+NODE_ENV = "production"
+NODE_VERSION = "20.19.0"
 
+[phases.install]
+cmds = ["npm ci --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
