@@ -2,6 +2,9 @@ import { getGlobalSchedules } from "@/lib/action/work-schedule";
 import ScheduleSettingsForm from "./schedule-setting-form";
 import { Settings } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function ScheduleSettingsPage() {
   try {
     const schedules = await getGlobalSchedules();

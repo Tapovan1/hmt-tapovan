@@ -4,6 +4,9 @@ import { AdminTeacherLeaveStats } from "./admin-teacher-leave-stats";
 import { AdminTeacherLeaveTable } from "./admin-teacher-leave-table";
 import { getFilteredTeacherLeaves } from "@/lib/action/admin-teacher-leave.action";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminTeacherLeavePage() {
   // Check if the user is an admin
   const rawLeaves = await getFilteredTeacherLeaves({});
