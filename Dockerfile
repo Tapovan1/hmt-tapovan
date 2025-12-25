@@ -80,6 +80,7 @@ RUN chown -R nextjs:nodejs /app
 USER nextjs
 
 
+EXPOSE 3001
 
 
 # Start the application
