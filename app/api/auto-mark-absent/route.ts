@@ -5,8 +5,15 @@ import {
 } from "@/lib/action/absent.action";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function POST(req: Request) {
   try {
+     const secret = req.headers.get("x-cron-secret");
+    if (secret !== process.env.CRON_SECRET) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     // Get all departments that have auto-absent enabled
     const schedulesWithAutoAbsent = await prisma.workSchedule.findMany({
       where: {
