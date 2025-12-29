@@ -83,5 +83,5 @@ USER nextjs
 EXPOSE 3001
 
 
-# Start the application
+
 CMD ["node", "server.js"]
