@@ -2,6 +2,8 @@
 
 import prisma from "@/lib/prisma";
 import { startOfDay, endOfDay } from "date-fns";
+import { redirect } from "next/navigation";
+;
 
 export const getDashboardStats = async (
   userId: string,
@@ -11,6 +13,18 @@ export const getDashboardStats = async (
   // console.log("userId", userId);
   // console.log("month", month);
   // console.log("year", year);
+
+  // check first: is the user active? if inactive then delete session and redirect
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true },
+  });
+
+  if (user?.status === "INACTIVE") {
+    redirect("/api/logout");
+  }
+
+  
 
   const currentDate = new Date();
   const selectedMonth = month ? month - 1 : currentDate.getUTCMonth(); // Month is 0-based in Date.UTC

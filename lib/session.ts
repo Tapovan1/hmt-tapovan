@@ -84,3 +84,9 @@ export async function getSessionData() {
 
   return session;
 }
+
+//delete session
+export async function deleteSession() {
+  (await cookies()).delete("session",);
+
+}
