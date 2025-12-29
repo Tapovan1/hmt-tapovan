@@ -56,7 +56,16 @@ export const getTodayAdminAttendance = async (
 
   const attendanceRecords = await prisma.attendance.findMany({
     where: whereClause,
-    include: {
+    select: {
+      id: true,
+      date: true,
+      checkIn: true,
+      checkOut: true,
+      status: true,
+      late: true,
+      early: true,
+      userId: true,
+      // Exclude photo field to improve performance
       user: {
         select: {
           name: true,

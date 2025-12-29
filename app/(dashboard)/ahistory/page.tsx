@@ -8,8 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DepartmentFilter } from "./components/department-filter";
+import { ViewPhotoButton } from "./components/view-photo-button";
+import { HistoryTableWrapper } from "./components/history-table-wrapper";
 import { Pagination } from "@/components/pagination";
 import {
   CalendarClock,
@@ -59,7 +60,8 @@ export default async function AdminHistoryPage({
         <DepartmentFilter departments={departmentList} />
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <HistoryTableWrapper>
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="bg-[#4285f4] text-white py-3 px-6 font-medium flex items-center">
           <Users className="h-5 w-5 mr-2" />
           <span>Staff Attendance Records</span>
@@ -79,23 +81,23 @@ export default async function AdminHistoryPage({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+              <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-[#4285f4]">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[180px]">
                   Name
                 </TableHead>
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[150px]">
                   Department
                 </TableHead>
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[140px]">
                   Check In
                 </TableHead>
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[140px]">
                   Check Out
                 </TableHead>
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[120px]">
                   Status
                 </TableHead>
-                <TableHead className="py-4 px-6 font-medium text-gray-700">
+                <TableHead className="py-4 px-6 font-semibold text-gray-800 min-w-[120px] text-center">
                   Photo
                 </TableHead>
               </TableRow>
@@ -118,55 +120,54 @@ export default async function AdminHistoryPage({
                   </TableCell>
                 </TableRow>
               ) : (
-                attendanceRecords.map((record) => (
+                attendanceRecords.map((record, index) => (
                   <TableRow
                     key={record.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                    className={`border-b border-gray-100 hover:bg-blue-50/50 transition-all duration-200 ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                    }`}
                   >
                     <TableCell className="py-4 px-6 font-medium text-gray-800">
                       <Link
                         href={`/ahistory/${record.id}`}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 hover:text-[#4285f4] transition-colors"
                       >
                         {record.user.name}
                       </Link>
                     </TableCell>
                     <TableCell className="py-4 px-6 text-gray-700">
-                      {record.user.department}
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-sm font-medium">
+                        {record.user.department}
+                      </span>
                     </TableCell>
                     <TableCell className="py-4 px-6 text-gray-700">
                       {record.checkIn ? (
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 text-[#4285f4] mr-1.5" />
-                          {formatIndianTime(record.checkIn.toString())}
+                          <span className="font-medium">{formatIndianTime(record.checkIn.toString())}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-400">Not checked in</span>
+                        <span className="text-gray-400 italic">Not checked in</span>
                       )}
                     </TableCell>
                     <TableCell className="py-4 px-6 text-gray-700">
                       {record.checkOut ? (
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 text-[#4285f4] mr-1.5" />
-                          {formatIndianTime(record.checkOut.toString())}
+                          <span className="font-medium">{formatIndianTime(record.checkOut.toString())}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-400">Not checked out</span>
+                        <span className="text-gray-400 italic">Not checked out</span>
                       )}
                     </TableCell>
                     <TableCell className="py-4 px-6">
                       <StatusBadge status={record.status} late={record.late} />
                     </TableCell>
-                    <TableCell className="py-4 px-6">
-                      <Avatar className="h-10 w-10 border border-gray-200">
-                        <AvatarImage
-                          src={record.photo || ""}
-                          alt="Attendance Photo"
-                        />
-                        <AvatarFallback className="bg-gray-100 text-gray-500 text-xs">
-                          NA
-                        </AvatarFallback>
-                      </Avatar>
+                    <TableCell className="py-4 px-6 text-center">
+                      <ViewPhotoButton
+                        attendanceId={record.id}
+                        userName={record.user.name}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
@@ -185,7 +186,8 @@ export default async function AdminHistoryPage({
           </div>
           <Pagination currentPage={currentPage} totalPages={totalPages} />
         </div>
-      )}
+        )}
+      </HistoryTableWrapper>
     </div>
   );
 }
